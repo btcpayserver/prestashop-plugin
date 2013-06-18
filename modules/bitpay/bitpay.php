@@ -231,14 +231,23 @@ function bplog($contents)
 				
 			$responseString = curl_exec($curl);
 			
-			if($responseString == false) {
+			if(!$responseString) {
 				$response = curl_error($curl);
+				die(Tools::displayError("Error: no data returned from API server!"));
 			} else {
 				$response = json_decode($responseString, true);
 			}
+
 			curl_close($curl);
 
-			header('Location: ' . $response['url']);
+			if($response['error']) {
+				die(Tools::displayError("Error occurred! (" . $response['error']['type'] . " - " . $response['error']['message'] . ")"));
+				return false;
+			} else if(!$response['url']) {
+				die(Tools::displayError("Error: Response did not include invoice url!"));
+			} else {
+				header('Location:  ' . $response['url']);
+			}
 		}
 
 		function writeDetails($id_order, $cart_id, $invoice_id, $status)
