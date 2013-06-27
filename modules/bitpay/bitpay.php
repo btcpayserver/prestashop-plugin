@@ -254,7 +254,8 @@ function bplog($contents)
 		{
 			$invoice_id = stripslashes(str_replace("'", '', $invoice_id));
 			$status = stripslashes(str_replace("'", '', $status));
-
+			bplog("in write");
+			bplog($invoice_id);
 			$db = Db::getInstance();
 			$result = $db->Execute('INSERT INTO `' . _DB_PREFIX_ . 'order_bitcoin` (`id_order`, `cart_id`, `invoice_id`, `status`) VALUES(' . intval($id_order) . ', ' . intval($cart_id) . ', "' . $invoice_id . '", "' . $status . '")');
 		}
