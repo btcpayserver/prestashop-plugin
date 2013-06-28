@@ -15,6 +15,7 @@ function bplog($contents)
 	{
 		private $_html = '';
 		private $_postErrors = array();
+		private $key;
 
 		function __construct()
 		{
@@ -185,8 +186,12 @@ function bplog($contents)
 			$options['notificationURL'] = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://').htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8').__PS_BASE_URI__.'modules/'.$this->name.'/ipn.php';
 			$options['redirectURL'] = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://').htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8').__PS_BASE_URI__.'order-confirmation.php?id_cart='.$cart->id.'&id_module='.$this->id.'&id_order='.$this->currentOrder;
 			$options['posData'] = '{"cart_id": "' . $cart->id . '"';
-			$options['posData'].= ', "hash": "' . crypt($cart->id, Configuration::get('bitpay_APIKEY')) . '"';
-			$options['posData'].= '}';
+			$options['posData'].= ', "hash": "' . crypt($cart->id, Configuration::get('bitpay_APIKEY'));
+			
+			//append the key to the end of posData in order to access it in ipn.php
+			$this->key = $this->context->customer->secure_key;
+			$options['posData'].= $this->key . '"}';
+
 			$options['orderID'] = $cart->id;
 			$options['price'] = $total;
 			
@@ -254,8 +259,6 @@ function bplog($contents)
 		{
 			$invoice_id = stripslashes(str_replace("'", '', $invoice_id));
 			$status = stripslashes(str_replace("'", '', $status));
-			bplog("in write");
-			bplog($invoice_id);
 			$db = Db::getInstance();
 			$result = $db->Execute('INSERT INTO `' . _DB_PREFIX_ . 'order_bitcoin` (`id_order`, `cart_id`, `invoice_id`, `status`) VALUES(' . intval($id_order) . ', ' . intval($cart_id) . ', "' . $invoice_id . '", "' . $status . '")');
 		}
