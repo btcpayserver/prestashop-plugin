@@ -12,7 +12,7 @@
 
 	$posData = json_decode($decoded['posData']);
 	bplog("inside ipn.php");
-	if ($posData->hash == crypt($posData->cart_id, Configuration::get('bitpay_APIKEY')))
+	if (substr($posData->hash, 0, 13) == crypt($posData->cart_id, Configuration::get('bitpay_APIKEY')))
 	{	
 		$bitpay = new bitpay();		
 		
