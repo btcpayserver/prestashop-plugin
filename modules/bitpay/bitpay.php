@@ -188,7 +188,7 @@ function bplog($contents)
 			$options['posData'] = '{"cart_id": "' . $cart->id . '"';
 			$options['posData'].= ', "hash": "' . crypt($cart->id, Configuration::get('bitpay_APIKEY'));
 			
-			//append the key to the end of posData in order to access it in ipn.php
+			//append the key to the end of posData in order to access it in ipn.php 
 			$this->key = $this->context->customer->secure_key;
 			$options['posData'].= $this->key . '"}';
 

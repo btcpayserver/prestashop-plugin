@@ -30,7 +30,7 @@ System Requirements:
 	Curl PHP Extension
 
 Tested with:
-  PrestaShop v1.5.3.1
+  PrestaShop v1.5.4.1
 
 Configuration Instructions:
 	1. Upload files to your PrestaShop installation.

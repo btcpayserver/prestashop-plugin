@@ -11,7 +11,7 @@
 	fclose($handle);
 
 	$posData = json_decode($decoded['posData']);
-	bplog("inside ipn.php");
+	
 	if (substr($posData->hash, 0, 13) == crypt($posData->cart_id, Configuration::get('bitpay_APIKEY')))
 	{	
 		$bitpay = new bitpay();		
@@ -24,7 +24,7 @@
 			$bitpay->validateOrder($posData->cart_id, Configuration::get('PS_OS_PAYMENT'), $decoded['price'], $bitpay->displayName, null, array(), null, false, $sec_key);
 		}
 		$bitpay->writeDetails($bitpay->currentOrder, $posData->cart_id, $decoded['id'], $decoded['status']);
-		bplog("reached write");
+		
 	}
 	else 
 	{
