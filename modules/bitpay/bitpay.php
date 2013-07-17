@@ -1,4 +1,5 @@
 <?php
+
 function bplog($contents)
 {
 	$file = 'bplog.txt';
@@ -25,7 +26,7 @@ function bplog($contents)
 
 			$this->currencies = true;
 			$this->currencies_mode = 'checkbox';
-
+	
 			parent::__construct();
 
 			$this->page = basename(__FILE__, '.php');
@@ -93,7 +94,7 @@ function bplog($contents)
 				<h2>'.$this->l('Opening your bitpay account').'</h2>
 				<div style="clear: both;"></div>
 				<p>'.$this->l('When opening your bitpay account by clicking on the following image, you are helping us significantly to improve the bitpay Solution:').'</p>
-				<p style="text-align: center;"><a href="https://bitpay.com/"><img src="../modules/bitpay/prestashop_bitpay.png" alt="PrestaShop & bitpay" style="margin-top: 12px;" /></a></p>
+				<p style="text-align: center;"><a href="https://test.bp:8088/"><img src="../modules/bitpay/prestashop_bitpay.png" alt="PrestaShop & bitpay" style="margin-top: 12px;" /></a></p>
 				<div style="clear: right;"></div>
 			</div>
 			<img src="../modules/bitpay/bitcoin.png" style="float:left; margin-right:15px;" />
@@ -131,11 +132,32 @@ function bplog($contents)
 		{
 			global $cookie;
 
+			$lowSelected = "";
+			$mediumSelected = "";
+			$highSelected = "";
+
+			//remember which speed has been selected and display that upon reaching the settings page; default to low
+			if (Configuration::get('bitpay_TXSPEED') == "high") {
+				$highSelected = "selected=\"selected\"";
+			} elseif (Configuration::get('bitpay_TXSPEED') == "medium") {
+				$mediumSelected = "selected=\"selected\"";
+			} else {
+				$lowSelected = "selected=\"selected\"";
+			}
+
 			$html = '
 			<h2>'.$this->l('Settings').'</h2>
 			<h3 style="clear:both;">'.$this->l('API Key').'</h3>
 			<div class="margin-form">
 				<input type="text" name="apikey_bitpay" value="'.htmlentities(Tools::getValue('apikey', Configuration::get('bitpay_APIKEY')), ENT_COMPAT, 'UTF-8').'" />
+			</div>
+			<h3 style="clear:both;">'.$this->l('Transaction Speed').'</h3>
+			<div class="margin-form">
+				<select name="txspeed_bitpay">
+					<option value="low" '.$lowSelected.'>Low</option>
+					<option value="medium" '.$mediumSelected.'>Medium</option>
+					<option value="high" '.$highSelected.'>High</option>
+				</select>
 			</div>
 			<p class="center"><input class="button" type="submit" name="submitbitpay" value="'.$this->l('Save settings').'" /></p>';
 			return $html;
@@ -166,6 +188,7 @@ function bplog($contents)
 				else
 				{
 					Configuration::updateValue('bitpay_APIKEY', trim(Tools::getValue('apikey_bitpay')));
+					Configuration::updateValue('bitpay_TXSPEED', trim(Tools::getValue('txspeed_bitpay')));
 
 					$this->_html = $this->displayConfirmation($this->l('Settings updated'));
 				}
@@ -178,7 +201,7 @@ function bplog($contents)
 
 			// create invoice
 			$options = $_POST;
-			$options['transactionSpeed'] = 'high';
+			$options['transactionSpeed'] = Configuration::get('bitpay_TXSPEED');
 			$options['currency'] = $currency->iso_code;
 
 			$total = $cart->getOrderTotal(true);
@@ -187,11 +210,9 @@ function bplog($contents)
 			$options['redirectURL'] = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://').htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8').__PS_BASE_URI__.'order-confirmation.php?id_cart='.$cart->id.'&id_module='.$this->id.'&id_order='.$this->currentOrder;
 			$options['posData'] = '{"cart_id": "' . $cart->id . '"';
 			$options['posData'].= ', "hash": "' . crypt($cart->id, Configuration::get('bitpay_APIKEY'));
-			
-			//append the key to the end of posData in order to access it in ipn.php 
+
 			$this->key = $this->context->customer->secure_key;
 			$options['posData'].= $this->key . '"}';
-
 			$options['orderID'] = $cart->id;
 			$options['price'] = $total;
 			
@@ -235,24 +256,23 @@ function bplog($contents)
 			curl_setopt($curl, CURLOPT_FRESH_CONNECT, 1);
 				
 			$responseString = curl_exec($curl);
-			
 			if(!$responseString) {
 				$response = curl_error($curl);
 				die(Tools::displayError("Error: no data returned from API server!"));
 			} else {
 				$response = json_decode($responseString, true);
 			}
-
 			curl_close($curl);
 
 			if($response['error']) {
+				bplog($response['error']);
 				die(Tools::displayError("Error occurred! (" . $response['error']['type'] . " - " . $response['error']['message'] . ")"));
 				return false;
 			} else if(!$response['url']) {
 				die(Tools::displayError("Error: Response did not include invoice url!"));
 			} else {
 				header('Location:  ' . $response['url']);
-			}
+			}			
 		}
 
 		function writeDetails($id_order, $cart_id, $invoice_id, $status)
@@ -260,6 +280,7 @@ function bplog($contents)
 			$invoice_id = stripslashes(str_replace("'", '', $invoice_id));
 			$status = stripslashes(str_replace("'", '', $status));
 			$db = Db::getInstance();
+			$result = $db->Execute('INSERT INTO `' . _DB_PREFIX_ . 'order_bitcoin` (`id_order`, `cart_id`, `invoice_id`, `status`) VALUES(' . intval($id_order) . ', ' . intval($cart_id) . ', "' . $invoice_id . '", "' . $status . '")');
 			$result = $db->Execute('INSERT INTO `' . _DB_PREFIX_ . 'order_bitcoin` (`id_order`, `cart_id`, `invoice_id`, `status`) VALUES(' . intval($id_order) . ', ' . intval($cart_id) . ', "' . $invoice_id . '", "' . $status . '")');
 		}
 
@@ -275,7 +296,7 @@ function bplog($contents)
 			global $smarty;
 
 			$id_order = $params['id_order'];
-
+			
 			$bitcoinpaymentdetails = $this->readBitcoinpaymentdetails($id_order);
 
 			$smarty->assign(array(
