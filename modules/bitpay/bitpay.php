@@ -94,7 +94,7 @@ function bplog($contents)
 				<h2>'.$this->l('Opening your bitpay account').'</h2>
 				<div style="clear: both;"></div>
 				<p>'.$this->l('When opening your bitpay account by clicking on the following image, you are helping us significantly to improve the bitpay Solution:').'</p>
-				<p style="text-align: center;"><a href="https://test.bp:8088/"><img src="../modules/bitpay/prestashop_bitpay.png" alt="PrestaShop & bitpay" style="margin-top: 12px;" /></a></p>
+				<p style="text-align: center;"><a href="https://bitpay.com/"><img src="../modules/bitpay/prestashop_bitpay.png" alt="PrestaShop & bitpay" style="margin-top: 12px;" /></a></p>
 				<div style="clear: right;"></div>
 			</div>
 			<img src="../modules/bitpay/bitcoin.png" style="float:left; margin-right:15px;" />
@@ -280,7 +280,6 @@ function bplog($contents)
 			$invoice_id = stripslashes(str_replace("'", '', $invoice_id));
 			$status = stripslashes(str_replace("'", '', $status));
 			$db = Db::getInstance();
-			$result = $db->Execute('INSERT INTO `' . _DB_PREFIX_ . 'order_bitcoin` (`id_order`, `cart_id`, `invoice_id`, `status`) VALUES(' . intval($id_order) . ', ' . intval($cart_id) . ', "' . $invoice_id . '", "' . $status . '")');
 			$result = $db->Execute('INSERT INTO `' . _DB_PREFIX_ . 'order_bitcoin` (`id_order`, `cart_id`, `invoice_id`, `status`) VALUES(' . intval($id_order) . ', ' . intval($cart_id) . ', "' . $invoice_id . '", "' . $status . '")');
 		}
 
