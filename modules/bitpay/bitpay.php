@@ -209,10 +209,10 @@ function bplog($contents)
 			$options['notificationURL'] = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://').htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8').__PS_BASE_URI__.'modules/'.$this->name.'/ipn.php';
 			$options['redirectURL'] = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://').htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8').__PS_BASE_URI__.'order-confirmation.php?id_cart='.$cart->id.'&id_module='.$this->id.'&id_order='.$this->currentOrder;
 			$options['posData'] = '{"cart_id": "' . $cart->id . '"';
-			$options['posData'].= ', "hash": "' . crypt($cart->id, Configuration::get('bitpay_APIKEY'));
+			$options['posData'].= ', "hash": "' . crypt($cart->id, Configuration::get('bitpay_APIKEY')) . '"';
 
 			$this->key = $this->context->customer->secure_key;
-			$options['posData'].= $this->key . '"}';
+			$options['posData'].= ', "key": "' . $this->key . '"}';
 			$options['orderID'] = $cart->id;
 			$options['price'] = $total;
 			

@@ -12,16 +12,16 @@
 
 	$posData = json_decode($decoded['posData']);
 	
-	if (substr($posData->hash, 0, 13) == crypt($posData->cart_id, Configuration::get('bitpay_APIKEY')))
+	if ($posData->hash == crypt($posData->cart_id, Configuration::get('bitpay_APIKEY')))
 	{	
 		$bitpay = new bitpay();		
 		
-		if (in_array($decoded['status'], array('confirmed', 'complete')))
+		if (in_array($decoded['status'], array('paid', 'confirmed', 'complete')))
 		{
 			if (empty(Context::getContext()->link))
 				Context::getContext()->link = new Link(); // workaround a prestashop bug so email is sent 
-			$sec_key = substr($posData->hash, -32, 32); //store secure key that we appended to end of posData
-			$bitpay->validateOrder($posData->cart_id, Configuration::get('PS_OS_PAYMENT'), $decoded['price'], $bitpay->displayName, null, array(), null, false, $sec_key);
+			$key = $posData->key;
+			$bitpay->validateOrder($posData->cart_id, Configuration::get('PS_OS_PAYMENT'), $decoded['price'], $bitpay->displayName, null, array(), null, false, $key);
 		}
 		$bitpay->writeDetails($bitpay->currentOrder, $posData->cart_id, $decoded['id'], $decoded['status']);
 		
