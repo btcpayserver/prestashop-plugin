@@ -22,7 +22,7 @@ About
 =====
 	
 + Bitcoin payment via bitpay.com for PrestaShop.
-+ Version 0.2
++ Version 0.3
 	
 System Requirements
 ===================

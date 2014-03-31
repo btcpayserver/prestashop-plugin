@@ -243,6 +243,7 @@ function bplog($contents)
 				'Content-Type: application/json',
 				"Content-Length: $length",
 				"Authorization: Basic $uname",
+				'X-BitPay-Plugin-Info: prestashop0.3',
 				);
 
 			curl_setopt($curl, CURLOPT_PORT, 443);
