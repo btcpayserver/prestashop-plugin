@@ -1,3 +1,4 @@
+Copyright (C) 2014 BITPAY, INC.<br />
 Copyright (C) 2012 by Kris
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,13 +20,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 About
-=====
+-----
 	
 + Bitcoin payment via bitpay.com for PrestaShop.
-+ Version 0.3
++ Version 0.4
 	
 System Requirements
-===================
+-------------------
 
 + BitPay.com account
 + PrestaShop 1.4+
@@ -33,14 +34,22 @@ System Requirements
 + Curl PHP Extension
 
 Configuration Instructions
-==========================
+--------------------------
 
-1. Upload files to your PrestaShop installation.
-2. Go to your PrestaShop administration. Modules -> Payments & Gateways -> "BitPay" click [Install]
-3. Go to your PrestaShop administration. Modules -> Payments & Gateways -> "BitPay" click [Configure]
-4. Create an API Key in your bitpay account at bitpay.com.
+<strong>For Prestashop versions 1.5 and older:</strong><br />
+1. Upload files to your PrestaShop installation.<br />
+2. Go to your PrestaShop administration. Modules -> Payments & Gateways -> "BitPay" click [Install]<br />
+3. Go to your PrestaShop administration. Modules -> Payments & Gateways -> "BitPay" click [Configure]<br />
+4. Create an API Key in your bitpay account at bitpay.com.<br />
 5. Enter your API Key from step 4.
 
-### Tested with:
+<strong>For Prestashop versions 1.6 and newer:</strong><br />
+1. Upload files to your PrestaShop installation.<br />
+2. Go to your PrestaShop administration. Modules -> "BitPay" click [Install]<br />
+3. Go to your PrestaShop administration. Modules -> "BitPay" click [Configure]<br />
+4. Create an API Key in your bitpay account at bitpay.com.<br />
+5. Enter your API Key from step 4.
 
-+ PrestaShop v1.5.4.1
+Tested with
+------------
++ PrestaShop v1.5.4.1 and 1.6.0.5
