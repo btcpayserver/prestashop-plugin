@@ -7,10 +7,18 @@
 	$handle = fopen('php://input','r');
 	$jsonInput = fgets($handle);
 	bplog($jsonInput);
-	$decoded = json_decode($jsonInput, true);
+	
+	if(function_exists('json_decode'))
+		$decoded = json_decode($jsonInput, true);
+	else
+		$decoded = rmJSONdecode($jsonInput);
+
 	fclose($handle);
 
-	$posData = json_decode($decoded['posData']);
+	if(function_exists('json_decode'))
+		$posData = json_decode($decoded['posData']);
+	else
+		$posData = rmJSONdecode($decoded['posData']);
 	
 	if ($posData->hash == crypt($posData->cart_id, Configuration::get('bitpay_APIKEY')))
 	{	
