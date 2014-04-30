@@ -18,7 +18,10 @@ function bplog($contents)
   if (is_array($contents))
     file_put_contents($file, var_export($contents, true)."\n", FILE_APPEND);
   else if (is_object($contents))
-    file_put_contents($file, json_encode($contents)."\n", FILE_APPEND);
+    if(function_exists('json_encode'))
+      file_put_contents($file, json_encode($contents)."\n", FILE_APPEND);
+    else
+      file_put_contents($file, serialize($contents) . "\n", FILE_APPEND);
   else
     file_put_contents($file, $contents."\n", FILE_APPEND);
 }
@@ -267,7 +270,10 @@ class bitpay extends PaymentModule
         }
       }
 
-      $post = json_encode($post);
+      if(function_exists('json_encode'))
+        $post = json_encode($post);
+      else
+        $post = rmJSONencode($post);
 
       // Call BitPay
       $curl = curl_init('https://bitpay.com/api/invoice/');
@@ -302,7 +308,10 @@ class bitpay extends PaymentModule
         $response = curl_error($curl);
         die(Tools::displayError("Error: no data returned from API server!"));
       } else {
-        $response = json_decode($responseString, true);
+        if(function_exists('json_decode'))
+          $response = json_decode($responseString, true);
+        else
+          $response = rmJSONdecode($responseString);
       }
       curl_close($curl);
 
@@ -362,5 +371,175 @@ class bitpay extends PaymentModule
 
       return $this->display(__FILE__, 'complete.tpl');
     }
+    
+    function rmJSONdecode($jsondata) {
+      $jsondata = trim(stripcslashes(str_ireplace('"','',str_ireplace('\'','',$jsondata))));
+      $jsonarray = array();
+      $level = 0;
+
+      if($jsondata == '')
+        return false;
+
+      if($jsondata[0] == '[')
+        $jsondata = trim(substr($jsondata,1,strlen($jsondata)));
+
+      if($jsondata[0] == '{')
+        $jsondata = trim(substr($jsondata,1,strlen($jsondata)));
+
+      if(substr($jsondata,strlen($jsondata)-1,1) == ']')
+        $jsondata = trim(substr($jsondata,0,strlen($jsondata)-1));
+
+      if(substr($jsondata,strlen($jsondata)-1,1) == '}')
+        $jsondata = trim(substr($jsondata,0,strlen($jsondata)-1));
+
+      $break = false;
+
+      while(!$break) {
+        if(stripos($jsondata,"\t") !== false)
+          $jsondata = str_ireplace("\t",' ',$jsondata);
+
+        if(stripos($jsondata,"\r") !== false)
+          $jsondata = str_ireplace("\r",'',$jsondata);
+
+        if(stripos($jsondata,"\n") !== false)
+          $jsondata = str_ireplace("\n",'',$jsondata);
+
+        if(stripos($jsondata,'  ') !== false)
+          $jsondata = str_ireplace('  ',' ',$jsondata);
+        else
+          $break=true;
+      }
+
+      $level = 0;
+      $x = 0;
+      $array = false;
+      $object = false;
+
+      while($x<strlen($jsondata)) {
+        $var = '';
+        $val = '';
+
+        while($x < strlen($jsondata) && $jsondata[$x] == ' ')
+          $x++;
+    
+        switch($jsondata[$x]) {
+          case '[':
+            $level++;
+            break;
+          case '{':
+            $level++;
+            break;
+        }
+
+        if($level <= 0) {
+          while($x < strlen($jsondata) && $jsondata[$x] != ':') {
+            if($jsondata[$x] != ' ') $var .= $jsondata[$x];
+            $x++;
+          }
+
+          $var = trim(stripcslashes(str_ireplace('"','',$var)));
+
+          while($x < strlen($jsondata) && ($jsondata[$x] == ' ' || $jsondata[$x] == ':'))
+            $x++;
+
+          switch($jsondata[$x]) {
+            case '[':
+              $level++;
+              break;
+            case '{':
+              $level++;
+              break;
+          }
+        }
+
+        if($level > 0) {
+ 
+          while($x<strlen($jsondata) && $level > 0) {
+            $val .= $jsondata[$x];
+            $x++;
+
+            switch($jsondata[$x]) {
+              case '[':
+                $level++;
+                break;
+              case '{':
+                $level++;
+                break;
+              case ']':
+                $level--;
+                break;
+              case '}':
+                $level--;
+                break;
+            }
+          }
+
+          if($jsondata[$x] == ']' || $jsondata[$x] == '}')
+            $val .= $jsondata[$x];
+
+          $val = trim(stripcslashes(str_ireplace('"','',$val)));
+
+          while($x < strlen($jsondata) && ($jsondata[$x] == ' ' || $jsondata[$x] == ',' || $jsondata[$x] == ']' || $jsondata[$x] == '}'))
+            $x++;
+      
+        } else {
+
+          while($x<strlen($jsondata) && $jsondata[$x] != ',') {
+            $val .= $jsondata[$x];
+            $x++;
+          }
+
+          $val = trim(stripcslashes(str_ireplace('"','',$val)));
+
+          while($x < strlen($jsondata) && ($jsondata[$x] == ' ' || $jsondata[$x] == ','))
+            $x++;
+        }
+
+        $jsonarray[$var] = $val;
+
+        if($level < 0) $level = 0;
+      }
+
+      return $jsonarray;
+
+    }
+    
+    function rmJSONencode($data) {
+      if(is_array($data)) {
+        $jsondata = '{';
+
+        foreach($data as $key => $value) {
+          $jsondata .= '"' . $key . '": ';
+
+          if(is_array($value))
+            $jsondata .= rmJSONencode($value) . ', ';
+
+          if(is_numeric($value))
+            $jsondata .= $value . ', ';
+
+          if(is_string($value))
+            $jsondata .= '"' . $value . '", ';
+
+          if(is_bool($value)) {
+            if($value)
+              $jsondata .= 'true, ';
+            else
+              $jsondata .= 'false, ';
+          }
+
+          if(is_null($value))
+            $jsondata .= 'null, ';
+        }
+
+        $jsondata = substr($jsondata,0,strlen($jsondata)-2);
+        $jsondata .= '}';
+      } else {
+        $jsondata = '{"' . $data . '"}';
+      }
+
+      return $jsondata;
+    }
+
+
   }
 ?>
