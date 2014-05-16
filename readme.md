@@ -23,7 +23,7 @@ About
 -----
 	
 + Bitcoin payment via bitpay.com for PrestaShop.
-+ Version 0.4
++ Version 0.5
 	
 System Requirements
 -------------------
@@ -32,6 +32,7 @@ System Requirements
 + PrestaShop 1.4+
 + PHP 5+
 + Curl PHP Extension
++ JSON PHP Extension
 
 Configuration Instructions
 --------------------------
