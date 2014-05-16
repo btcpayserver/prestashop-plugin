@@ -13,17 +13,7 @@ if (!defined('_PS_VERSION_'))
 
 function bplog($contents)
 {
-  $file = 'bplog.txt';
-  file_put_contents($file, date('m-d H:i:s').": ", FILE_APPEND);
-  if (is_array($contents))
-    file_put_contents($file, var_export($contents, true)."\n", FILE_APPEND);
-  else if (is_object($contents))
-    if(function_exists('json_encode'))
-      file_put_contents($file, json_encode($contents)."\n", FILE_APPEND);
-    else
-      file_put_contents($file, serialize($contents) . "\n", FILE_APPEND);
-  else
-    file_put_contents($file, $contents."\n", FILE_APPEND);
+    error_log($contents);
 }
 
 class bitpay extends PaymentModule
