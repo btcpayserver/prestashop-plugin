@@ -6,7 +6,6 @@
 		
 	$handle = fopen('php://input','r');
 	$jsonInput = fgets($handle);
-	bplog($jsonInput);
 	
 	if(function_exists('json_decode'))
 		$decoded = json_decode($jsonInput, true);
@@ -37,5 +36,4 @@
 	else 
 	{
 		bplog('Hash does not match');
-		bplog($posData);
 	}
