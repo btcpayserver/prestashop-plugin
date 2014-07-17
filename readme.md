@@ -1,5 +1,62 @@
-Copyright (C) 2014 BITPAY, INC.<br />
-Copyright (C) 2012 by Kris
+bitpay/prestashop-plugin
+========================
+
+# About
+	
++ Bitcoin payment via bitpay.com for PrestaShop.
+	
+# System Requirements
+
++ BitPay.com account
++ PrestaShop 1.4+
++ PHP 5+
++ Curl PHP Extension
++ JSON PHP Extension
+
+# Configuration
+
+<strong>For Prestashop versions 1.5 and older:</strong><br />
+1. Upload files to your PrestaShop installation.<br />
+2. Go to your PrestaShop administration. Modules -> Payments & Gateways -> "BitPay" click [Install]<br />
+3. Go to your PrestaShop administration. Modules -> Payments & Gateways -> "BitPay" click [Configure]<br />
+4. Create an API Key in your bitpay account at bitpay.com.<br />
+5. Enter your API Key from step 4.
+
+<strong>For Prestashop versions 1.6 and newer:</strong><br />
+1. Upload files to your PrestaShop installation.<br />
+2. Go to your PrestaShop administration. Modules -> "BitPay" click [Install]<br />
+3. Go to your PrestaShop administration. Modules -> "BitPay" click [Configure]<br />
+4. Create an API Key in your bitpay account at bitpay.com.<br />
+5. Enter your API Key from step 4.
+
+# Usage
+
+@TODO
+
+# Support
+
+## BitPay Support
+
+* [GitHub Issues](https://github.com/bitpay/prestashop-plugin/issues)
+  * Open an issue if you are having issues with this plugin.
+* [Support](https://support.bitpay.com)
+  * BitPay merchant support documentation
+
+## PrestaShop Support
+
+* [Homepage](http://www.prestashop.com)
+* [Documentation](http://doc.prestashop.com/)
+* [Support Forums](http://www.prestashop.com/forums/)
+
+# Contribute
+
+To contribute to this project, please fork and submit a pull request.
+
+# License
+
+The MIT License (MIT)
+
+Copyright (c) 2011-2014 BitPay
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -18,39 +75,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-
-About
------
-	
-+ Bitcoin payment via bitpay.com for PrestaShop.
-+ Version 0.5
-	
-System Requirements
--------------------
-
-+ BitPay.com account
-+ PrestaShop 1.4+
-+ PHP 5+
-+ Curl PHP Extension
-+ JSON PHP Extension
-
-Configuration Instructions
---------------------------
-
-<strong>For Prestashop versions 1.5 and older:</strong><br />
-1. Upload files to your PrestaShop installation.<br />
-2. Go to your PrestaShop administration. Modules -> Payments & Gateways -> "BitPay" click [Install]<br />
-3. Go to your PrestaShop administration. Modules -> Payments & Gateways -> "BitPay" click [Configure]<br />
-4. Create an API Key in your bitpay account at bitpay.com.<br />
-5. Enter your API Key from step 4.
-
-<strong>For Prestashop versions 1.6 and newer:</strong><br />
-1. Upload files to your PrestaShop installation.<br />
-2. Go to your PrestaShop administration. Modules -> "BitPay" click [Install]<br />
-3. Go to your PrestaShop administration. Modules -> "BitPay" click [Configure]<br />
-4. Create an API Key in your bitpay account at bitpay.com.<br />
-5. Enter your API Key from step 4.
-
-Tested with
-------------
-+ PrestaShop v1.5.4.1 and 1.6.0.5
