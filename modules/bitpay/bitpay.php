@@ -27,6 +27,7 @@
  * Updated to work with Prestashop 1.6 by Rich Morgan, rich@bitpay.com
  */
 
+
 if (!defined('_PS_VERSION_'))
   exit;
 
@@ -47,6 +48,7 @@ class bitpay extends PaymentModule {
     private $key;
 
     public function __construct() {
+      include(dirname(__FILE__).'/config.php');
       $this->name            = 'bitpay';
       $this->version         = '0.4';
       $this->author          = 'BitPay';
@@ -54,9 +56,9 @@ class bitpay extends PaymentModule {
       $this->currencies      = true;
       $this->currencies_mode = 'checkbox';
       $this->tab             = 'payments_gateways';
-
+      $this->bitpayurl       = $bitpayurl;
       if (_PS_VERSION_ > '1.5')
-        $this->controllers = array('payment', 'validation');
+      $this->controllers = array('payment', 'validation');
 
       parent::__construct();
 
@@ -275,7 +277,7 @@ class bitpay extends PaymentModule {
         $post = rmJSONencode($post);
 
       // Call BitPay
-      $curl   = curl_init('https://bitpay.com/api/invoice/');
+      $curl   = curl_init($this->bitpayurl.'/api/invoice/');
       $length = 0;
 
       if ($post) {
@@ -353,6 +355,7 @@ class bitpay extends PaymentModule {
       $bitcoinpaymentdetails = $this->readBitcoinpaymentdetails($id_order);
 
       $smarty->assign(array(
+                            'bitpayurl'    =>  $this->bitpayurl,
                             'invoice_id'    => $bitcoinpaymentdetails['invoice_id'],
                             'status'        => $bitcoinpaymentdetails['status'],
                             'id_order'      => $id_order,
