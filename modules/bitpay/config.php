@@ -1,5 +1,5 @@
 <?php
 
-  $bitpayurl = "https://bitpay.com"
-  // $bitpayurl = "https://test.bitpay.com"
+  // $bitpayurl = "https://bitpay.com"
+  $bitpayurl = "https://test.bitpay.com"
 ?>
