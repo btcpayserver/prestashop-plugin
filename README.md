@@ -31,11 +31,6 @@ bitpay/prestashop-plugin
 5. Enter your API Key from step 4.
 6. Choose "Low" or "Medium" Speed. The High Speed setting is broken.
 
-# Usage
-
-The PrestaShop plugin is currently in Advanced Beta stage. Customers are able to choose "Pay With Bitpay" and make orders, which will be communicated to back end systems. BitPay IPNs are processed by the back end system and appear as messages on each order. Order status does not update with each new message. Merchants should receive emails from BitPay advising them of the current status of orders, and of course when an order is confirmed it can be viewed in your BitPay Dashboard.
-
-The Prestashop Plugin is under heavy development, check back frequently for updates. Please help us improve this plugin by reporting any additional issues, either by email, through our support ticket system, or by opening a github issue.
 
 # Support
 
