@@ -15,6 +15,8 @@ bitpay/prestashop-plugin
 
 # Configuration
 
+The current version of prestashop is version 1.5. It is available either by cloning this repository or downloading the .zip or .tgz file from the [releases page](https://github.com/bitpay/prestashop-plugin/releases/tag/v1.5).
+
 <strong>For Prestashop versions 1.5 and older:</strong><br />
 1. Upload files to your PrestaShop installation.<br />
 2. Go to your PrestaShop administration. Modules -> Payments & Gateways -> "BitPay" click [Install]<br />
