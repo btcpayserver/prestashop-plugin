@@ -15,7 +15,7 @@ bitpay/prestashop-plugin
 
 # Configuration
 
-The current version of prestashop is version 1.5. It is available either by cloning this repository or downloading the .zip or .tgz file from the [releases page](https://github.com/bitpay/prestashop-plugin/releases/tag/v1.5).
+The current version of the prestashop plugin is version 1.5. It is available either by cloning this repository or downloading the .zip or .tgz file from the [releases page](https://github.com/bitpay/prestashop-plugin/releases/tag/v1.5).
 
 <strong>For Prestashop versions 1.5 and older:</strong><br />
 1. Upload files to your PrestaShop installation.<br />
@@ -57,7 +57,7 @@ To contribute to this project, please fork and submit a pull request.
 
 The MIT License (MIT)
 
-Copyright (c) 2011-2014 BitPay
+Copyright (c) 2011-2015 BitPay
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
