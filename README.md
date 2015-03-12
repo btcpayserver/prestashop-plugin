@@ -1,13 +1,12 @@
-bitpay/prestashop-plugin
-========================
+# Description
 
-## About
-	
-+ This is the BitPay Bitcoin payment plugin for PrestaShop.
+Bitcoin payment plugin for PrestaShop using the bitpay.com service.
+
 
 ## Quick Start Guide
 
 To get up and running with our plugin quickly, see the GUIDE here: https://github.com/bitpay/prestashop-plugin/blob/master/GUIDE.md
+
 
 # Support
 
@@ -18,15 +17,18 @@ To get up and running with our plugin quickly, see the GUIDE here: https://githu
 * [Support](https://support.bitpay.com)
   * BitPay merchant support documentation
 
+
 ## PrestaShop Support
 
 * [Homepage](http://www.prestashop.com)
 * [Documentation](http://doc.prestashop.com/)
 * [Support Forums](http://www.prestashop.com/forums/)
 
+
 # Contribute
 
 To contribute to this project, please fork and submit a pull request.
+
 
 # License
 
