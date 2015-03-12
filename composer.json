@@ -1,0 +1,30 @@
+{
+    "name": "bitpay/prestashop",
+    "description": "BitPay payment plugin for PrestaShop",
+    "type": "whmcs-plugin",
+    "keywords": ["prestashop","plugin","payment","ecommerce","bitcoin","bitpay"],
+    "homepage": "https://github.com/bitpay/prestashop-plugin",
+    "license": "MIT",
+    "support": {
+        "email": "support@bitpay.com",
+        "issues": "https://github.com/bitpay/prestashop-plugin/issues",
+        "source": "https://github.com/bitpay/prestashop-plugin"
+    },
+    "minimum-stability": "stable",
+    "require": {
+        "composer/installers": "~1.0"
+    },
+    "require-dev": {
+        "phpmd/phpmd": "*",
+        "phpdocumentor/phpdocumentor": "*",
+        "phing/phing": "*",
+        "pdepend/pdepend" : "1.1.0",
+        "squizlabs/php_codesniffer": "*",
+        "phpunit/phpunit": "*",
+        "phploc/phploc": "*",
+        "phpunit/phpunit-skeleton-generator": "*"
+    },
+    "config": {
+        "bin-dir": "bin"
+    }
+}
