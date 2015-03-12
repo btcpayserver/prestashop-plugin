@@ -2,6 +2,8 @@
 
 Bitcoin payment plugin for PrestaShop using the bitpay.com service.
 
+[![Build Status](https://travis-ci.org/bitpay/prestashop-plugin.svg?branch=master)](https://travis-ci.org/bitpay/prestashop-plugin)
+
 
 ## Quick Start Guide
 
