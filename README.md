@@ -23,7 +23,7 @@ To get up and running with our plugin quickly, see the GUIDE here: https://githu
 * Last Cart Version Tested: 1.6.0.5
 * [GitHub Issues](https://github.com/bitpay/prestashop-plugin/issues)
   * Open an issue if you are having issues with this plugin.
-* [Support](https://support.bitpay.com)
+* [Support](https://help.bitpay.com)
   * BitPay merchant support documentation
 
 
