@@ -358,7 +358,7 @@ class bitpay extends PaymentModule {
         return $result[0];
       } else {
         // $result can be empty
-        return array();
+        return array( 'invoice_id' => 0, 'status' =>'null');
       }
       
     }
