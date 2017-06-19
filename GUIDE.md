@@ -16,7 +16,7 @@ If you want to test in test mode, please see the following page for more informa
 
 ## Plugin Configuration
 
-###For Prestashop versions 1.5:
+### For Prestashop versions 1.5:
 1. Upload files to your PrestaShop installation.<br />
 2. Go to your PrestaShop administration. Modules -> Payments & Gateways -> "BitPay" click [Install]<br />
 3. Go to your PrestaShop administration. Modules -> Payments & Gateways -> "BitPay" click [Configure]<br />
@@ -24,7 +24,7 @@ If you want to test in test mode, please see the following page for more informa
 5. Enter your API Key from step 4.
 6. Choose "Low" or "Medium" Speed. The High Speed setting is broken.
 
-###For Prestashop versions 1.6 and 1.7:
+### For Prestashop versions 1.6 and 1.7:
 1. Download the latest release from https://github.com/bitpay/prestashop-plugin/releases
 2. Go to your PrestaShop administration. Under "Modules and services" select "Add new module" (v1.6) or "Upload a module" (v1.7)
 3. Go to your "installed modules" -> "BitPay" and click [Configure]<br />
