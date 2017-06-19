@@ -1,5 +1,5 @@
 <?php
-
+use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 /**
  * The MIT License (MIT)
  * 
@@ -56,8 +56,14 @@ class bitpay extends PaymentModule {
       $this->currencies      = true;
       $this->currencies_mode = 'checkbox';
       $this->tab             = 'payments_gateways';
-      $this->bitpayurl       = $bitpayurl;
-      $this->apiurl          = $apiurl;
+      $this->display         = 'view';
+      if (Configuration::get('bitpay_TESTMODE') == "1") {
+        $this->bitpayurl       = $testurl;
+        $this->apiurl          = $testurl;
+      } else {
+        $this->bitpayurl       = $bitpayurl;
+        $this->apiurl          = $bitpayurl;
+      }
       $this->sslport         = $sslport;
       $this->verifypeer      = $verifypeer;
       $this->verifyhost      = $verifyhost;
@@ -75,7 +81,6 @@ class bitpay extends PaymentModule {
       require(_PS_MODULE_DIR_ . 'bitpay/backward_compatibility/backward.php');
 
       $this->context->smarty->assign('base_dir',__PS_BASE_URI__);
-
     }
 
     public function install() {
@@ -85,7 +90,7 @@ class bitpay extends PaymentModule {
         return false;
       }
 
-      if (!parent::install() || !$this->registerHook('invoice') || !$this->registerHook('payment') || !$this->registerHook('paymentReturn')) {
+      if (!parent::install() || !$this->registerHook('invoice') || !$this->registerHook('payment') || !$this->registerHook('paymentReturn') || !$this->registerHook('paymentOptions')) {
         return false;
       }
 
@@ -122,6 +127,29 @@ class bitpay extends PaymentModule {
       $this->_setConfigurationForm();
 
       return $this->_html;
+    }
+    
+    
+    public function hookPaymentOptions($params)
+    {
+        if (!$this->active) {
+            return;
+        }
+
+        $payment_options = [
+            $this->linkToBitPay(),
+        ];
+                
+        return $payment_options;
+    }
+    
+    public function linkToBitPay()
+    {
+        $bitpay_option = new PaymentOption();
+        $bitpay_option->setCallToActionText($this->l('BitPay'))
+                      ->setAction(Configuration::get('PS_FO_PROTOCOL').__PS_BASE_URI__."modules/{$this->name}/payment.php");
+
+        return $bitpay_option;
     }
 
     public function hookPayment($params) {
@@ -185,7 +213,15 @@ class bitpay extends PaymentModule {
       $lowSelected    = '';
       $mediumSelected = '';
       $highSelected   = '';
-
+      $testmode = '';
+      
+      
+      if (Configuration::get('bitpay_TESTMODE') == "1") {
+        $testmode = "checked";
+      } else {
+        $testmode = "";
+      }
+      
       // Remember which speed has been selected and display that upon reaching the settings page; default to low
       if (Configuration::get('bitpay_TXSPEED') == "high") {
         $highSelected = "selected=\"selected\"";
@@ -196,17 +232,21 @@ class bitpay extends PaymentModule {
       }
 
       $html = '<h2>'.$this->l('Settings').'</h2>
+               <div style="clear:both;margin-bottom:30px;">
                <h3 style="clear:both;">'.$this->l('API Key').'</h3>
-               <div class="margin-form">
-               <input type="text" name="apikey_bitpay" value="'.htmlentities(Tools::getValue('apikey', Configuration::get('bitpay_APIKEY')), ENT_COMPAT, 'UTF-8').'" />
+               <input type="text" style="width:400px;" name="apikey_bitpay" value="'.htmlentities(Tools::getValue('apikey', Configuration::get('bitpay_APIKEY')), ENT_COMPAT, 'UTF-8').'" />
                </div>
+               <div style="clear:both;margin-bottom:30px;">               
                <h3 style="clear:both;">'.$this->l('Transaction Speed').'</h3>
-               <div class="margin-form">
                <select name="txspeed_bitpay">
                <option value="low" '.$lowSelected.'>Low</option>
                <option value="medium" '.$mediumSelected.'>Medium</option>
                <option value="high" '.$highSelected.'>High</option>
                </select>
+               </div>
+               <div style="clear:both;margin-bottom:30px;overflow:hidden;">
+               <h3 style="clear:both;">'.$this->l('Test Mode').'</h3>
+               <label style="width:auto;"><input type="checkbox" name="testmode_bitpay" value="1" '.$testmode.'> '.$this->l('Check to enable').'</label>
                </div>
                <p class="center"><input class="button" type="submit" name="submitbitpay" value="'.$this->l('Save settings').'" /></p>';
 
@@ -233,7 +273,7 @@ class bitpay extends PaymentModule {
         } else {
           Configuration::updateValue('bitpay_APIKEY', trim(Tools::getValue('apikey_bitpay')));
           Configuration::updateValue('bitpay_TXSPEED', trim(Tools::getValue('txspeed_bitpay')));
-
+          Configuration::updateValue('bitpay_TESTMODE', trim(Tools::getValue('testmode_bitpay')));
           $this->_html = $this->displayConfirmation($this->l('Settings updated'));
         }
 
@@ -351,17 +391,27 @@ class bitpay extends PaymentModule {
 
     public function readBitcoinpaymentdetails($id_order) {
       $db = Db::getInstance();
+      $result = array();
       $result = $db->ExecuteS('SELECT * FROM `' . _DB_PREFIX_ . 'order_bitcoin` WHERE `id_order` = ' . intval($id_order) . ';');
-      return $result[0];
+      if (count($result)>0) {
+            return $result[0];
+      } else {
+         return array( 'invoice_id' => 0, 'status' =>'null');
+      }
     }
 
     public function hookInvoice($params) {
       global $smarty;
-
+            
       $id_order = $params['id_order'];
 
       $bitcoinpaymentdetails = $this->readBitcoinpaymentdetails($id_order);
 
+      if($bitcoinpaymentdetails['invoice_id'] === 0)
+      {
+          return;
+      }
+      
       $smarty->assign(array(
                             'bitpayurl'    =>  $this->bitpayurl,
                             'invoice_id'    => $bitcoinpaymentdetails['invoice_id'],
@@ -371,7 +421,6 @@ class bitpay extends PaymentModule {
                             'this_path'     => $this->_path,
                             'this_path_ssl' => Configuration::get('PS_FO_PROTOCOL').$_SERVER['HTTP_HOST'].__PS_BASE_URI__."modules/{$this->name}/"
                            ));
-
       return $this->display(__FILE__, 'invoice_block.tpl');
     }
 
@@ -557,17 +606,9 @@ class bitpay extends PaymentModule {
       return $jsondata;
     }
 
-
-    private function makeCurlCall($post, $curl) {
+    public function get_invoice($invoiceID) {   
+      $curl = curl_init($this->apiurl.'/api/invoice/'.$invoiceID);
       $length = 0;
-
-      if ($post) {
-        curl_setopt($curl, CURLOPT_POST, 1);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
-
-        $length = strlen($post);
-      }
-
       $uname  = base64_encode(Configuration::get('bitpay_APIKEY'));
       $header = array(
                       'Content-Type: application/json',
@@ -576,6 +617,7 @@ class bitpay extends PaymentModule {
                       'X-BitPay-Plugin-Info: prestashop0.4',
                      );
 
+      curl_setopt($curl, CURLINFO_HEADER_OUT, true);
       curl_setopt($curl, CURLOPT_PORT, $this->sslport);
       curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
       curl_setopt($curl, CURLOPT_TIMEOUT, 10);
@@ -586,7 +628,14 @@ class bitpay extends PaymentModule {
       curl_setopt($curl, CURLOPT_FORBID_REUSE, 1);
       curl_setopt($curl, CURLOPT_FRESH_CONNECT, 1);
       
-      return curl_exec($curl);
+      $responseString = curl_exec($curl);
+      $results = json_decode($responseString, true);
+      
+      if(isset($results['id']) && !empty($results['id']))
+      {
+        return $results;
+      }
+      return false;
     }
   }
 
