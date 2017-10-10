@@ -25,12 +25,10 @@
  */
 
 include(dirname(__FILE__).'/../../config/config.inc.php');
-include(dirname(__FILE__).'/../../header.php');
 include(dirname(__FILE__).'/bitpay.php');
 
 $bitpay = new bitpay();
 
 Tools::redirect(Context::getContext()->link->getModuleLink('bitpay', 'payment'));
-include_once(dirname(__FILE__).'/../../footer.php');
 
 ?>
