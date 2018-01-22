@@ -1,6 +1,6 @@
 # Using the BitPay plugin for Prestashop
 
-## Last Cart Versions Tested: 1.6.1.14 and 1.7.1.2
+## Last Cart Versions Tested: 1.6.1.14 and 1.7.2.4
 
 ## Prerequisites
 You must have a BitPay merchant account to use this plugin.  It's free to [sign-up for a BitPay merchant account](https://bitpay.com/start).
