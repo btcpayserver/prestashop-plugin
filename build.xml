@@ -62,7 +62,7 @@
     <!--
         Used to run a build on Travis CI
     -->
-    <target name="build-travis" hidden="true"
+    <target name="build-travis"
         description="Runs a build that is specific to the Travis CI environment">
         <phingcall target="build" />
     </target>
@@ -89,7 +89,7 @@
         Cleans up and makes sure that the build is
         clean
     -->
-    <target name="clean" hidden="true">
+    <target name="clean" >
         <delete dir="build/docs" verbose="true" />
         <delete dir="build/logs" verbose="true" />
     </target>
@@ -97,7 +97,7 @@
     <!--
         Prepares the project for a build
     -->
-    <target name="prepare" depends="clean" hidden="true">
+    <target name="prepare" depends="clean">
         <mkdir dir="build/cache" />
         <mkdir dir="build/logs" />
     </target>

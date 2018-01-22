@@ -1,2 +1,12 @@
+1.7.1 [22 January 2018]
+* Fixed Internal server error (#49)
+* Fixed PS 1.7.2.2 - Installation fail (#48)
+
+1.7.0 (19 June 2017)
+* Now compatible with PrestaShop 1.6 and 1.7
+
+1.5.0 (11 March 2015)  
+* Now compatible with PrestaShop 1.5+
+
 Version 0.5
 	* Tested against PrestaShop v1.5.4.1 and 1.6.0.5

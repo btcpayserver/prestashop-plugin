@@ -3,7 +3,7 @@ use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 /**
  * The MIT License (MIT)
  * 
- * Copyright (c) 2011-2014 BitPay
+ * Copyright (c) 2011-2018 BitPay
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -44,13 +44,12 @@ function bplog($contents) {
 
 class bitpay extends PaymentModule {
     private $_html       = '';
-    private $_postErrors = array();
     private $key;
 
     public function __construct() {
       include(dirname(__FILE__).'/config.php');
       $this->name            = 'bitpay';
-      $this->version         = '0.4';
+      $this->version         = '1.7.1';
       $this->author          = 'BitPay';
       $this->className       = 'bitpay';
       $this->currencies      = true;
@@ -67,8 +66,8 @@ class bitpay extends PaymentModule {
       $this->sslport         = $sslport;
       $this->verifypeer      = $verifypeer;
       $this->verifyhost      = $verifyhost;
-      if (_PS_VERSION_ > '1.5')
       $this->controllers = array('payment', 'validation');
+      $this->bootstrap = true;
 
       parent::__construct();
 
@@ -76,11 +75,6 @@ class bitpay extends PaymentModule {
       $this->displayName      = $this->l('bitpay');
       $this->description      = $this->l('Accepts Bitcoin payments via BitPay.');
       $this->confirmUninstall = $this->l('Are you sure you want to delete your details?');
-
-      // Backward compatibility
-      require(_PS_MODULE_DIR_ . 'bitpay/backward_compatibility/backward.php');
-
-      $this->context->smarty->assign('base_dir',__PS_BASE_URI__);
     }
 
     public function install() {
@@ -90,7 +84,7 @@ class bitpay extends PaymentModule {
         return false;
       }
 
-      if (!parent::install() || !$this->registerHook('invoice') || !$this->registerHook('payment') || !$this->registerHook('paymentReturn') || !$this->registerHook('paymentOptions')) {
+      if (!parent::install() || !$this->registerHook('invoice') || !$this->registerHook('paymentReturn') || !$this->registerHook('paymentOptions')) {
         return false;
       }
 
@@ -146,21 +140,10 @@ class bitpay extends PaymentModule {
     public function linkToBitPay()
     {
         $bitpay_option = new PaymentOption();
-        $bitpay_option->setCallToActionText($this->l('BitPay'))
+        $bitpay_option->setCallToActionText($this->l('Bit Pay'))
                       ->setAction(Configuration::get('PS_FO_PROTOCOL').__PS_BASE_URI__."modules/{$this->name}/payment.php");
 
         return $bitpay_option;
-    }
-
-    public function hookPayment($params) {
-      global $smarty;
-
-      $smarty->assign(array(
-                            'this_path' => $this->_path,
-                            'this_path_ssl' => Configuration::get('PS_FO_PROTOCOL').$_SERVER['HTTP_HOST'].__PS_BASE_URI__."modules/{$this->name}/")
-                           );
-
-      return $this->display(__FILE__, 'payment.tpl');
     }
 
     private function _setbitpaySubscription() {
@@ -311,6 +294,8 @@ class bitpay extends PaymentModule {
                                            'transactionSpeed', 'buyerName', 'buyerAddress1', 
                                            'buyerAddress2', 'buyerCity', 'buyerState', 'buyerZip', 
                                            'buyerEmail', 'buyerPhone');
+      
+
 
       foreach($postOptions as $o) {
         if (array_key_exists($o, $options))
@@ -338,7 +323,7 @@ class bitpay extends PaymentModule {
                       'Content-Type: application/json',
                       'Content-Length: ' . $length,
                       'Authorization: Basic ' . $uname,
-                      'X-BitPay-Plugin-Info: prestashop0.4',
+                      'X-BitPay-Plugin-Info: PrestaShop'.$this->version,
                      );
 
       curl_setopt($curl, CURLINFO_HEADER_OUT, true);
@@ -377,7 +362,9 @@ class bitpay extends PaymentModule {
       } else if(!$response['url']) {
         die(Tools::displayError("Error: Response did not include invoice url!"));
       } else {
+        \ob_clean();  
         header('Location:  ' . $response['url']);
+        exit;
       }
  
     }
@@ -393,13 +380,11 @@ class bitpay extends PaymentModule {
       $db = Db::getInstance();
       $result = array();
       $result = $db->ExecuteS('SELECT * FROM `' . _DB_PREFIX_ . 'order_bitcoin` WHERE `id_order` = ' . intval($id_order) . ';');
-      
       if (count($result)>0) {
-        return $result[0];
+            return $result[0];
       } else {
-        // $result can be empty
-        return array( 'invoice_id' => 0, 'status' =>'null');
-      }      
+         return array( 'invoice_id' => 0, 'status' =>'null');
+      }
     }
 
     public function hookInvoice($params) {
@@ -616,7 +601,7 @@ class bitpay extends PaymentModule {
                       'Content-Type: application/json',
                       'Content-Length: ' . $length,
                       'Authorization: Basic ' . $uname,
-                      'X-BitPay-Plugin-Info: prestashop0.4',
+                      'X-BitPay-Plugin-Info: PrestaShop' . $this->version,
                      );
 
       curl_setopt($curl, CURLINFO_HEADER_OUT, true);
@@ -640,5 +625,3 @@ class bitpay extends PaymentModule {
       return false;
     }
   }
-
-?>
