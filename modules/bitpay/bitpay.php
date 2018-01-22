@@ -227,9 +227,9 @@ class bitpay extends PaymentModule {
                <option value="high" '.$highSelected.'>High</option>
                </select>
                </div>
-               <div style="clear:both;margin-bottom:30px;overflow:hidden;">
+               <div style="clear:both;margin-bottom:30px;">
                <h3 style="clear:both;">'.$this->l('Test Mode').'</h3>
-               <label style="width:auto;"><input type="checkbox" name="testmode_bitpay" value="1" '.$testmode.'> '.$this->l('Check to enable').'</label>
+               <label style="width:auto;"><input type="checkbox" name="testmode_bitpay" value="1" '.$testmode.'> '.$this->l('Check to enable test mode').'</label>
                </div>
                <p class="center"><input class="button" type="submit" name="submitbitpay" value="'.$this->l('Save settings').'" /></p>';
 
