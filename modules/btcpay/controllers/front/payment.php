@@ -1,7 +1,7 @@
 <?php
 
 
-class bitpayPaymentModuleFrontController extends ModuleFrontController
+class btcpayPaymentModuleFrontController extends ModuleFrontController
 {
   public $ssl = true;
   public $display_column_left = false;

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+    <name>btcpay</name>
+    <displayName><![CDATA[btcpay]]></displayName>
+    <version><![CDATA[0.1.0]]></version>
+    <description><![CDATA[Acceptez les paiements en bitcoin via BTCPay.]]></description>
+    <author><![CDATA[ADAPP]]></author>
+    <tab><![CDATA[payments_gateways]]></tab>
+    <confirmUninstall><![CDATA[Êtes-vous sûr de vouloir supprimer ce module?]]></confirmUninstall>
+    <is_configurable>1</is_configurable>
+    <need_instance>1</need_instance>
+    <limited_countries></limited_countries>
+</module>

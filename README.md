@@ -1,31 +1,48 @@
-# Notice
+# Prestashop Plugin for BTCPay server, an opensource Payment processor
 
-This is a Community-supported project.
+Warning this is an Beta version
+Use it at your own risk
 
-If you are interested in becoming a maintainer of this project, please contact us at integrations@bitpay.com. Developers at BitPay will attempt to work along the new maintainers to ensure the project remains viable for the foreseeable future.
+## Description
 
-# Description
+A bitcoin payment plugin for PrestaShop using BTCPay server.
+BTCPay Server is a free and open source server for merchants wanting to accept Bitcoin for their business.
+The API is compatible with Bitpay service to allow seamless migration.
 
-Bitcoin payment plugin for PrestaShop using the bitpay.com service.
-
-[![Build Status](https://travis-ci.org/bitpay/prestashop-plugin.svg?branch=master)](https://travis-ci.org/bitpay/prestashop-plugin)
-
+BTCPay is design to be easy to deploy on container hosting platform like Azure.
+and if you want, some companies provide hosting services.
 
 ## Quick Start Guide
 
-To get up and running with our plugin quickly, see the GUIDE here: https://github.com/bitpay/prestashop-plugin/blob/master/GUIDE.md
+To get up and running with our plugin quickly, see the GUIDE here: https://github.com/adapp-tech/prestashop-plugin/blob/master/GUIDE.md
+
+
+# Internals
+
+This plugin only generate Prestashop order and invoice (aka postponed order), when payment is received.
+Prestashop design ensure customer is ready to pay, with a checkbox, when he is forwarded to payment processor.
+
+
+# TODO
+Their is still a lot's of place for improvement.
+* composer with php-bitpay-client
+* on/off postponed order
+* direct configuration for block confirmations
+* docker for testing
+* travis integration
+* check 1.6.X compatibility
 
 
 # Support
 
-## BitPay Support
+## Tested successfully
+* Prestashop 1.7.x
+* BTCPay server v1.0.1 and v1.0.2
 
-* Last Cart Version Tested: 1.7.2.4 and 1.6.1.14 
-* [GitHub Issues](https://github.com/bitpay/prestashop-plugin/issues)
-  * Open an issue if you are having issues with this plugin.
-* [Support](https://help.bitpay.com)
-  * BitPay merchant support documentation
+## Contribute
 
+To contribute to this project, please fork and submit a pull request.
+* [GitHub Issues](https://github.com/adapptech/prestashop-plugin/issues)
 
 ## PrestaShop Support
 
@@ -34,15 +51,11 @@ To get up and running with our plugin quickly, see the GUIDE here: https://githu
 * [Support Forums](http://www.prestashop.com/forums/)
 
 
-# Contribute
-
-To contribute to this project, please fork and submit a pull request.
-
-
 # License
 
 The MIT License (MIT)
 
+Copyright (c) 2018-2018 ADAPP
 Copyright (c) 2011-2018 BitPay
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

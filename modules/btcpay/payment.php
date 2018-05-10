@@ -3,6 +3,7 @@
 /**
  * The MIT License (MIT)
  * 
+ * Copyright (c) 2018 ADAPP
  * Copyright (c) 2011-2014 BitPay
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,10 +26,14 @@
  */
 
 include(dirname(__FILE__).'/../../config/config.inc.php');
-include(dirname(__FILE__).'/bitpay.php');
+//prestatshop 1.7
+//include(dirname(__FILE__).'/../../header.php');
+include(dirname(__FILE__).'/btcpay.php');
 
-$bitpay = new bitpay();
+$btcpay = new btcpay();
 
-Tools::redirect(Context::getContext()->link->getModuleLink('bitpay', 'payment'));
+#$redirect_url = (Configuration::get('PS_SSL_ENABLED') ? 'https://' : 'http://').htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8').__PS_BASE_URI__.'module/'.$this->name.'/payment.php';
+$redirect_url = Context::getContext()->link->getModuleLink('btcpay', 'payment');
+Tools::redirect($redirect_url);
 
 ?>

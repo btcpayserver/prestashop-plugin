@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
  -->
-<project name="bitpay/build-script" default="build">
+<project name="btcpay/build-script" default="build">
     <!--
         Default properties
     -->

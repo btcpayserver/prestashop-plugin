@@ -1,24 +1,31 @@
 {
-    "name": "bitpay/prestashop",
-    "description": "BitPay payment plugin for PrestaShop",
+    "name": "btcpay/prestashop",
+    "description": "BTCPay payment plugin for PrestaShop",
     "type": "whmcs-plugin",
-    "keywords": ["prestashop","plugin","payment","ecommerce","bitcoin","bitpay"],
-    "homepage": "https://github.com/bitpay/prestashop-plugin",
+    "keywords": ["prestashop","plugin","payment","ecommerce","bitcoin","btcpay"],
+    "homepage": "https://github.com/adapp-tech/prestashop-plugin",
     "license": "MIT",
     "support": {
-        "email": "support@bitpay.com",
-        "issues": "https://github.com/bitpay/prestashop-plugin/issues",
-        "source": "https://github.com/bitpay/prestashop-plugin"
+        "email": "hello@adapp.tech",
+        "issues": "https://github.com/adapp-tech/prestashop-plugin/issues",
+        "source": "https://github.com/adapp-tech/prestashop-plugin"
     },
     "minimum-stability": "stable",
     "authors": [
         {
-            "name": "BitPay Integrations Development Team",
-            "email": "integrations@bitpay.com",
-            "homepage": "https://bitpay.com/integrations"
+            "name": "Adrien",
+            "email": "adrien@adapp.tech",
+            "homepage": "https://testpay.adapp.tech/integrations"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/adapp-tech/prestashop-plugin.git"
         }
     ],
     "require": {
+        "bitpay/php-client": "4.0.2",
         "php": ">=5.3",
         "ext-curl": "*",
         "ext-json": "*",
