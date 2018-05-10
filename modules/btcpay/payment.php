@@ -3,7 +3,6 @@
 /**
  * The MIT License (MIT)
  * 
- * Copyright (c) 2018 ADAPP
  * Copyright (c) 2011-2014 BitPay
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
