@@ -79,16 +79,6 @@ class btcpay extends PaymentModule {
       $this->is_eu_compatible = 1;
       $this->ps_versions_compliancy = array('min' => '1.7', 'max' => '1.7');
 
-      if (Configuration::get('btcpay_TESTMODE') == "1") {
-        $this->btcpayurl       = $testurl;
-        $this->apiurl          = $testurl;
-      } else {
-        $this->btcpayurl       = $btcpayurl;
-        $this->apiurl          = $btcpayurl;
-      }
-      $this->sslport         = $sslport;
-      $this->verifypeer      = $verifypeer;
-      $this->verifyhost      = $verifyhost;
       $this->controllers = array('payment', 'validation');
       $this->bootstrap = true;
 
@@ -99,13 +89,6 @@ class btcpay extends PaymentModule {
       $this->description      = $this->l('Accepts Bitcoin payments via BTCPay.');
       $this->confirmUninstall = $this->l('Are you sure you want to delete your details?');
 
-      // Define BitPay settings
-      $this->api_key            = null;
-      $this->api_pub            = null;
-      $this->api_sin            = null;
-      $this->api_token          = null;
-      $this->api_token_label    = null;
-      $this->api_url            = null;
     }
 
     public function install() {
@@ -150,29 +133,31 @@ class btcpay extends PaymentModule {
       // to be sure not other plugin do that.
       // TODO maybe take the last number available
 
-      $query = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('39','1','En attente de la transaction Bitcoin','emitbtcpayment');";
+      $query = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('39','1','Want to pay in Bitcoin','emitbtcpayment');";
+      $db->Execute($query);
+      $query = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('39', '0', '0', 'btcpay', '#FFFF00', '1', '0', '0', '0', '0', '0', '0', '0', '0');";
       $db->Execute($query);
 
-      $query = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('40','1','En attente de la transaction Bitcoin','waitingbtcconfirmation');";
+      $query = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('40','1','Waiting Bitcoin confirmations','waitingbtcconfirmation');";
       $db->Execute($query);
-
       $query = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('40', '0', '0', 'btcpay', '#FFFF00', '1', '0', '0', '0', '0', '0', '0', '0', '0');";
       $db->Execute($query);
 
-      $query2 = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('42','1','Paiement Bitcoin confirmé','paidbtcconfirmation');";
-      $db->Execute($query2);
+      $query  = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('41','1','Bitcoin transaction invalid','invalidbtcconfirmation');";
+      $db->Execute($query);
+      $query  = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('41', '0', '0', 'btcpay', '#FFCE1C', '1', '0', '1', '0', '0', '1', '0', '0', '0');";
+      $db->Execute($query);
 
-      $query2 = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('42', '0', '0', 'btcpay', '#FFCE00', '1', '0', '1', '0', '0', '1', '1', '0', '0');";
-      $db->Execute($query2);
-
-      $query3 = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('41','1','Transaction Bitcoin invalide','invalidbtcconfirmation');";
-      $db->Execute($query3);
+      $query  = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('42','1','Bitcoin payment confirm','paidbtcconfirmation') ON CONFICT (`id_order_state`);";
+      $db->Execute($query);
+      $query  = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('42', '0', '0', 'btcpay', '#FFCE00', '1', '0', '1', '0', '0', '1', '1', '0', '0');";
+      $db->Execute($query);
 
       // insert module install timestamp
       $query = "INSERT IGNORE INTO `ps_configuration` (`name`, `value`, `date_add`, `date_upd`) VALUES ('PS_OS_BTCPAY', '13', NOW(), NOW());";
       $db->Execute($query);
 
-      //init configurations
+      //init clear configurations
       Configuration::updateValue('btcpay_URL', "");
       Configuration::updateValue('btcpay_LABEL', "");
       Configuration::updateValue('btcpay_PAIRINGCODE', "");
@@ -364,8 +349,6 @@ class btcpay extends PaymentModule {
       }
       $sin->setPublicKey($pub);
       $sin->generate();
-
-      $order_status = (int)$status_btcpay;
 
       // Create an API Client
       $client = new \Bitpay\Client\Client();
