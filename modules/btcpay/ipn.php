@@ -107,7 +107,7 @@ if (true == array_key_exists('name', $event) && strcmp($event[name],"invoice_rec
 
     // get invoice id, to go back on cart and check the amount
     $invoice_id = (string)$data[id];
-    if ( false === isset($rate)) {
+    if ( false === isset($invoice_id)) {
         PrestaShopLogger::addLog('[Error] No invoice id',3);
         exit;
     }
