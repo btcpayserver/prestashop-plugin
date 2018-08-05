@@ -70,7 +70,7 @@ class btcpay extends PaymentModule {
 
       $this->name            = 'btcpay';
       $this->tab             = 'payments_gateways';
-      $this->version         = '0.1.0';
+      $this->version         = '0.2.0';
       $this->author          = 'ADAPP';
       $this->className       = 'btcpay';
       $this->currencies      = true;
@@ -166,6 +166,7 @@ class btcpay extends PaymentModule {
       Configuration::updateValue('btcpay_SIN', "");
       Configuration::updateValue('btcpay_TOKEN', "");
       Configuration::updateValue('btcpay_TXSPEED', "");
+      Configuration::updateValue('btcpay_ORDERMODE', "");
 
       return true;
     }
@@ -274,6 +275,12 @@ class btcpay extends PaymentModule {
     private function _getSettingsTabHtml() {
       global $cookie;
 
+      // default set a test btcpayserver
+      $btcpayserver_url = Configuration::get('btcpay_URL');
+      if (true === empty($btcpayserver_url)) {
+          $btcpayserver_url = "https://btcpay-server-testnet.azurewebsites.net";
+      }
+
       // select list for bitcoin confirmation
       // 'default' => 'Keep store level configuration',
       // 'high'    => '0 confirmation on-chain',
@@ -284,11 +291,6 @@ class btcpay extends PaymentModule {
       $mediumSelected = '';
       $highSelected   = '';
 
-      $btcpayserver_url = Configuration::get('btcpay_URL');
-      if (true === empty($btcpayserver_url)) {
-          $btcpayserver_url = "https://btcpay-server-testnet.azurewebsites.net";
-      }
-
       // Remember which speed has been selected and display that upon reaching the settings page; default to low
       if (Configuration::get('btcpay_TXSPEED') == "high") {
         $highSelected = "selected=\"selected\"";
@@ -296,6 +298,21 @@ class btcpay extends PaymentModule {
         $mediumSelected = "selected=\"selected\"";
       } else {
         $lowSelected = "selected=\"selected\"";
+      }
+
+      // delayed order mecanism
+      // create a 'prestashop order' when you create btcpay invoice
+      // or
+      // create a 'prestashop order' when you receive bitcoin payment
+      // or
+      // create a 'prestashop order' when you receive bitcoin payment and confirmation
+      $orderBeforePaymentSelected = '';
+      $orderAfterPaymentSelected = '';
+
+      if (Configuration::get('btcpay_ORDERMODE') == "afterpayment") {
+        $orderAfterPaymentSelected = "selected=\"selected\"";
+      } else {
+        $orderBeforePaymentSelected = "selected=\"selected\"";
       }
 
       $html = '<h2>'.$this->l('Settings').'</h2>
@@ -314,6 +331,14 @@ class btcpay extends PaymentModule {
                    <option value="low" '.$lowSelected.'>Low</option>
                    <option value="medium" '.$mediumSelected.'>Medium</option>
                    <option value="high" '.$highSelected.'>High</option>
+                 </select>
+               </div>
+
+               <div style="clear:both;margin-bottom:30px;">
+               <h3 style="clear:both;">'.$this->l('Order Mode').'</h3>
+                 <select name="form_btcpay_ordermode">
+                   <option value="beforepayment" '.$orderBeforePaymentSelected.'>Low</option>
+                   <option value="afterpayment" '.$orderAfterPaymentSelected.'>Medium</option>
                  </select>
                </div>
 
@@ -457,6 +482,7 @@ class btcpay extends PaymentModule {
               Tools::getValue('form_btcpay_url')
           );
 
+          Configuration::updateValue('btcpay_ORDERMODE', trim(Tools::getValue('form_btcpay_ordermode')));
           Configuration::updateValue('btcpay_TXSPEED', trim(Tools::getValue('form_btcpay_txspeed')));
           Configuration::updateValue('btcpay_PAIRINGCODE', trim(Tools::getValue('form_btcpay_pairingcode')));
           Configuration::updateValue('btcpay_URL', trim(Tools::getValue('form_btcpay_url')));
@@ -547,7 +573,6 @@ class btcpay extends PaymentModule {
           $this->_errors[]  = $this->l('[Error] The BTCPay payment plugin was called to process a payment but could not instantiate an item object.');
       }
 
-
       $customer = new Customer((int)$cart->id_customer);
       $email = $customer->email;
 
@@ -622,6 +647,8 @@ class btcpay extends PaymentModule {
           $this->update_btcpay($cart_id, $responseData);
 
           PrestaShopLogger::addLog('BTCPay invoice assigned ' . $invoice->getId(), 2);
+
+
 
           header('Location:  ' . $invoice->getUrl());
           exit(0);

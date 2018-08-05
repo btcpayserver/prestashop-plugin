@@ -84,10 +84,99 @@ if(true === array_key_exists('data', $json))
     exit;
 }
 
+$btcpay_ordermode = Configuration::get('btcpay_ORDERMODE');
+
+### ----------------
+# Invoice created
+if (true == array_key_exists('name', $event)
+    && strcmp($event[name], "invoice_created ") == 0
+    && strcmp($btcpay_ORDERMODE, "beforepayment") == 0) {
+
+    // check if we have needed data
+    if (true === empty($data)) {
+        PrestaShopLogger::addLog('[Error] No data',3);
+        exit;
+    }
+
+    if (false === array_key_exists('id', $data)) {
+        PrestaShopLogger::addLog('[Error] No data id',3);
+        exit;
+    }
+
+    if (false === array_key_exists('url', $data)) {
+        PrestaShopLogger::addLog('[Error] No data url',3);
+        exit;
+    }
+
+    // get invoice id, to go back on cart and check the amount
+    $invoice_id = (string)$data[id];
+    if ( false === isset($invoice_id)) {
+        PrestaShopLogger::addLog('[Error] No invoice id',3);
+        exit;
+    }
+
+    $cart_id = get_order_field($invoice_id, 'cart_id');
+
+    // search the invoice to get amount
+    $cart_total = get_order_field($invoice_id, 'amount');
+
+    // waiting payment
+    $status_btcpay = 39;
+
+    // on Order, just say payment processor is BTCPay
+    $display_name = $btcpay->displayName;
+
+    // fetch secure key, used to check cart comes from your prestashop
+    $secure_key = $data[posData];
+    if ( false === isset($secure_key)) {
+        PrestaShopLogger::addLog('[Error] No securekey',3);
+        exit;
+    }
+
+    // rate in fiat currency
+    $rate = $data[rate];
+    if ( false === isset($rate)) {
+        PrestaShopLogger::addLog('[Error] No rate',3);
+        exit;
+    }
+
+    // generate an order only if their is not another one with this cart
+    $order_id = (int)Order::getIdByCartId($cart_id);
+    if ( $order_id == null
+         || $order_id == 0) {
+
+        $btcpay->validateOrder(
+             $cart_id,
+             $status_btcpay,
+             $cart_total,
+             $display_name,
+             $rate, array(), null, false,
+             $secure_key
+        );
+
+        $order_id = (int)Order::getIdByCartId($cart_id);
+
+        // register order id for payment in BTC
+        $db = Db::getInstance();
+        $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `id_order`='". $order_id ."' WHERE `invoice_id`='" . $invoice_id . "';";
+
+        $result = array();
+        $result = $db->Execute($query);
+
+        exit(0);
+    } else {
+        // Order already paid
+        PrestaShopLogger::addLog('[Error] already created order',1);
+        exit(1);
+    }
+
+}
 
 ### ----------------
 # Payment Received
-if (true == array_key_exists('name', $event) && strcmp($event[name],"invoice_receivedPayment") == 0) {
+if (true == array_key_exists('name', $event)
+    && strcmp($event[name], "invoice_receivedPayment") == 0
+    && strcmp($btcpay_ORDERMODE, "beforepayment") == 0) {
 
     // check if we have needed data
     if (true === empty($data)) {
@@ -137,6 +226,7 @@ if (true == array_key_exists('name', $event) && strcmp($event[name],"invoice_rec
         exit;
     }
 
+    $btcpay_ordermode = Configuration::get('btcpay_ORDERMODE');
     // generate an order only if their is not another one with this cart
     $order_id = (int)Order::getIdByCartId($cart_id);
     if ( $order_id == null
