@@ -165,6 +165,7 @@ class btcpay extends PaymentModule {
       Configuration::updateValue('btcpay_PUB', "");
       Configuration::updateValue('btcpay_SIN', "");
       Configuration::updateValue('btcpay_TOKEN', "");
+      Configuration::updateValue('btcpay_TXSPEED', "");
 
       return true;
     }
@@ -273,9 +274,28 @@ class btcpay extends PaymentModule {
     private function _getSettingsTabHtml() {
       global $cookie;
 
+      // select list for bitcoin confirmation
+      // 'default' => 'Keep store level configuration',
+      // 'high'    => '0 confirmation on-chain',
+      // 'medium'  => '1 confirmation on-chain',
+      // 'low-medium'  => '2 confirmations on-chain',
+      // 'low'     => '6 confirmations on-chain',
+      $lowSelected    = '';
+      $mediumSelected = '';
+      $highSelected   = '';
+
       $btcpayserver_url = Configuration::get('btcpay_URL');
       if (true === empty($btcpayserver_url)) {
           $btcpayserver_url = "https://btcpay-server-testnet.azurewebsites.net";
+      }
+
+      // Remember which speed has been selected and display that upon reaching the settings page; default to low
+      if (Configuration::get('btcpay_TXSPEED') == "high") {
+        $highSelected = "selected=\"selected\"";
+      } elseif (Configuration::get('btcpay_TXSPEED') == "medium") {
+        $mediumSelected = "selected=\"selected\"";
+      } else {
+        $lowSelected = "selected=\"selected\"";
       }
 
       $html = '<h2>'.$this->l('Settings').'</h2>
@@ -286,6 +306,15 @@ class btcpay extends PaymentModule {
                <h3 style="clear:both;">'.$this->l('BTCPAY Server URL').'</h3>
                <div class="bitpay-pairing bitpay-pairing--live">
                  <input name="form_btcpay_url" type="text" value="'.htmlentities(Tools::getValue('serverurl', Configuration::get('btcpay_URL')),ENT_COMPAT, 'UTF-8').'" placeholder="BTCPay Url (eg. '.$btcpayserver_url.')" class="bitpay-url"> <br />
+               </div>
+
+               <div style="clear:both;margin-bottom:30px;">
+               <h3 style="clear:both;">'.$this->l('Transaction Speed').'</h3>
+                 <select name="form_btcpay_txspeed">
+                   <option value="low" '.$lowSelected.'>Low</option>
+                   <option value="medium" '.$mediumSelected.'>Medium</option>
+                   <option value="high" '.$highSelected.'>High</option>
+                 </select>
                </div>
 
                <div style="clear:both;margin-bottom:30px;">
@@ -428,6 +457,7 @@ class btcpay extends PaymentModule {
               Tools::getValue('form_btcpay_url')
           );
 
+          Configuration::updateValue('btcpay_TXSPEED', trim(Tools::getValue('form_btcpay_txspeed')));
           Configuration::updateValue('btcpay_PAIRINGCODE', trim(Tools::getValue('form_btcpay_pairingcode')));
           Configuration::updateValue('btcpay_URL', trim(Tools::getValue('form_btcpay_url')));
           $this->_html = $this->displayConfirmation($this->l('Pairing created'));
@@ -440,6 +470,8 @@ class btcpay extends PaymentModule {
 
       // Get shopping currency,  currently tested with be EUR
       $currency = Currency::getCurrencyInstance((int)$cart->id_currency);
+
+      $transaction_speed = Configuration::get('btcpay_TXSPEED');
 
       // get the cart id to fetch cart information
       $cart_id = $cart->id;
@@ -550,7 +582,7 @@ class btcpay extends PaymentModule {
       // Add the Redirect and Notification URLs
       $invoice->setRedirectUrl($redirect_url);
       $invoice->setNotificationUrl($notification_url);
-      $this->transaction_speed = 'default';
+      $invoice->setTransactionSpeed($transaction_speed);
 
       // If another BTCPay invoice was created before, returns the original one
       $redirect = $this->get_btcpay_redirect($cart_id, $client);
