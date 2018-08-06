@@ -163,6 +163,18 @@ if (true == array_key_exists('name', $event)
         $result = array();
         $result = $db->Execute($query);
 
+        // update order_bitcoin paid amount
+        $db = Db::getInstance();
+        $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `btc_paid`='0.0' WHERE `id_order`=" . intval($order_id) . ';';
+        $result = array();
+        $result = $db->Execute($query);
+
+        // update payment status
+        $db = Db::getInstance();
+        $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `status`='" . $order_status . "' WHERE `id_order`=" . intval($order_id) . ';';
+        $result = array();
+        $result = $db->Execute($query);
+
         exit(0);
     } else {
         // Order already paid
@@ -176,7 +188,7 @@ if (true == array_key_exists('name', $event)
 # Payment Received
 if (true == array_key_exists('name', $event)
     && strcmp($event[name], "invoice_receivedPayment") == 0
-    && strcmp($btcpay_ORDERMODE, "beforepayment") == 0) {
+    && strcmp($btcpay_ORDERMODE, "afterpayment") == 0) {
 
     // check if we have needed data
     if (true === empty($data)) {
@@ -272,9 +284,43 @@ if (true == array_key_exists('name', $event)
     }
 }
 
+if (true == array_key_exists('name', $event)
+    && strcmp($event[name], "invoice_receivedPayment") == 0
+    && strcmp($btcpay_ORDERMODE, "beforepayment") == 0) {
+
+    $order_id = (int)Order::getIdByCartId($cart_id);
+    if ( $order_id == null
+         || $order_id == 0) {
+
+        // waiting confirmation
+        $status_btcpay = 40;
+
+        $order_status = (int)$status_btcpay;
+
+        // update order_bitcoin paid amount
+        $db = Db::getInstance();
+        $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `btc_paid`='".$data[btcPaid]."' WHERE `id_order`=" . intval($order_id) . ';';
+        $result = array();
+        $result = $db->Execute($query);
+
+        // update payment status
+        $db = Db::getInstance();
+        $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `status`='" . $order_status . "' WHERE `id_order`=" . intval($order_id) . ';';
+        $result = array();
+        $result = $db->Execute($query);
+
+        exit(0);
+    } else {
+        // Order already paid
+        PrestaShopLogger::addLog('[Error] already paid order',1);
+        exit(1);
+    }
+}
+
 ###
-# Payment Confirmed
-# 1 to 6 confirmation depending on your network
+# pending full payment Confirmed
+# 1 to 6 confirmation depending on your setup
+# see TX speed
 if (true === array_key_exists('name', $event) && strcmp($event[name],"invoice_paidInFull") == 0) {
     //nothing to do
     exit;
@@ -282,8 +328,9 @@ if (true === array_key_exists('name', $event) && strcmp($event[name],"invoice_pa
 
 ###
 # Payment Confirmed
-# 1 to 6 confirmation depending on your network
+# 1 to 6 confirmation depending on your setup
 # confirmed then completed
+# see TX speed
 if (true === array_key_exists('name', $event) && strcmp($event[name],"invoice_confirmed") == 0) {
 
     if (true === empty($data)) {
