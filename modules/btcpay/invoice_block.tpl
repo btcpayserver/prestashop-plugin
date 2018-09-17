@@ -14,7 +14,7 @@
 	</tr>
 	<tr>
 		<td align="left" valign="top">{l s='Status:' mod='btcpay'}</td>
-		<td>{$status}</td>
+		<td>-----{$status}</td>
 	</tr>
 	</table>
 </div>
