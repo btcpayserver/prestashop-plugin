@@ -25,13 +25,19 @@ Prestashop design ensure customer is ready to pay, with a checkbox, when he is f
 
 # TODO
 Their is still a lot's of place for improvement.
+* ~~on/off postponed order~~
+* ~~direct configuration for block confirmations~~
 * composer with php-bitpay-client
-* on/off postponed order
-* direct configuration for block confirmations
 * docker for testing
 * travis integration
 * check 1.6.X compatibility
-
+* ensure stats are correctly displayed in prestashop
+* share the same order number BTCPay server and prestashop, or give insight in order details
+* give bitcoin rate in local currency in order details
+* still in order details, give exact time of payment and bitcoin transaction
+* find a way to not override order state numbers currently used in case another plugin use it.
+e.g: plugin use order state id: 39,40,41,42.  Should use 49,50,51,52 if other plugins use the first one.
+* refactoring in ipn.php
 
 # Support
 
