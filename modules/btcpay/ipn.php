@@ -74,7 +74,7 @@ $event= array();
 
 // extended notification type
 if(true === array_key_exists('event', $json) ) {
-    $event = $json[event];
+    $event = $json['event'];
 } else {
     //nothing to do
     exit(1);
@@ -82,7 +82,7 @@ if(true === array_key_exists('event', $json) ) {
 
 $data = array();
 if(true === array_key_exists('data', $json)) {
-    $data = $json[data];
+    $data = $json['data'];
 }
 
 if (empty($json->event->code)) {
@@ -96,7 +96,7 @@ $btcpay_ordermode = Configuration::get('btcpay_ORDERMODE');
 ### ----------------
 # Invoice created
 if (true == array_key_exists('name', $event)
-    && $event[name] === "invoice_created"
+    && $event['name'] === "invoice_created"
     && $btcpay_ordermode === "beforepayment" ) {
 
     // check if we have needed data
@@ -116,7 +116,7 @@ if (true == array_key_exists('name', $event)
     }
 
     // get invoice id, to go back on cart and check the amount
-    $invoice_id = (string)$data[id];
+    $invoice_id = (string)$data['id'];
     if ( false === isset($invoice_id)) {
         PrestaShopLogger::addLog('[Error] No invoice id',3);
         exit(1);
@@ -134,14 +134,14 @@ if (true == array_key_exists('name', $event)
     $display_name = $btcpay->displayName;
 
     // fetch secure key, used to check cart comes from your prestashop
-    $secure_key = $data[posData];
+    $secure_key = $data['posData'];
     if ( false === isset($secure_key)) {
         PrestaShopLogger::addLog('[Error] No securekey',3);
         exit(1);
     }
 
     // rate in fiat currency
-    $rate = $data[rate];
+    $rate = $data['rate'];
     if ( false === isset($rate)) {
         PrestaShopLogger::addLog('[Error] No rate',3);
         exit(1);
@@ -206,7 +206,7 @@ if (true == array_key_exists('name', $event)
 # ----------------
 # Payment Received
 if (true == array_key_exists('name', $event)
-   && $event[name] === 'invoice_receivedPayment'
+   && $event['name'] === 'invoice_receivedPayment'
    && $btcpay_ordermode === 'afterpayment' ) {
 
    // check if we have needed data
@@ -226,7 +226,7 @@ if (true == array_key_exists('name', $event)
    }
 
    // get invoice id, to go back on cart and check the amount
-   $invoice_id = (string)$data[id];
+   $invoice_id = (string)$data['id'];
    if ( false === isset($invoice_id)) {
        PrestaShopLogger::addLog('[Error] No invoice id',3);
        exit;
@@ -244,14 +244,14 @@ if (true == array_key_exists('name', $event)
    $display_name = $btcpay->displayName;
 
    // fetch secure key, used to check cart comes from your prestashop
-   $secure_key = $data[posData];
+   $secure_key = $data['posData'];
    if ( false === isset($secure_key)) {
        PrestaShopLogger::addLog('[Error] No securekey',3);
        exit;
    }
 
    // rate in fiat currency
-   $rate = $data[rate];
+   $rate = $data['rate'];
    if ( false === isset($rate)) {
        PrestaShopLogger::addLog('[Error] No rate',3);
        exit;
@@ -287,7 +287,7 @@ if (true == array_key_exists('name', $event)
 
        // update order_bitcoin paid amount
        $db = Db::getInstance();
-       $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `btc_paid`='".$data[btcPaid]."' WHERE `id_order`=" . intval($order_id) . ';';
+       $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `btc_paid`='".$data['btcPaid']."' WHERE `id_order`=" . intval($order_id) . ';';
        $result = array();
        $result = $db->Execute($query);
 
@@ -313,7 +313,7 @@ if (true == array_key_exists('name', $event)
 }
 
 if (true == array_key_exists('name', $event)
-  && $event[name] === 'invoice_receivedPayment'
+  && $event['name'] === 'invoice_receivedPayment'
   && $btcpay_ordermode === 'beforepayment' ) {
 
     PrestaShopLogger::addLog('[Info] payment received', 1);
@@ -329,7 +329,7 @@ if (true == array_key_exists('name', $event)
     }
 
     // get invoice id, to go back on cart and check the amount
-    $invoice_id = (string)$data[id];
+    $invoice_id = (string)$data['id'];
     if ( false === isset($invoice_id)) {
         PrestaShopLogger::addLog('[Error] No invoice id',3);
         exit(1);
@@ -340,8 +340,8 @@ if (true == array_key_exists('name', $event)
     $result = array();
     $order_id = null;
     $result = $db->ExecuteS("SELECT `id_order` FROM `" . _DB_PREFIX_ . "order_bitcoin` WHERE `invoice_id`='" . $invoice_id . "';");
-    if (count($result) > 0 && $result[0] !== null && $result[0][id_order] !== null) {
-        $order_id = $result[0][id_order];
+    if (count($result) > 0 && $result[0] !== null && $result[0]['id_order'] !== null) {
+        $order_id = $result[0]['id_order'];
     } else {
        PrestaShopLogger::addLog('[Error] IPN order id not found', 3);
        exit(1);
@@ -354,7 +354,7 @@ if (true == array_key_exists('name', $event)
 
     // update order_bitcoin paid amount
     $db = Db::getInstance();
-    $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `btc_paid`='".$data[btcPaid]."' WHERE `id_order`=" . intval($order_id) . ';';
+    $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `btc_paid`='".$data['btcPaid']."' WHERE `id_order`=" . intval($order_id) . ';';
     $result = array();
     $result = $db->Execute($query);
 
@@ -380,13 +380,13 @@ if (true == array_key_exists('name', $event)
 # 1 to 6 confirmation depending on your setup
 # see TX speed
 if (true === array_key_exists('name', $event)
-    && $event[name] === 'invoice_paidInFull' ) {
+    && $event['name'] === 'invoice_paidInFull' ) {
     PrestaShopLogger::addLog('[Error] Paid in FULL',3);
     exit;
 }
 
 if (true === array_key_exists('name', $event)
-    && $event[name] === 'invoice_failedToConfirm' or $event[name] === 'invoice_markedInvalid' ) {
+    && $event['name'] === 'invoice_failedToConfirm' or $event['name'] === 'invoice_markedInvalid' ) {
 
     if (true === empty($data)) {
         PrestaShopLogger::addLog('[Error] invalide json', 3);
@@ -463,9 +463,9 @@ if (true === array_key_exists('name', $event)
     $db = Db::getInstance();
     $result = array();
     $order_id = "";
-    $result = $db->ExecuteS("SELECT `id_order` FROM `" . _DB_PREFIX_ . "order_bitcoin` WHERE `invoice_id`='" . (string)$data[id] . "';");
-    if (count($result)>0 && $result[0] !== null && $result[0][id_order] !== null) {
-        $order_id = $result[0][id_order];
+    $result = $db->ExecuteS("SELECT `id_order` FROM `" . _DB_PREFIX_ . "order_bitcoin` WHERE `invoice_id`='" . (string)$data['id'] . "';");
+    if (count($result)>0 && $result[0] !== null && $result[0]['id_order'] !== null) {
+        $order_id = $result[0]['id_order'];
     } else {
        PrestaShopLogger::addLog('[Error] IPN order id not found', 3);
        exit;
@@ -476,7 +476,7 @@ if (true === array_key_exists('name', $event)
     // wait for confirm
     $status_btcpay = 41;
 
-    if($data[status] === 'invalid' || $data[status] === 'expired')
+    if($data['status'] === 'invalid' || $data['status'] === 'expired')
     {
         // time setup on invoice is expired
         $status_btcpay = 41;
@@ -505,7 +505,7 @@ if (true === array_key_exists('name', $event)
 # confirmed then completed
 # see TX speed
 if (true === array_key_exists('name', $event)
-    && $event[name] === 'invoice_confirmed' ) {
+    && $event['name'] === 'invoice_confirmed' ) {
 
     if (true === empty($data)) {
         PrestaShopLogger::addLog('[Error] invalide json', 3);
@@ -589,9 +589,9 @@ if (true === array_key_exists('name', $event)
     $db = Db::getInstance();
     $result = array();
     $order_id = "";
-    $result = $db->ExecuteS("SELECT `id_order` FROM `" . _DB_PREFIX_ . "order_bitcoin` WHERE `invoice_id`='" . (string)$data[id] . "';");
-    if (count($result)>0 && $result[0] !== null && $result[0][id_order] !== null) {
-        $order_id = $result[0][id_order];
+    $result = $db->ExecuteS("SELECT `id_order` FROM `" . _DB_PREFIX_ . "order_bitcoin` WHERE `invoice_id`='" . (string)$data['id'] . "';");
+    if (count($result)>0 && $result[0] !== null && $result[0]['id_order'] !== null) {
+        $order_id = $result[0]['id_order'];
     } else {
        PrestaShopLogger::addLog('[Error] IPN order id not found', 3);
        exit;
@@ -602,19 +602,19 @@ if (true === array_key_exists('name', $event)
     // wait for confirm
     $status_btcpay = 40;
 
-    if($data[status] === 'invalid' || $data[status] === 'expired')
+    if($data['status'] === 'invalid' || $data['status'] === 'expired')
     {
         // time setup on invoice is expired
         $status_btcpay = 41;
     }
 
-    if($data[status] === 'paid')
+    if($data['status'] === 'paid')
     {
         // TX received but we have to wait some confirmation
         $status_btcpay = 40;
     }
 
-    if($data[status] === 'confirmed' || $data[status] === 'complete')
+    if($data['status'] === 'confirmed' || $data['status'] === 'complete')
     {
         //Transaction confirmed
         $status_btcpay = 42;
