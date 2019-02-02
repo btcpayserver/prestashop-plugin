@@ -14,7 +14,7 @@ and if you want, some companies provide hosting services.
 
 ## Quick Start Guide
 
-To get up and running with our plugin quickly, see the GUIDE here: https://github.com/adapp-tech/prestashop-plugin/blob/master/GUIDE.md
+To get up and running with our plugin quickly, see the GUIDE here: https://github.com/btcpayserver/prestashop-plugin/blob/master/GUIDE.md
 
 
 # Internals
@@ -48,7 +48,7 @@ e.g: plugin use order state id: 39,40,41,42.  Should use 49,50,51,52 if other pl
 ## Contribute
 
 To contribute to this project, please fork and submit a pull request.
-* [GitHub Issues](https://github.com/adapptech/prestashop-plugin/issues)
+* [GitHub Issues](https://github.com/btcpayserver/prestashop-plugin/issues)
 
 ## PrestaShop Support
 
