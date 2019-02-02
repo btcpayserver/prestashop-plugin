@@ -70,7 +70,7 @@ class btcpay extends PaymentModule {
 
       $this->name            = 'btcpay';
       $this->tab             = 'payments_gateways';
-      $this->version         = '0.3.1';
+      $this->version         = '0.3.2';
       $this->author          = 'ADAPP';
       $this->className       = 'btcpay';
       $this->currencies      = true;
