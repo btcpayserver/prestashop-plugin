@@ -16,6 +16,7 @@ If you want to test in test mode, just paste an other btcpayserver url with test
 + PHP 5+
 + Curl PHP Extension
 + JSON PHP Extension
+* Install PHP bcmath module
 
 ## Plugin Configuration
 
