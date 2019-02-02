@@ -16,7 +16,9 @@ If you want to test in test mode, just paste an other btcpayserver url with test
 + PHP 5+
 + Curl PHP Extension
 + JSON PHP Extension
-* Install PHP bcmath module
++ Install PHP bcmath module
++ be sure your BTCPay server is whitelisted by Prestashop server
++ be sure your Prestashop server is whitelisted by BTCPay server
 
 ## Plugin Configuration
 
