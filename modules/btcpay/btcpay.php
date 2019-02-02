@@ -503,8 +503,19 @@ class btcpay extends PaymentModule {
 
       // Get shopping currency,  currently tested with be EUR
       $currency = Currency::getCurrencyInstance((int)$cart->id_currency);
+      if (true === empty($currency)) {
+          $currency = Currency::getDefaultCurrency();
+          $logger->logDebug("invalid currency, get default one");
+          return;
+      }
+      $logger->logDebug("execPayment currency");
 
       $transaction_speed = Configuration::get('btcpay_TXSPEED');
+      if (true === empty($transaction_speed)) {
+          $transaction_speed = 'default';
+      }
+
+
 
       // get the cart id to fetch cart information
       $cart_id = $cart->id;
@@ -517,7 +528,7 @@ class btcpay extends PaymentModule {
       $cart_total = $cart->getOrderTotal(true);
 
       // This is the callback url for invoice paid
-      $notification_url  = 'https://'.htmlspecialchars($_SERVER['HTTP_HOST'], ENT_COMPAT, 'UTF-8').__PS_BASE_URI__.'modules/'.$this->name.'/ipn.php';
+      $notification_url = Tools::getShopDomainSsl(true, true).__PS_BASE_URI__.'modules/'.$this->name.'/ipn.php';
 
       // Get a BitPay Client to prepare for invoice creation
       $client = new \Bitpay\Client\Client();
@@ -568,12 +579,11 @@ class btcpay extends PaymentModule {
           PrestaShopLogger::addLog('[Error] The BTCPay payment plugin was called to process a payment but could not instantiate an Invoice object.', 3);
       }
 
-      $btcpay_currency = new \Bitpay\Currency('EUR');
+      $btcpay_currency = new \Bitpay\Currency($currency->iso_code);
       $invoice->setOrderId((string)$cart_id);
       $invoice->setCurrency($btcpay_currency);
       $invoice->setFullNotifications(true);
       $invoice->setExtendedNotifications(true);
-
       // Add a priced item to the invoice
       $item = new \Bitpay\Item();
       if (false === isset($item) || true === empty($item)) {
@@ -702,7 +712,7 @@ class btcpay extends PaymentModule {
         if(isset($redirect) && !empty($redirect))
         {
             $result_invoice_id = $this->get_order_field($cart_id, 'invoice_id');
-            $invoice = $client->getInvoice($result_invoice_id['invoice_id']);
+            $invoice = $client->getInvoice($result_invoice_id);
             $status = $invoice->getStatus();
             if($status === 'invalid' || $status === 'expired')
             {
