@@ -37,7 +37,7 @@ if (!defined('_PS_VERSION_')) {
   exit;
 }
 
-class btcpay extends PaymentModule {
+class BTCpay extends PaymentModule {
     private $_html       = '';
     private $key;
     protected $_postErrors = array();
@@ -72,7 +72,7 @@ class btcpay extends PaymentModule {
       $this->tab             = 'payments_gateways';
       $this->version         = '0.3.2';
       $this->author          = 'ADAPP';
-      $this->className       = 'btcpay';
+      $this->className       = 'BTCpay';
       $this->currencies      = true;
       $this->currencies_mode = 'checkbox';
       $this->display         = 'view';

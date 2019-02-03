@@ -29,7 +29,7 @@
 include(dirname(__FILE__).'/../../config/config.inc.php');
 include(dirname(__FILE__).'/btcpay.php');
 
-$btcpay = new btcpay();
+$btcpay = new BTCpay();
 
 $post = file_get_contents('php://input');
 if (!$post) {

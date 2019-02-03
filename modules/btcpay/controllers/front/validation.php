@@ -1,7 +1,7 @@
 <?php
 
 
-class btcpayValidationModuleFrontController extends ModuleFrontController
+class BTCpayValidationModuleFrontController extends ModuleFrontController
 {
         /**
          * @see FrontController::postProcess()
