@@ -505,17 +505,13 @@ class BTCpay extends PaymentModule {
       $currency = Currency::getCurrencyInstance((int)$cart->id_currency);
       if (true === empty($currency)) {
           $currency = Currency::getDefaultCurrency();
-          $logger->logDebug("invalid currency, get default one");
           return;
       }
-      $logger->logDebug("execPayment currency");
 
       $transaction_speed = Configuration::get('btcpay_TXSPEED');
       if (true === empty($transaction_speed)) {
           $transaction_speed = 'default';
       }
-
-
 
       // get the cart id to fetch cart information
       $cart_id = $cart->id;
