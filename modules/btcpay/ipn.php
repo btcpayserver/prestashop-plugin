@@ -29,6 +29,14 @@
 include(dirname(__FILE__).'/../../config/config.inc.php');
 include(dirname(__FILE__).'/btcpay.php');
 
+// Kernel is not always available
+global $kernel;
+if(!$kernel){ 
+    require_once _PS_ROOT_DIR_.'/app/AppKernel.php';
+    $kernel = new \AppKernel('prod', false);
+    $kernel->boot(); 
+}
+
 $btcpay = new BTCpay();
 
 $post = file_get_contents('php://input');
