@@ -134,24 +134,24 @@ class BTCpay extends PaymentModule {
       // to be sure not other plugin do that.
       // TODO maybe take the last number available
 
-      $query = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('39','1','Want to pay in Bitcoin','bitcoin_want');";
+      $query = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('39','1','Awaiting Bitcoin payment','bitcoin_want');";
       $db->Execute($query);
-      $query = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('39', '0', '0', 'btcpay', '#FFFF00', '1', '0', '0', '0', '0', '0', '0', '0', '0');";
+      $query = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('39', '0', '0', 'btcpay', '#FF8C00', '1', '0', '0', '0', '0', '0', '0', '0', '0');";
       $db->Execute($query);
 
-      $query = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('40','1','Waiting Bitcoin confirmations','bitcoin_waiting');";
+      $query = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('40','1','Waiting for Bitcoin confirmations','bitcoin_waiting');";
       $db->Execute($query);
-      $query = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('40', '0', '0', 'btcpay', '#FFFF00', '1', '0', '0', '0', '0', '0', '0', '0', '0');";
+      $query = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('40', '0', '0', 'btcpay', '#4169E1', '1', '0', '0', '0', '0', '0', '0', '0', '0');";
       $db->Execute($query);
 
       $query  = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('41','1','Bitcoin transaction invalid','bitcoin_invalid');";
       $db->Execute($query);
-      $query  = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('41', '0', '0', 'btcpay', '#565656', '1', '0', '1', '0', '0', '1', '0', '0', '0');";
+      $query  = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('41', '0', '0', 'btcpay', '#EC2E15', '1', '0', '1', '0', '0', '0', '0', '0', '0');";
       $db->Execute($query);
 
-      $query  = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('42','1','Bitcoin payment confirm','bitcoin_confirm');";
+      $query  = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('42','1','Paid with Bitcoins','bitcoin_confirm');";
       $db->Execute($query);
-      $query  = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('42', '0', '0', 'btcpay', '#FFCE00', '1', '0', '1', '0', '0', '1', '1', '0', '0');";
+      $query  = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('42', '0', '0', 'btcpay', '#108510', '1', '0', '1', '0', '0', '1', '1', '0', '0');";
       $db->Execute($query);
 
       // insert module install timestamp
