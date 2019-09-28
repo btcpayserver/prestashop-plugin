@@ -149,7 +149,7 @@ class BTCpay extends PaymentModule {
       $query  = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('41', '0', '0', 'btcpay', '#EC2E15', '1', '0', '1', '0', '0', '0', '0', '0', '0');";
       $db->Execute($query);
 
-      $query  = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('42','1','Paid with Bitcoins','bitcoin_confirm');";
+      $query  = "INSERT INTO `"._DB_PREFIX_."order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('42','1','Paid with Bitcoin','bitcoin_confirm');";
       $db->Execute($query);
       $query  = "INSERT INTO `"._DB_PREFIX_."order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('42', '0', '0', 'btcpay', '#108510', '1', '0', '1', '0', '0', '1', '1', '0', '0');";
       $db->Execute($query);
