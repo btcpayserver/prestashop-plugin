@@ -752,24 +752,25 @@ class BTCpay extends PaymentModule {
     public function hookInvoice($params) {
       global $smarty;
 
-      $id_order = $params['id_order'];
+      $order_id = $params['id_order'];
 
-      $bitcoinpaymentdetails = $this->readBitcoinpaymentdetails($id_order);
-
-      if($bitcoinpaymentdetails['invoice_id'] === 0)
-      {
-          return;
+      $bitcoinpaymentdetails = $this->readBitcoinpaymentdetails($order_id);
+      if($bitcoinpaymentdetails['invoice_id'] === 0) {
+        return;
       }
 
+      $cart     = Cart::getCartByOrderId($order_id);
+      $currency = Currency::getCurrencyInstance((int)$cart->id_currency);
+
       $smarty->assign(array(
-                            'btcpayurl'    =>  $this->btcpayurl,
-                            'invoice_id'    => $bitcoinpaymentdetails['invoice_id'],
-                            'status'        => $bitcoinpaymentdetails['status'],
-                            'id_order'      => $id_order,
-                            'this_page'     => $_SERVER['REQUEST_URI'],
-                            'this_path'     => $this->_path,
-                            'this_path_ssl' => Configuration::get('PS_FO_PROTOCOL').$_SERVER['HTTP_HOST'].__PS_BASE_URI__."modules/{$this->name}/"
-                           ));
+        'btcpayurl'       => $this->btcpayurl,
+        'currency_sign'   => $currency->sign,
+        'payment_details' => $bitcoinpaymentdetails,
+        'this_page'       => $_SERVER['REQUEST_URI'],
+        'this_path'       => $this->_path,
+        'this_path_ssl'   => Configuration::get('PS_FO_PROTOCOL').$_SERVER['HTTP_HOST'].__PS_BASE_URI__."modules/{$this->name}/"
+      ));
+
       return $this->display(__FILE__, 'invoice_block.tpl');
     }
 
