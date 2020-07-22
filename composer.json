@@ -1,47 +1,67 @@
 {
     "name": "btcpay/prestashop",
     "description": "BTCPay payment plugin for PrestaShop",
-    "type": "whmcs-plugin",
+    "type": "prestashop-module",
     "keywords": ["prestashop","plugin","payment","ecommerce","bitcoin","btcpay"],
-    "homepage": "https://github.com/adapp-tech/prestashop-plugin",
+    "homepage": "https://github.com/btcpayserver/prestashop-plugin",
     "license": "MIT",
     "support": {
-        "email": "hello@adapp.tech",
-        "issues": "https://github.com/adapp-tech/prestashop-plugin/issues",
-        "source": "https://github.com/adapp-tech/prestashop-plugin"
+        "issues": "https://github.com/btcpayserver/prestashop-plugin/issues",
+        "source": "https://github.com/btcpayserver/prestashop-plugin"
     },
     "minimum-stability": "stable",
     "authors": [
         {
             "name": "Adrien",
-            "email": "adrien@adapp.tech",
-            "homepage": "https://testpay.adapp.tech/integrations"
+            "email": "adrien@adapp.tech"
         }
     ],
     "repositories": [
         {
-            "type": "git",
-            "url": "https://github.com/adapp-tech/prestashop-plugin.git"
+            "type": "vcs",
+            "url": "https://github.com/btcpayserver/php-bitpay-client"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/PrestaShop/PrestaShop"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/prestashop/php-cssjanus"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/prestashop/CsaGuzzleBundle"
         }
     ],
     "require": {
-        "bitpay/php-client": "4.0.2",
-        "php": ">=5.3",
+        "bitpay/php-client": "dev-master",
+        "php": ">=7.1.3",
         "ext-curl": "*",
+        "ext-fileinfo": "*",
+        "ext-intl": "*",
+        "ext-mbstring": "*",
+        "ext-zip": "*",
+        "ext-iconv": "*",
         "ext-json": "*",
-        "composer/installers": "~1.0"
+        "ext-gd": "*",
+        "ext-dom": "*",
+        "composer/installers": "^1.0.21"
     },
     "require-dev": {
-        "phpmd/phpmd": "*",
-        "phpdocumentor/phpdocumentor": "*",
-        "phing/phing": "*",
-        "pdepend/pdepend" : "1.1.0",
-        "squizlabs/php_codesniffer": "*",
-        "phpunit/phpunit": "*",
-        "phploc/phploc": "*",
-        "phpunit/phpunit-skeleton-generator": "*"
+        "behat/behat": "^3.5",
+        "cssjanus/cssjanus": "dev-patch-1",
+        "friendsofphp/php-cs-fixer": "^2.16.1",
+        "johnkary/phpunit-speedtrap": "^3",
+        "mikey179/vfsstream": "^1.6",
+        "phake/phake": "@stable",
+        "phpstan/phpstan": "^0.12.32",
+        "phpunit/phpunit": "~7.5.18",
+        "prestashop/prestashop": "^1.7.6.7",
+        "symfony/phpunit-bridge": "^3.4"
     },
     "config": {
-        "bin-dir": "bin"
+        "bin-dir": "bin",
+        "sort-packages": true
     }
 }

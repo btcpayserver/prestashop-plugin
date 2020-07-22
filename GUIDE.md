@@ -5,15 +5,12 @@ You must have a BTCPay merchant account to use this plugin.
 If you want to test in test mode, just paste an other btcpayserver url with testing port.
 
 ## Making a release
-* add Bitpay https://github.com/btcpayserver/php-bitpay-client/tree/master/src/Bitpay into modules/bitpay/lib
-* zip btcpay directory into btcpay.zip
-* add bitcoin icon into Order state configuration / icon !
-
+Run `make`
 
 ## Server Requirements
 
-+ PrestaShop 1.7
-+ PHP 5+
++ PrestaShop 1.7.6+
++ PHP 7.1+
 + Curl PHP Extension
 + JSON PHP Extension
 + Install PHP bcmath module
