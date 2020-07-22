@@ -20,4 +20,3 @@ class BTCpayPaymentModuleFrontController extends ModuleFrontController
         echo $this->module->execPayment($cart);
     }
 }
-

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "99beca1f9674418bdb3c1ed846fa576e",
+    "content-hash": "0b42b4fc05fb4653b1907e01f643febe",
     "packages": [
         {
             "name": "bitpay/php-client",
@@ -9861,14 +9861,14 @@
     "platform": {
         "php": ">=7.1.3",
         "ext-curl": "*",
+        "ext-dom": "*",
         "ext-fileinfo": "*",
-        "ext-intl": "*",
-        "ext-mbstring": "*",
-        "ext-zip": "*",
-        "ext-iconv": "*",
-        "ext-json": "*",
         "ext-gd": "*",
-        "ext-dom": "*"
+        "ext-iconv": "*",
+        "ext-intl": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-zip": "*"
     },
     "platform-dev": []
 }

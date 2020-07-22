@@ -51,7 +51,7 @@ if (!defined('_PS_VERSION_')) {
 
 class BTCpay extends PaymentModule
 {
-    private   $_html       = '';
+    private $_html = '';
     protected $_postErrors = [];
 
     /**
@@ -73,7 +73,7 @@ class BTCpay extends PaymentModule
 
         $this->name = 'btcpay';
         $this->tab = 'payments_gateways';
-        $this->version = '1.3.0';
+        $this->version = '2.0.0';
         $this->author = 'BTCPayServer';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -104,7 +104,7 @@ class BTCpay extends PaymentModule
 
         // order payment in BTC
         // maybe add module version
-        $query = "CREATE TABLE `" . _DB_PREFIX_ . "order_bitcoin` (
+        $query = 'CREATE TABLE `' . _DB_PREFIX_ . 'order_bitcoin` (
                 `id_payment` int(11) NOT NULL AUTO_INCREMENT,
                 `cart_id` int(11) NOT NULL,
                 `id_order` int(11),
@@ -119,7 +119,7 @@ class BTCpay extends PaymentModule
                 `rate` varchar(255),
                 PRIMARY KEY (`id_payment`),
                 UNIQUE KEY `invoice_id` (`invoice_id`)
-                ) ENGINE=" . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8';
+                ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8';
         $db->Execute($query);
 
         // We actually use
@@ -131,40 +131,40 @@ class BTCpay extends PaymentModule
         // to be sure not other plugin do that.
         // TODO maybe take the last number available
 
-        $query = "INSERT INTO `" . _DB_PREFIX_ . "order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('39','1','Awaiting Bitcoin payment','bitcoin_want');";
+        $query = 'INSERT INTO `' . _DB_PREFIX_ . "order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('39','1','Awaiting Bitcoin payment','bitcoin_want');";
         $db->Execute($query);
-        $query = "INSERT INTO `" . _DB_PREFIX_ . "order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('39', '0', '0', 'btcpay', '#FF8C00', '1', '0', '0', '0', '0', '0', '0', '0', '0');";
-        $db->Execute($query);
-
-        $query = "INSERT INTO `" . _DB_PREFIX_ . "order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('40','1','Waiting for Bitcoin confirmations','bitcoin_waiting');";
-        $db->Execute($query);
-        $query = "INSERT INTO `" . _DB_PREFIX_ . "order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('40', '0', '0', 'btcpay', '#4169E1', '1', '0', '0', '0', '0', '0', '0', '0', '0');";
+        $query = 'INSERT INTO `' . _DB_PREFIX_ . "order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('39', '0', '0', 'btcpay', '#FF8C00', '1', '0', '0', '0', '0', '0', '0', '0', '0');";
         $db->Execute($query);
 
-        $query = "INSERT INTO `" . _DB_PREFIX_ . "order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('41','1','Bitcoin transaction invalid','bitcoin_invalid');";
+        $query = 'INSERT INTO `' . _DB_PREFIX_ . "order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('40','1','Waiting for Bitcoin confirmations','bitcoin_waiting');";
         $db->Execute($query);
-        $query = "INSERT INTO `" . _DB_PREFIX_ . "order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('41', '0', '0', 'btcpay', '#EC2E15', '1', '0', '1', '0', '0', '0', '0', '0', '0');";
+        $query = 'INSERT INTO `' . _DB_PREFIX_ . "order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('40', '0', '0', 'btcpay', '#4169E1', '1', '0', '0', '0', '0', '0', '0', '0', '0');";
         $db->Execute($query);
 
-        $query = "INSERT INTO `" . _DB_PREFIX_ . "order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('42','1','Paid with Bitcoin','bitcoin_confirm');";
+        $query = 'INSERT INTO `' . _DB_PREFIX_ . "order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('41','1','Bitcoin transaction failed','bitcoin_invalid');";
         $db->Execute($query);
-        $query = "INSERT INTO `" . _DB_PREFIX_ . "order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('42', '0', '0', 'btcpay', '#108510', '1', '0', '1', '0', '0', '1', '1', '0', '0');";
+        $query = 'INSERT INTO `' . _DB_PREFIX_ . "order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('41', '0', '0', 'btcpay', '#EC2E15', '1', '0', '1', '0', '0', '0', '0', '0', '0');";
+        $db->Execute($query);
+
+        $query = 'INSERT INTO `' . _DB_PREFIX_ . "order_state_lang` (`id_order_state`,`id_lang`,`name`,`template`) VALUES ('42','1','Paid with Bitcoin','bitcoin_confirm');";
+        $db->Execute($query);
+        $query = 'INSERT INTO `' . _DB_PREFIX_ . "order_state` (`id_order_state`, `invoice`, `send_email`, `module_name`, `color`, `unremovable`, `hidden`, `logable`, `delivery`, `shipped`, `paid`, `pdf_invoice`, `pdf_delivery`, `deleted`) VALUES ('42', '0', '0', 'btcpay', '#108510', '1', '0', '1', '0', '0', '1', '1', '0', '0');";
         $db->Execute($query);
 
         // insert module install timestamp
-        $query = "INSERT IGNORE INTO `ps_configuration` (`name`, `value`, `date_add`, `date_upd`) VALUES ('PS_OS_BTCPAY', '13', NOW(), NOW());";
+        $query = 'INSERT IGNORE INTO `' . _DB_PREFIX_ . "configuration` (`name`, `value`, `date_add`, `date_upd`) VALUES ('PS_OS_BTCPAY', '13', NOW(), NOW());";
         $db->Execute($query);
 
         //init clear configurations
-        Configuration::updateValue('btcpay_URL', "");
-        Configuration::updateValue('btcpay_LABEL', "");
-        Configuration::updateValue('btcpay_PAIRINGCODE', "");
-        Configuration::updateValue('btcpay_KEY', "");
-        Configuration::updateValue('btcpay_PUB', "");
-        Configuration::updateValue('btcpay_SIN', "");
-        Configuration::updateValue('btcpay_TOKEN', "");
-        Configuration::updateValue('btcpay_TXSPEED', "");
-        Configuration::updateValue('btcpay_ORDERMODE', "");
+        Configuration::updateValue('btcpay_URL', '');
+        Configuration::updateValue('btcpay_LABEL', '');
+        Configuration::updateValue('btcpay_PAIRINGCODE', '');
+        Configuration::updateValue('btcpay_KEY', '');
+        Configuration::updateValue('btcpay_PUB', '');
+        Configuration::updateValue('btcpay_SIN', '');
+        Configuration::updateValue('btcpay_TOKEN', '');
+        Configuration::updateValue('btcpay_TXSPEED', '');
+        Configuration::updateValue('btcpay_ORDERMODE', '');
 
         return true;
     }
@@ -182,7 +182,7 @@ class BTCpay extends PaymentModule
         Configuration::deleteByName('btcpay_URL');
 
         $db = Db::getInstance();
-        $query = "DROP TABLE `" . _DB_PREFIX_ . "order_bitcoin`";
+        $query = 'DROP TABLE `' . _DB_PREFIX_ . 'order_bitcoin`';
         $db->Execute($query);
 
         return parent::uninstall();
@@ -217,7 +217,7 @@ class BTCpay extends PaymentModule
     {
         $btcpayserver_url = Configuration::get('btcpay_URL');
         if (true === empty($btcpayserver_url)) {
-            $btcpayserver_url = "https://btcpay-server-testnet.azurewebsites.net";
+            $btcpayserver_url = 'https://btcpay-server-testnet.azurewebsites.net';
         }
 
         $this->_html .= '<div style="float: right; width: 440px; height: 150px; border: dashed 1px #666; padding: 8px; margin-left: 12px;">
@@ -238,7 +238,7 @@ class BTCpay extends PaymentModule
     {
         $this->_html .= '<form method="post" action="' . htmlentities($_SERVER['REQUEST_URI']) . '">
                        <script type="text/javascript">
-                       var pos_select = ' . (($tab = (int)Tools::getValue('tabs')) ? $tab : '0') . ';
+                       var pos_select = ' . (($tab = (int) Tools::getValue('tabs')) ? $tab : '0') . ';
                        </script>';
 
         if (_PS_VERSION_ <= '1.5') {
@@ -269,7 +269,7 @@ class BTCpay extends PaymentModule
         // default set a test btcpayserver
         $btcpayserver_url = Configuration::get('btcpay_URL');
         if (true === empty($btcpayserver_url)) {
-            $btcpayserver_url = "https://btcpay-server-testnet.azurewebsites.net";
+            $btcpayserver_url = 'https://btcpay-server-testnet.azurewebsites.net';
         }
 
         // select list for bitcoin confirmation
@@ -283,12 +283,12 @@ class BTCpay extends PaymentModule
         $highSelected = '';
 
         // Remember which speed has been selected and display that upon reaching the settings page; default to low
-        if (Configuration::get('btcpay_TXSPEED') == "high") {
-            $highSelected = "selected=\"selected\"";
-        } elseif (Configuration::get('btcpay_TXSPEED') == "medium") {
-            $mediumSelected = "selected=\"selected\"";
+        if (Configuration::get('btcpay_TXSPEED') == 'high') {
+            $highSelected = 'selected="selected"';
+        } elseif (Configuration::get('btcpay_TXSPEED') == 'medium') {
+            $mediumSelected = 'selected="selected"';
         } else {
-            $lowSelected = "selected=\"selected\"";
+            $lowSelected = 'selected="selected"';
         }
 
         // delayed order mecanism
@@ -300,10 +300,10 @@ class BTCpay extends PaymentModule
         $orderBeforePaymentSelected = '';
         $orderAfterPaymentSelected = '';
 
-        if (Configuration::get('btcpay_ORDERMODE') == "afterpayment") {
-            $orderAfterPaymentSelected = "selected=\"selected\"";
+        if (Configuration::get('btcpay_ORDERMODE') == 'afterpayment') {
+            $orderAfterPaymentSelected = 'selected="selected"';
         } else {
-            $orderBeforePaymentSelected = "selected=\"selected\"";
+            $orderBeforePaymentSelected = 'selected="selected"';
         }
 
         $html = '<h2>' . $this->l('Settings') . '</h2>
@@ -354,17 +354,20 @@ class BTCpay extends PaymentModule
             $pairing_code = trim($pairing_code);
         } else {
             $this->_errors[] = $this->l('Missing Pairing Code');
+
             return;
         }
 
         if (!preg_match('/^[a-zA-Z0-9]{7}$/', $pairing_code)) {
             $this->_errors[] = $this->l('Invalid Pairing Code');
+
             return;
         }
 
         // check btcpayserver hosting url
-        if ((substr($_btcpay_url, 0, 7) !== "http://" && substr($_btcpay_url, 0, 8) !== "https://")) {
+        if ((substr($_btcpay_url, 0, 7) !== 'http://' && substr($_btcpay_url, 0, 8) !== 'https://')) {
             $this->_errors[] = $this->l('Invalid BTCPay server url');
+
             return;
         }
 
@@ -372,6 +375,7 @@ class BTCpay extends PaymentModule
         $key = new PrivateKey();
         if (true === empty($key)) {
             $this->_errors[] = $this->l('The BTCPay payment plugin was called to process a pairing code but could not instantiate a PrivateKey object. Cannot continue!');
+
             return;
         }
         $key->generate();
@@ -380,16 +384,17 @@ class BTCpay extends PaymentModule
         $pub = new PublicKey();
         if (true === empty($pub)) {
             $this->_errors[] = $this->l('The BTCPay payment plugin was called to process a pairing code but could not instantiate a PublicKey object. Cannot continue!');
+
             return;
         }
         $pub->setPrivateKey($key);
         $pub->generate();
 
-
         // Get SIN Key
         $sin = new SinKey();
         if (true === empty($sin)) {
             $this->_errors[] = $this->l('The BTCPay payment plugin was called to process a pairing code but could not instantiate a SinKey object. Cannot continue!');
+
             return;
         }
         $sin->setPublicKey($pub);
@@ -399,30 +404,32 @@ class BTCpay extends PaymentModule
         $client = new Client();
         if (true === empty($client)) {
             $this->_errors[] = $this->l('The BTCPay payment plugin was called to process a pairing code but could not instantiate a Client object. Cannot continue!');
+
             return;
         }
         $client->setUri($_btcpay_url);
         $curlAdapter = new CurlAdapter();
         if (true === empty($curlAdapter)) {
             $this->_errors[] = $this->l('The BTCPay payment plugin was called to process a pairing code but could not instantiate a CurlAdapter object. Cannot continue!');
+
             return;
         }
 
         $client->setAdapter($curlAdapter);
         $client->setPrivateKey($key);
         $client->setPublicKey($pub);
-        $label = "token_prestashop";
+        $label = 'token_prestashop';
 
         try {
             $token = $client->createToken(
                 [
-                    'id'          => (string)$sin,
-                    'pairingCode' => (string)$pairing_code,
-                    'label'       => $label,
+                    'id' => (string) $sin,
+                    'pairingCode' => (string) $pairing_code,
+                    'label' => $label,
                 ]
             );
         } catch (Exception $e) {
-            PrestaShopLogger::addLog("error:" . $e->getMessage(), 2);
+            PrestaShopLogger::addLog('error:' . $e->getMessage(), 2);
         }
 
         if (count($this->_errors) > 0) {
@@ -433,20 +440,22 @@ class BTCpay extends PaymentModule
             }
 
             $this->_html = $this->displayError($error_msg);
+
             return;
         }
 
         if (false === isset($token)) {
-            $this->_errors[] = $this->l("Failed to create token, you are maybe using an already activated pairing code.");
+            $this->_errors[] = $this->l('Failed to create token, you are maybe using an already activated pairing code.');
+
             return;
         }
 
         Configuration::updateValue('btcpay_URL', $_btcpay_url);
         Configuration::updateValue('btcpay_LABEL', $label);
-        Configuration::updateValue('btcpay_PUB', (string)$this->bitpay_encrypt($pub));
-        Configuration::updateValue('btcpay_SIN', (string)$sin);
-        Configuration::updateValue('btcpay_TOKEN', (string)$this->bitpay_encrypt($token));
-        Configuration::updateValue('btcpay_KEY', (string)$this->bitpay_encrypt($key));
+        Configuration::updateValue('btcpay_PUB', (string) $this->bitpay_encrypt($pub));
+        Configuration::updateValue('btcpay_SIN', (string) $sin);
+        Configuration::updateValue('btcpay_TOKEN', (string) $this->bitpay_encrypt($token));
+        Configuration::updateValue('btcpay_KEY', (string) $this->bitpay_encrypt($key));
     }
 
     private function _postProcess()
@@ -475,8 +484,8 @@ class BTCpay extends PaymentModule
                 }
 
                 $this->_html = $this->displayError($error_msg);
-                return;
 
+                return;
             }
 
             Configuration::updateValue('btcpay_ORDERMODE', trim(Tools::getValue('form_btcpay_ordermode')));
@@ -487,10 +496,13 @@ class BTCpay extends PaymentModule
         }
     }
 
+    /**
+     * @param Cart $cart
+     */
     public function execPayment($cart)
     {
         // Get shopping currency, currently tested with be EUR
-        $currency = Currency::getCurrencyInstance((int)$cart->id_currency);
+        $currency = Currency::getCurrencyInstance((int) $cart->id_currency);
         if (true === empty($currency)) {
             return;
         }
@@ -504,11 +516,9 @@ class BTCpay extends PaymentModule
         $cart_id = $cart->id;
         if (true === empty($cart_id)) {
             $this->_errors[] = $this->l('[Error] The BTCPay payment plugin was called to process a payment but the cart_id was missing.');
+
             return;
         }
-
-        // get total value
-        $cart_total = $cart->getOrderTotal(true);
 
         // This is the callback url for invoice paid
         $notification_url = Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'modules/' . $this->name . '/ipn.php';
@@ -525,15 +535,17 @@ class BTCpay extends PaymentModule
         $curlAdapter = new CurlAdapter();
         if (false === isset($curlAdapter) || true === empty($curlAdapter)) {
             $this->_errors[] = $this->l('[Error] The BTCPay payment plugin was called to process a payment but could not instantiate a CurlAdapter object.');
+
             return;
         }
 
         $client->setAdapter($curlAdapter);
 
         $encrypted_key_btcpay = Configuration::get('btcpay_KEY');
-        $key_btcpay = (string)$this->bitpay_decrypt($encrypted_key_btcpay);
+        $key_btcpay = (string) $this->bitpay_decrypt($encrypted_key_btcpay);
         if (true === empty($key_btcpay)) {
             $this->_errors[] = $this->l('[Error] The BTCPay payment plugin was called to process a payment but could not set client->setPrivateKey to this->api_key. The empty() check failed!');
+
             return;
         }
 
@@ -544,13 +556,14 @@ class BTCpay extends PaymentModule
         $pub_btcpay = $key->getPublicKey();
         $client->setPublicKey($pub_btcpay);
 
-        $token_btcpay = (string)$this->bitpay_decrypt(Configuration::get('btcpay_TOKEN'));
+        $token_btcpay = (string) $this->bitpay_decrypt(Configuration::get('btcpay_TOKEN'));
         if (false === empty($token_btcpay)) {
             $_token = new Token();
             $_token->setToken($token_btcpay);
             $client->setToken($_token);
         } else {
             PrestaShopLogger::addLog('[Error] The BTCPay payment plugin was called to process a payment but could not set client->setToken to this->api_token. The empty() check failed!', 3);
+
             return;
         }
 
@@ -563,7 +576,7 @@ class BTCpay extends PaymentModule
         }
 
         $btcpay_currency = new BitpayCurrency($currency->iso_code);
-        $invoice->setOrderId((string)$cart_id);
+        $invoice->setOrderId((string) $cart_id);
         $invoice->setCurrency($btcpay_currency);
         $invoice->setFullNotifications(true);
         $invoice->setExtendedNotifications(true);
@@ -574,34 +587,37 @@ class BTCpay extends PaymentModule
             $this->_errors[] = $this->l('[Error] The BTCPay payment plugin was called to process a payment but could not instantiate an item object.');
         }
 
-        $customer = new Customer((int)$cart->id_customer);
+        $customer = new Customer((int) $cart->id_customer);
         $email = $customer->email;
 
-        // Add buyer's email to the invoice
         $item = new Item();
         $item
             ->setCode('skuNumber')
-            ->setDescription('Details');
+            ->setDescription('Your purchase');
+
+        // Get total value
+        $cart_total = $cart->getOrderTotal(true);
 
         if (true === isset($cart_total) && false === empty($cart_total)) {
-            $cart_total = (float)$cart_total;
-            if ($cart_total == 0) {
-                $this->_errors[] = $this->l("Price must be formatted as a float");
-            }
             $item->setPrice($cart_total);
         } else {
             $this->_errors[] = $this->l('[Error] The BTCPay payment plugin was called to process a payment but could not set item->setPrice to $order->getTotalPaid(). The empty() check failed!');
         }
 
-        $secure_key = $this->context->customer->secure_key;
+        // Add the item
         $invoice->setItem($item);
+
+        // Set POS data so we can verify later on that the call is legit
+        $secure_key = $this->context->customer->secure_key;
+        $invoice->setPosData($secure_key);
+
+        // Add buyer's email to the invoice
         $buyer = new Buyer();
         $buyer->setEmail($email);
         $invoice->setBuyer($buyer);
-        $invoice->setPosData($secure_key);
-        $invoice->setItem($item);
 
-        $redirect_url = Context::getContext()->link->getModuleLink('btcpay', 'validation', ['invoice_reference' => $invoice->getId()]);
+        $invoice_reference = Tools::passwdGen(20);
+        $redirect_url = Context::getContext()->link->getModuleLink('btcpay', 'validation', ['invoice_reference' => $invoice_reference]);
 
         // Add the Redirect and Notification URLs
         $invoice->setRedirectUrl($redirect_url);
@@ -619,20 +635,19 @@ class BTCpay extends PaymentModule
 
         //Ask BTCPay to create an invoice with cart information
         try {
-
             $invoice = $client->createInvoice($invoice);
-
-            PrestaShopLogger::addLog('Invoice ' . $invoice->getId() . ' created, see ' . $invoice->getUrl(), 2);
-
-            $_invoice_id = $invoice->getId();
-
-            // register invoice into order_bitcoin table
-            $this->writeCart($cart_id);
-            $this->update_order_field($cart_id, 'invoice_id', $_invoice_id);
-
             if (false === isset($invoice) || true === empty($invoice)) {
                 PrestaShopLogger::addLog('[Error] The BTCPay payment plugin was called to process a payment but could not instantiate an invoice object.', 3);
             }
+
+            PrestaShopLogger::addLog('Invoice ' . $invoice->getId() . ' created, see ' . $invoice->getUrl(), 2);
+
+            // Register invoice into order_bitcoin table
+            $this->writeCart($cart_id);
+            $this->update_order_field($cart_id, 'invoice_id', $invoice->getId());
+
+            // Set invoice reference
+            $this->update_order_field($cart_id, 'invoice_reference', $invoice_reference);
 
             $responseData = json_decode($client->getResponse()->getBody(), false);
 
@@ -659,7 +674,7 @@ class BTCpay extends PaymentModule
     private function get_order_field($cart_id, $order_field)
     {
         $db = Db::getInstance();
-        $result = $db->ExecuteS('SELECT `' . $order_field . '` FROM `' . _DB_PREFIX_ . 'order_bitcoin` WHERE `cart_id`=' . (int)$cart_id . ';');
+        $result = $db->ExecuteS('SELECT `' . $order_field . '` FROM `' . _DB_PREFIX_ . 'order_bitcoin` WHERE `cart_id`=' . (int) $cart_id . ';');
         if (count($result) > 0 && $result[0] !== null && $result[0][$order_field] !== null) {
             return $result[0][$order_field];
         }
@@ -670,15 +685,9 @@ class BTCpay extends PaymentModule
     private function update_order_field($cart_id, $order_field, $order_value)
     {
         $db = Db::getInstance();
+        $query = 'UPDATE `' . _DB_PREFIX_ . 'order_bitcoin` SET `' . $order_field . "`='" . $order_value . "' WHERE `cart_id`=" . (int) $cart_id . ';';
 
-        $query = 'UPDATE `' . _DB_PREFIX_ . 'order_bitcoin` SET `' . $order_field . "`='" . $order_value . "' WHERE `cart_id`=" . (int)$cart_id . ';';
-
-        $result = $db->Execute($query);
-        if (count($result) > 0) {
-            return $result[0];
-        }
-
-        return null;
+        return $db->Execute($query);
     }
 
     public function update_btcpay($cart_id, $responseData)
@@ -699,6 +708,7 @@ class BTCpay extends PaymentModule
                 $redirect = null;
             }
         }
+
         return $redirect;
     }
 
@@ -708,21 +718,21 @@ class BTCpay extends PaymentModule
         $status = 39;
         $db = Db::getInstance();
         //39 want to pay in bitcoin
-        PrestaShopLogger::addLog("Create order_bitcoin with cartid => " . $cart_id);
-        $result = $db->Execute('INSERT INTO `' . _DB_PREFIX_ . 'order_bitcoin` (`cart_id`, `status`) VALUES(' . intval($cart_id) . ', "' . $status . '") on duplicate key update `status`="' . $status . '"');
+        PrestaShopLogger::addLog('Create order_bitcoin with cartid => ' . $cart_id);
+        $result = $db->Execute('INSERT INTO `' . _DB_PREFIX_ . 'order_bitcoin` (`cart_id`, `status`) VALUES(' . (int) $cart_id . ', "' . $status . '") on duplicate key update `status`="' . $status . '"');
     }
 
     public function writeDetails($id_order, $cart_id, $status)
     {
         $status = stripslashes(str_replace("'", '', $status));
         $db = Db::getInstance();
-        $result = $db->Execute('INSERT INTO `' . _DB_PREFIX_ . 'order_bitcoin` (`id_order`, `cart_id`, `status`) VALUES(' . intval($id_order) . ', ' . intval($cart_id) . ', "' . $status . '") on duplicate key update `status`="' . $status . '"');
+        $result = $db->Execute('INSERT INTO `' . _DB_PREFIX_ . 'order_bitcoin` (`id_order`, `cart_id`, `status`) VALUES(' . (int) $id_order . ', ' . (int) $cart_id . ', "' . $status . '") on duplicate key update `status`="' . $status . '"');
     }
 
     public function readBitcoinPaymentDetails($id_order)
     {
         $db = Db::getInstance();
-        $result = $db->ExecuteS('SELECT * FROM `' . _DB_PREFIX_ . 'order_bitcoin` WHERE `id_order` = ' . intval($id_order) . ';');
+        $result = $db->ExecuteS('SELECT * FROM `' . _DB_PREFIX_ . 'order_bitcoin` WHERE `id_order` = ' . (int) $id_order . ';');
         if (count($result) > 0) {
             return $result[0];
         }
@@ -741,11 +751,11 @@ class BTCpay extends PaymentModule
         }
 
         $cart = Cart::getCartByOrderId($order_id);
-        $currency = Currency::getCurrencyInstance((int)$cart->id_currency);
+        $currency = Currency::getCurrencyInstance((int) $cart->id_currency);
 
         $this->context->smarty->assign([
-            'btcpayurl'       => $this->btcpayurl,
-            'currency_sign'   => $currency->sign,
+            'btcpayurl' => $this->btcpayurl,
+            'currency_sign' => $currency->sign,
             'payment_details' => $paymentDetails,
         ]);
 
@@ -799,13 +809,14 @@ class BTCpay extends PaymentModule
             return $encrypted;
         }
 
-        die(Tools::displayError("Error: Invalid server fingerprint generated!"));
+        die(Tools::displayError('Error: Invalid server fingerprint generated!'));
     }
 
     public function bitpay_decrypt($encrypted)
     {
         if (false === isset($encrypted) || true === empty($encrypted)) {
             $this->_errors[] = $this->l('The BTCPay payment plugin was called to decrypt data but no data was passed!');
+
             return null;
         }
 
@@ -837,9 +848,6 @@ class BTCpay extends PaymentModule
             return unserialize($decrypted);
         }
 
-        die(Tools::displayError("Error: Invalid server fingerprint generated!"));
+        die(Tools::displayError('Error: Invalid server fingerprint generated!'));
     }
 }
-
-
-

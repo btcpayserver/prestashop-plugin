@@ -6,6 +6,9 @@ build/
 # Ignore btcpay.zip no matter where it is
 btcpay.zip
 
+# Ignore php-cs-fixer cache
+.php_cs.cache
+
 ### PhpStorm ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
@@ -53,21 +56,6 @@ fabric.properties
 # .idea/misc.xml
 # *.ipr
 
-# Sonarlint plugin
-.idea/**/sonarlint/
-
-# SonarQube Plugin
-.idea/**/sonarIssues.xml
-
-# Markdown Navigator plugin
-.idea/**/markdown-navigator.xml
-.idea/**/markdown-navigator-enh.xml
-.idea/**/markdown-navigator/
-
-# Cache file creation bug
-# See https://youtrack.jetbrains.com/issue/JBR-2257
-.idea/$CACHE_FILE$
-
 ### Prestashop ###
 # Private files
 # The following files contain your database credentials and other personal data.
@@ -107,7 +95,7 @@ upload/
 # Other modules we don't care about
 
 /modules/
-!/modules/btcpay/
+!/modules/btcpay/*
 
 ### Symfony ###
 # Cache and logs (Symfony2)

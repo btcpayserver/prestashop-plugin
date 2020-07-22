@@ -14,7 +14,8 @@ deps: ## Download and make all dependencies
 	@composer install
 
 	# Copy over the Bitpay lib
-	@cp -r ./vendor/bitpay/php-client/src/Bitpay "$(MODULE_FOLDER)/$(MODULE)/lib"
+	@mkdir -p "$(MODULE_FOLDER)/$(MODULE)/lib/Bitpay"
+	@cp -r ./vendor/bitpay/php-client/src/Bitpay "$(MODULE_FOLDER)/$(MODULE)/lib/Bitpay"
 
 build: deps ## Build the bastard binary file
 	# Make the build folder

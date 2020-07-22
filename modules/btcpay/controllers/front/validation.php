@@ -27,7 +27,7 @@ class BTCpayValidationModuleFrontController extends ModuleFrontController
 
         // Get the passed invoice reference, which we can then use to get the actual order
         $invoice_reference = Tools::getValue('invoice_reference', 0);
-        $cart_id = (int)$this->get_order_field($invoice_reference, 'cart_id');
+        $cart_id = (int) $this->get_order_field_by_reference($invoice_reference, 'cart_id');
 
         // Check if the cart has been made by a guest customer
         $is_guest = Cart::isGuestCartByCartId($cart_id);
@@ -44,24 +44,25 @@ class BTCpayValidationModuleFrontController extends ModuleFrontController
 
         // Get the order and validate it
         $order = Order::getByCartId($cart_id);
-        if ($order === null || $order->id === 0 || (int)$order->id_customer !== (int)$this->context->customer->id) {
+        if ($order === null || $order->id === 0 || (int) $order->id_customer !== (int) $this->context->customer->id) {
             Tools::redirect($redirectLink);
         }
 
         // Get the customer so we can do a fancy redirect
-        $customer = new Customer((int)$cart->id_customer);
+        $customer = new Customer((int) $cart->id_customer);
         if ($is_guest) {
             Tools::redirect($redirectLink . '&order_reference=' . $order->reference . '&email=' . urlencode($customer->email));
+
             return;
         }
 
         Tools::redirect('index.php?controller=order-confirmation&id_cart=' . $order->id_cart . '&id_module=' . $this->module->id . '&id_order=' . $order->id . '&key=' . $customer->secure_key);
     }
 
-    private function get_order_field($invoice_id, $order_field)
+    private function get_order_field_by_reference($invoice_reference, $order_field)
     {
         $db = Db::getInstance();
-        $query = 'SELECT `' . $order_field . '` FROM `' . _DB_PREFIX_ . "order_bitcoin` WHERE `invoice_id`='" . $invoice_id . "';";
+        $query = 'SELECT `' . $order_field . '` FROM `' . _DB_PREFIX_ . "order_bitcoin` WHERE `invoice_reference`='" . $invoice_reference . "';";
         $result = $db->ExecuteS($query);
 
         if (count($result) > 0 && $result[0] !== null && $result[0][$order_field] !== null) {
