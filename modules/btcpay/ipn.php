@@ -26,15 +26,21 @@
  * Updated to work with BTCPay server Access Tokens by Adrien Bensaïbi, adrien@adapp.tech
  */
 
-include(dirname(__FILE__).'/../../config/config.inc.php');
-include(dirname(__FILE__).'/btcpay.php');
+use Bitpay\Client\Adapter\CurlAdapter;
+use Bitpay\Client\Client;
+use Bitpay\Invoice;
+use Bitpay\PrivateKey;
+use Bitpay\Token;
+
+include(__DIR__ . '/../../config/config.inc.php');
+include(__DIR__ . '/btcpay.php');
 
 // Kernel is not always available
 global $kernel;
-if(!$kernel){ 
-    require_once _PS_ROOT_DIR_.'/app/AppKernel.php';
-    $kernel = new \AppKernel('prod', false);
-    $kernel->boot(); 
+if (!$kernel) {
+    require_once _PS_ROOT_DIR_ . '/app/AppKernel.php';
+    $kernel = new AppKernel('prod', false);
+    $kernel->boot();
 }
 
 $btcpay = new BTCpay();
@@ -45,31 +51,30 @@ if (!$post) {
     die;
 }
 
-function get_order_field($invoice_id, $order_field) {
+function get_order_field($invoice_id, $order_field)
+{
     $db = Db::getInstance();
-    $result = array();
-    $query = 'SELECT `'.$order_field.'` FROM `' . _DB_PREFIX_ . "order_bitcoin` WHERE `invoice_id`='" . $invoice_id . "';";
+    $query = 'SELECT `' . $order_field . '` FROM `' . _DB_PREFIX_ . "order_bitcoin` WHERE `invoice_id`='" . $invoice_id . "';";
     $result = $db->ExecuteS($query);
 
-    if (count($result)>0 && $result[0] !== null && $result[0][$order_field] !== null) {
-          return $result[0][$order_field];
-    } else {
-       return null;
+    if (count($result) > 0 && $result[0] !== null && $result[0][$order_field] !== null) {
+        return $result[0][$order_field];
     }
+
+    return null;
 }
 
-function update_order_field($invoice_id, $order_field, $order_value) {
+function update_order_field($invoice_id, $order_field, $order_value)
+{
     $db = Db::getInstance();
-
-    $query = 'UPDATE `' . _DB_PREFIX_ . 'order_bitcoin` SET `'.$order_field."`=".$order_value." WHERE `invoice_id`='" . $invoice_id . "';";
-
-    $result = array();
+    $query = 'UPDATE `' . _DB_PREFIX_ . 'order_bitcoin` SET `' . $order_field . "`=" . $order_value . " WHERE `invoice_id`='" . $invoice_id . "';";
     $result = $db->Execute($query);
-    if (count($result)>0) {
-          return $result[0];
-    } else {
-       return null;
+
+    if (count($result) > 0) {
+        return $result[0];
     }
+
+    return null;
 }
 
 if (true === empty($post)) {
@@ -78,18 +83,18 @@ if (true === empty($post)) {
 }
 
 $json = json_decode($post, true);
-$event= array();
+$event = [];
 
 // extended notification type
-if(true === array_key_exists('event', $json) ) {
+if (true === array_key_exists('event', $json)) {
     $event = $json['event'];
 } else {
     //nothing to do
     exit(1);
 }
 
-$data = array();
-if(true === array_key_exists('data', $json)) {
+$data = [];
+if (true === array_key_exists('data', $json)) {
     $data = $json['data'];
 }
 
@@ -97,7 +102,6 @@ if (empty($json->event->code)) {
     PrestaShopLogger::addLog('[Error] Event code missing from callback.', 1);
 }
 
-$btcpay_ordermode = '';
 $btcpay_ordermode = Configuration::get('btcpay_ORDERMODE');
 
 # refactoring needed, next version
@@ -105,32 +109,32 @@ $btcpay_ordermode = Configuration::get('btcpay_ORDERMODE');
 # Invoice created
 if (true == array_key_exists('name', $event)
     && $event['name'] === "invoice_created"
-    && $btcpay_ordermode === "beforepayment" ) {
+    && $btcpay_ordermode === "beforepayment") {
 
-   // sleep to not receive ipn notification
-   // before the update of bitcoin order table
-   sleep(15);
+    // sleep to not receive ipn notification
+    // before the update of bitcoin order table
+    sleep(15);
 
     // check if we have needed data
     if (true === empty($data)) {
-        PrestaShopLogger::addLog('[Error] No data',3);
+        PrestaShopLogger::addLog('[Error] No data', 3);
         exit(1);
     }
 
     if (false === array_key_exists('id', $data)) {
-        PrestaShopLogger::addLog('[Error] No data id',3);
+        PrestaShopLogger::addLog('[Error] No data id', 3);
         exit(1);
     }
 
     if (false === array_key_exists('url', $data)) {
-        PrestaShopLogger::addLog('[Error] No data url',3);
+        PrestaShopLogger::addLog('[Error] No data url', 3);
         exit(1);
     }
 
     // get invoice id, to go back on cart and check the amount
     $invoice_id = (string)$data['id'];
-    if ( false === isset($invoice_id)) {
-        PrestaShopLogger::addLog('[Error] No invoice id',3);
+    if (false === isset($invoice_id)) {
+        PrestaShopLogger::addLog('[Error] No invoice id', 3);
         exit(1);
     }
 
@@ -147,190 +151,178 @@ if (true == array_key_exists('name', $event)
 
     // fetch secure key, used to check cart comes from your prestashop
     $secure_key = $data['posData'];
-    if ( false === isset($secure_key)) {
-        PrestaShopLogger::addLog('[Error] No securekey',3);
+    if (false === isset($secure_key)) {
+        PrestaShopLogger::addLog('[Error] No securekey', 3);
         exit(1);
     }
 
     // rate in fiat currency
     $rate = $data['rate'];
-    if ( false === isset($rate)) {
-        PrestaShopLogger::addLog('[Error] No rate',3);
+    if (false === isset($rate)) {
+        PrestaShopLogger::addLog('[Error] No rate', 3);
         exit(1);
     }
 
-    $order_status = (int) $status_btcpay;
+    $order_status = (int)$status_btcpay;
 
     // generate an order only if their is not another one with this cart
     $order_id = (int)Order::getIdByCartId($cart_id);
-    if ( $order_id == null
-         || $order_id == 0) {
-
-       $btcpay->validateOrder(
+    if ($order_id == null || $order_id == 0) {
+        $btcpay->validateOrder(
             $cart_id,
             $status_btcpay,
             $cart_total,
             $display_name, //bitcoin btcpay
             null, //message should be new Message
-            array(), //extravars for mail
+            [], //extravars for mail
             null, //currency special
             false, // don't touch amount
             $secure_key
-       );
+        );
 
-       $order_id = (int)Order::getIdByCartId($cart_id);
+        $order_id = (int)Order::getIdByCartId($cart_id);
 
-       // register order id for payment in BTC
-       $db = Db::getInstance();
-       $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `id_order`='". $order_id ."' WHERE `invoice_id`='" . $invoice_id . "';";
+        // register order id for payment in BTC
+        $db = Db::getInstance();
+        $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `id_order`='" . $order_id . "' WHERE `invoice_id`='" . $invoice_id . "';";
+        $db->Execute($query);
 
-       $result = array();
-       $result = $db->Execute($query);
+        // update order_bitcoin paid amount
+        $db = Db::getInstance();
+        $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `btc_paid`='0.0' WHERE `id_order`=" . (int)$order_id . ';';
+        $db->Execute($query);
 
-       // update order_bitcoin paid amount
-       $db = Db::getInstance();
-       $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `btc_paid`='0.0' WHERE `id_order`=" . intval($order_id) . ';';
-       $result = array();
-       $result = $db->Execute($query);
+        // update payment status
+        $db = Db::getInstance();
+        $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `status`='" . $order_status . "' WHERE `id_order`=" . (int)$order_id . ';';
+        $db->Execute($query);
 
-       // update payment status
-       $db = Db::getInstance();
-       $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `status`='" . $order_status . "' WHERE `id_order`=" . intval($order_id) . ';';
-       $result = array();
-       $result = $db->Execute($query);
+        // add Order status change to Order history table
+        $new_history = new OrderHistory();
+        $new_history->id_order = (int)$order_id;
+        // bitcoin confirmation ok
+        $new_history->changeIdOrderState((int)$order_status, (int)$order_id, true);
+        //add with email is mandatory to add new order state in order_history
+        $new_history->add(true);
 
-       // add Order status change to Order history table
-       $new_history = new OrderHistory();
-       $new_history->id_order = (int)$order_id;
-       // bitcoin confirmation ok
-       $new_history->changeIdOrderState((int)$order_status, (int)$order_id, true);
-       //add with email is mandatory to add new order state in order_history
-       $new_history->add(true);
+        exit(0);
+    }
 
-       exit(0);
-   } else {
-       // Order already paid
-       PrestaShopLogger::addLog('[Error] already created order',1);
-       exit(1);
-   }
+    // Order already paid
+    PrestaShopLogger::addLog('[Error] already created order', 1);
+    exit(1);
 }
 
 # ----------------
 # Payment Received
 if (true == array_key_exists('name', $event)
-   && $event['name'] === 'invoice_receivedPayment'
-   && $btcpay_ordermode === 'afterpayment' ) {
+    && $event['name'] === 'invoice_receivedPayment'
+    && $btcpay_ordermode === 'afterpayment') {
 
-   // sleep to not receive ipn notification
-   // before the update of bitcoin order table
-   sleep(15);
+    // sleep to not receive ipn notification
+    // before the update of bitcoin order table
+    sleep(15);
 
-   // check if we have needed data
-   if (true === empty($data)) {
-       PrestaShopLogger::addLog('[Error] No data',3);
-       exit;
-   }
+    // check if we have needed data
+    if (true === empty($data)) {
+        PrestaShopLogger::addLog('[Error] No data', 3);
+        exit;
+    }
 
-   if (false === array_key_exists('id', $data)) {
-       PrestaShopLogger::addLog('[Error] No data id',3);
-       exit;
-   }
+    if (false === array_key_exists('id', $data)) {
+        PrestaShopLogger::addLog('[Error] No data id', 3);
+        exit;
+    }
 
-   if (false === array_key_exists('url', $data)) {
-       PrestaShopLogger::addLog('[Error] No data url',3);
-       exit;
-   }
+    if (false === array_key_exists('url', $data)) {
+        PrestaShopLogger::addLog('[Error] No data url', 3);
+        exit;
+    }
 
-   // get invoice id, to go back on cart and check the amount
-   $invoice_id = (string)$data['id'];
-   if ( false === isset($invoice_id)) {
-       PrestaShopLogger::addLog('[Error] No invoice id',3);
-       exit;
-   }
+    // get invoice id, to go back on cart and check the amount
+    $invoice_id = (string)$data['id'];
+    if (false === isset($invoice_id)) {
+        PrestaShopLogger::addLog('[Error] No invoice id', 3);
+        exit;
+    }
 
-   $cart_id = get_order_field($invoice_id, 'cart_id');
+    $cart_id = get_order_field($invoice_id, 'cart_id');
 
-   // search the invoice to get amount
-   $cart_total = get_order_field($invoice_id, 'amount');
+    // search the invoice to get amount
+    $cart_total = get_order_field($invoice_id, 'amount');
 
-   // waiting confirmation
-   $status_btcpay = 40;
+    // waiting confirmation
+    $status_btcpay = 40;
 
-   // on Order, just say payment processor is BTCPay
-   $display_name = $btcpay->displayName;
+    // on Order, just say payment processor is BTCPay
+    $display_name = $btcpay->displayName;
 
-   // fetch secure key, used to check cart comes from your prestashop
-   $secure_key = $data['posData'];
-   if ( false === isset($secure_key)) {
-       PrestaShopLogger::addLog('[Error] No securekey',3);
-       exit;
-   }
+    // fetch secure key, used to check cart comes from your prestashop
+    $secure_key = $data['posData'];
+    if (false === isset($secure_key)) {
+        PrestaShopLogger::addLog('[Error] No securekey', 3);
+        exit;
+    }
 
-   // rate in fiat currency
-   $rate = $data['rate'];
-   if ( false === isset($rate)) {
-       PrestaShopLogger::addLog('[Error] No rate',3);
-       exit;
-   }
+    // rate in fiat currency
+    $rate = $data['rate'];
+    if (false === isset($rate)) {
+        PrestaShopLogger::addLog('[Error] No rate', 3);
+        exit;
+    }
 
-   // generate an order only if their is not another one with this cart
-   $order_id = (int)Order::getIdByCartId($cart_id);
-   if ( $order_id == null
-        || $order_id == 0) {
-
-       $btcpay->validateOrder(
+    // generate an order only if their is not another one with this cart
+    $order_id = (int)Order::getIdByCartId($cart_id);
+    if ($order_id == null || $order_id == 0) {
+        $btcpay->validateOrder(
             $cart_id,
             $status_btcpay,
             $cart_total,
             $display_name, //bitcoin btcpay
             $rate, //message
-            array(), //extravars
+            [], //extravars
             null, //currency special
             false, // don't touch amount
             $secure_key
-       );
+        );
 
-       $order_id = (int)Order::getIdByCartId($cart_id);
+        $order_id = (int)Order::getIdByCartId($cart_id);
 
-       // register order id for payment in BTC
-       $db = Db::getInstance();
-       $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `id_order`='". $order_id ."' WHERE `invoice_id`='" . $invoice_id . "';";
+        // register order id for payment in BTC
+        $db = Db::getInstance();
+        $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `id_order`='" . $order_id . "' WHERE `invoice_id`='" . $invoice_id . "';";
+        $db->Execute($query);
 
-       $result = array();
-       $result = $db->Execute($query);
+        $order_status = (int)$status_btcpay;
 
-       $order_status = (int)$status_btcpay;
+        // update order_bitcoin paid amount
+        $db = Db::getInstance();
+        $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `btc_paid`='" . $data['btcPaid'] . "' WHERE `id_order`=" . (int)$order_id . ';';
+        $db->Execute($query);
 
-       // update order_bitcoin paid amount
-       $db = Db::getInstance();
-       $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `btc_paid`='".$data['btcPaid']."' WHERE `id_order`=" . intval($order_id) . ';';
-       $result = array();
-       $result = $db->Execute($query);
+        // update payment status
+        $db = Db::getInstance();
+        $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `status`='" . $order_status . "' WHERE `id_order`=" . (int)$order_id . ';';
+        $db->Execute($query);
 
-       // update payment status
-       $db = Db::getInstance();
-       $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `status`='" . $order_status . "' WHERE `id_order`=" . intval($order_id) . ';';
-       $result = array();
-       $result = $db->Execute($query);
+        // add Order status change to Order history table
+        $new_history = new OrderHistory();
+        $new_history->id_order = (int)$order_id;
+        // bitcoin confirmation ok
+        $new_history->changeIdOrderState((int)$order_status, (int)$order_id, true);
+        $new_history->add(true);
 
-       // add Order status change to Order history table
-       $new_history = new OrderHistory();
-       $new_history->id_order = (int)$order_id;
-       // bitcoin confirmation ok
-       $new_history->changeIdOrderState((int)$order_status, (int)$order_id, true);
-       $new_history->add(true);
+        exit(0);
+    }
 
-       exit(0);
-   } else {
-       // Order already paid
-       PrestaShopLogger::addLog('[Error] already paid order',1);
-       exit(1);
-   }
+    // Order already paid
+    PrestaShopLogger::addLog('[Error] already paid order', 1);
+    exit(1);
 }
 
 if (true == array_key_exists('name', $event)
-  && $event['name'] === 'invoice_receivedPayment'
-  && $btcpay_ordermode === 'beforepayment' ) {
+    && $event['name'] === 'invoice_receivedPayment'
+    && $btcpay_ordermode === 'beforepayment') {
 
     PrestaShopLogger::addLog('[Info] payment received', 1);
 
@@ -340,27 +332,27 @@ if (true == array_key_exists('name', $event)
     }
 
     if (false === array_key_exists('id', $data)) {
-         PrestaShopLogger::addLog('[Error] No id in data', 3);
+        PrestaShopLogger::addLog('[Error] No id in data', 3);
         exit(1);
     }
 
     // get invoice id, to go back on cart and check the amount
     $invoice_id = (string)$data['id'];
-    if ( false === isset($invoice_id)) {
-        PrestaShopLogger::addLog('[Error] No invoice id',3);
+    if (false === isset($invoice_id)) {
+        PrestaShopLogger::addLog('[Error] No invoice id', 3);
         exit(1);
     }
 
     // fetch order id
     $db = Db::getInstance();
-    $result = array();
     $order_id = null;
+
     $result = $db->ExecuteS("SELECT `id_order` FROM `" . _DB_PREFIX_ . "order_bitcoin` WHERE `invoice_id`='" . $invoice_id . "';");
     if (count($result) > 0 && $result[0] !== null && $result[0]['id_order'] !== null) {
         $order_id = $result[0]['id_order'];
     } else {
-       PrestaShopLogger::addLog('[Error] IPN order id not found', 3);
-       exit(1);
+        PrestaShopLogger::addLog('[Error] IPN order id not found', 3);
+        exit(1);
     }
 
     $order = new Order($order_id);
@@ -370,15 +362,13 @@ if (true == array_key_exists('name', $event)
 
     // update order_bitcoin paid amount
     $db = Db::getInstance();
-    $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `btc_paid`='".$data['btcPaid']."' WHERE `id_order`=" . intval($order_id) . ';';
-    $result = array();
-    $result = $db->Execute($query);
+    $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `btc_paid`='" . $data['btcPaid'] . "' WHERE `id_order`=" . (int)$order_id . ';';
+    $db->Execute($query);
 
     // update payment status
     $db = Db::getInstance();
-    $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `status`='" . $order_status . "' WHERE `id_order`=" . intval($order_id) . ';';
-    $result = array();
-    $result = $db->Execute($query);
+    $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `status`='" . $order_status . "' WHERE `id_order`=" . (int)$order_id . ';';
+    $db->Execute($query);
 
     // add Order status change to Order history table
     $new_history = new OrderHistory();
@@ -388,7 +378,7 @@ if (true == array_key_exists('name', $event)
     //add with email is mandatory to add new order state in order_history
     $new_history->add(true);
 
-   exit(0);
+    exit(0);
 }
 
 ###
@@ -396,14 +386,14 @@ if (true == array_key_exists('name', $event)
 # 1 to 6 confirmation depending on your setup
 # see TX speed
 if (true === array_key_exists('name', $event)
-    && $event['name'] === 'invoice_paidInFull' ) {
-    PrestaShopLogger::addLog('[Error] Paid in FULL',3);
+    && $event['name'] === 'invoice_paidInFull') {
+    PrestaShopLogger::addLog('[Error] Paid in FULL', 3);
     exit;
 }
 
 if (true === array_key_exists('name', $event)
     && $event['name'] === 'invoice_failedToConfirm'
-    or $event['name'] === 'invoice_markedInvalid' ) {
+    or $event['name'] === 'invoice_markedInvalid') {
 
     if (true === empty($data)) {
         PrestaShopLogger::addLog('[Error] invalide json', 3);
@@ -411,7 +401,7 @@ if (true === array_key_exists('name', $event)
     }
 
     if (false === array_key_exists('id', $data)) {
-         PrestaShopLogger::addLog("[Error] No id in data", 3);
+        PrestaShopLogger::addLog("[Error] No id in data", 3);
         exit;
     }
 
@@ -421,7 +411,7 @@ if (true === array_key_exists('name', $event)
     }
 
     // Get a BitPay Client to prepare for invoice fetching
-    $client = new \Bitpay\Client\Client();
+    $client = new Client();
     if (false === isset($client) && true === empty($client)) {
         PrestaShopLogger::addLog('[Error] Failed to instanciate Client', 3);
         exit;
@@ -430,7 +420,7 @@ if (true === array_key_exists('name', $event)
     $serverurl_btcpay = Configuration::get('btcpay_URL');
     $client->setUri($serverurl_btcpay);
 
-    $curlAdapter = new \Bitpay\Client\Adapter\CurlAdapter();
+    $curlAdapter = new CurlAdapter();
     if (false === isset($curlAdapter) || true === empty($curlAdapter)) {
         PrestaShopLogger::addLog('[Error] Failed to instanciate curlAdapter', 3);
         exit;
@@ -440,13 +430,13 @@ if (true === array_key_exists('name', $event)
     $client->setAdapter($curlAdapter);
 
     $encrypted_key_btcpay = Configuration::get('btcpay_KEY');
-    $key_btcpay = (string) $btcpay->bitpay_decrypt($encrypted_key_btcpay);
+    $key_btcpay = (string)$btcpay->bitpay_decrypt($encrypted_key_btcpay);
     if (true === empty($key_btcpay)) {
         PrestaShopLogger::addLog('[Error] Failed to decrypt key', 3);
         exit;
     }
 
-    $key = new \Bitpay\PrivateKey();
+    $key = new PrivateKey();
     $key->setHex($key_btcpay);
     $client->setPrivateKey($key);
 
@@ -459,9 +449,9 @@ if (true === array_key_exists('name', $event)
         exit;
     }
 
-    $token_btcpay = (string) $btcpay->bitpay_decrypt(Configuration::get('btcpay_TOKEN'));
+    $token_btcpay = (string)$btcpay->bitpay_decrypt(Configuration::get('btcpay_TOKEN'));
     if (false === empty($token_btcpay)) {
-        $_token = new \Bitpay\Token();
+        $_token = new Token();
         $_token->setToken($token_btcpay);
         $client->setToken($_token);
     } else {
@@ -471,21 +461,21 @@ if (true === array_key_exists('name', $event)
 
     // handle case order id already exist
     // Setup the Invoice
-    $invoice = new \Bitpay\Invoice();
+    $invoice = new Invoice();
     if (false === isset($invoice) || true === empty($invoice)) {
         PrestaShopLogger::addLog('[Error] Failed to instanciate Invoice', 3);
         exit;
     }
 
     $db = Db::getInstance();
-    $result = array();
+    $result = [];
     $order_id = "";
     $result = $db->ExecuteS("SELECT `id_order` FROM `" . _DB_PREFIX_ . "order_bitcoin` WHERE `invoice_id`='" . (string)$data['id'] . "';");
-    if (count($result)>0 && $result[0] !== null && $result[0]['id_order'] !== null) {
+    if (count($result) > 0 && $result[0] !== null && $result[0]['id_order'] !== null) {
         $order_id = $result[0]['id_order'];
     } else {
-       PrestaShopLogger::addLog('[Error] IPN order id not found', 3);
-       exit;
+        PrestaShopLogger::addLog('[Error] IPN order id not found', 3);
+        exit;
     }
 
     $order = new Order($order_id);
@@ -493,8 +483,7 @@ if (true === array_key_exists('name', $event)
     // wait for confirm
     $status_btcpay = 41;
 
-    if($data['status'] === 'invalid' || $data['status'] === 'expired')
-    {
+    if ($data['status'] === 'invalid' || $data['status'] === 'expired') {
         // time setup on invoice is expired
         $status_btcpay = 41;
     }
@@ -503,14 +492,12 @@ if (true === array_key_exists('name', $event)
 
     // update amount paid
     $db = Db::getInstance();
-    $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `status`='".$order_status."' WHERE `id_order`=" . intval($order_id) . ';';
-    $result = array();
-    $result = $db->Execute($query);
-
+    $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `status`='" . $order_status . "' WHERE `id_order`=" . (int)$order_id . ';';
+    $db->Execute($query);
 
     // add Order status change to Order history table
     $new_history = new OrderHistory();
-    $new_history->id_order = intval($order_id);
+    $new_history->id_order = (int)$order_id;
     // bitcoin confirmation ok
     $new_history->changeIdOrderState((int)$order_status, (int)$order_id, true);
     $new_history->add(true);
@@ -522,7 +509,7 @@ if (true === array_key_exists('name', $event)
 # confirmed then completed
 # see TX speed
 if (true === array_key_exists('name', $event)
-    && $event['name'] === 'invoice_confirmed' ) {
+    && $event['name'] === 'invoice_confirmed') {
 
     if (true === empty($data)) {
         PrestaShopLogger::addLog('[Error] invalide json', 3);
@@ -530,7 +517,7 @@ if (true === array_key_exists('name', $event)
     }
 
     if (false === array_key_exists('id', $data)) {
-         PrestaShopLogger::addLog("[Error] No id in data", 3);
+        PrestaShopLogger::addLog("[Error] No id in data", 3);
         exit;
     }
 
@@ -547,7 +534,7 @@ if (true === array_key_exists('name', $event)
     //invoice_completed
 
     // Get a BitPay Client to prepare for invoice fetching
-    $client = new \Bitpay\Client\Client();
+    $client = new Client();
     if (false === isset($client) && true === empty($client)) {
         PrestaShopLogger::addLog('[Error] Failed to instanciate Client', 3);
         exit;
@@ -556,7 +543,7 @@ if (true === array_key_exists('name', $event)
     $serverurl_btcpay = Configuration::get('btcpay_URL');
     $client->setUri($serverurl_btcpay);
 
-    $curlAdapter = new \Bitpay\Client\Adapter\CurlAdapter();
+    $curlAdapter = new CurlAdapter();
     if (false === isset($curlAdapter) || true === empty($curlAdapter)) {
         PrestaShopLogger::addLog('[Error] Failed to instanciate curlAdapter', 3);
         exit;
@@ -566,13 +553,13 @@ if (true === array_key_exists('name', $event)
     $client->setAdapter($curlAdapter);
 
     $encrypted_key_btcpay = Configuration::get('btcpay_KEY');
-    $key_btcpay = (string) $btcpay->bitpay_decrypt($encrypted_key_btcpay);
+    $key_btcpay = (string)$btcpay->bitpay_decrypt($encrypted_key_btcpay);
     if (true === empty($key_btcpay)) {
         PrestaShopLogger::addLog('[Error] Failed to decrypt key', 3);
         exit;
     }
 
-    $key = new \Bitpay\PrivateKey();
+    $key = new PrivateKey();
     $key->setHex($key_btcpay);
     $client->setPrivateKey($key);
 
@@ -585,9 +572,9 @@ if (true === array_key_exists('name', $event)
         exit;
     }
 
-    $token_btcpay = (string) $btcpay->bitpay_decrypt(Configuration::get('btcpay_TOKEN'));
+    $token_btcpay = (string)$btcpay->bitpay_decrypt(Configuration::get('btcpay_TOKEN'));
     if (false === empty($token_btcpay)) {
-        $_token = new \Bitpay\Token();
+        $_token = new Token();
         $_token->setToken($token_btcpay);
         $client->setToken($_token);
     } else {
@@ -597,21 +584,21 @@ if (true === array_key_exists('name', $event)
 
     // handle case order id already exist
     // Setup the Invoice
-    $invoice = new \Bitpay\Invoice();
+    $invoice = new Invoice();
     if (false === isset($invoice) || true === empty($invoice)) {
         PrestaShopLogger::addLog('[Error] Failed to instanciate Invoice', 3);
         exit;
     }
 
     $db = Db::getInstance();
-    $result = array();
     $order_id = "";
+
     $result = $db->ExecuteS("SELECT `id_order` FROM `" . _DB_PREFIX_ . "order_bitcoin` WHERE `invoice_id`='" . (string)$data['id'] . "';");
-    if (count($result)>0 && $result[0] !== null && $result[0]['id_order'] !== null) {
+    if (count($result) > 0 && $result[0] !== null && $result[0]['id_order'] !== null) {
         $order_id = $result[0]['id_order'];
     } else {
-       PrestaShopLogger::addLog('[Error] IPN order id not found', 3);
-       exit;
+        PrestaShopLogger::addLog('[Error] IPN order id not found', 3);
+        exit;
     }
 
     $order = new Order($order_id);
@@ -619,20 +606,17 @@ if (true === array_key_exists('name', $event)
     // wait for confirm
     $status_btcpay = 40;
 
-    if($data['status'] === 'invalid' || $data['status'] === 'expired')
-    {
+    if ($data['status'] === 'invalid' || $data['status'] === 'expired') {
         // time setup on invoice is expired
         $status_btcpay = 41;
     }
 
-    if($data['status'] === 'paid')
-    {
+    if ($data['status'] === 'paid') {
         // TX received but we have to wait some confirmation
         $status_btcpay = 40;
     }
 
-    if($data['status'] === 'confirmed' || $data['status'] === 'complete')
-    {
+    if ($data['status'] === 'confirmed' || $data['status'] === 'complete') {
         //Transaction confirmed
         $status_btcpay = 42;
     }
@@ -641,12 +625,11 @@ if (true === array_key_exists('name', $event)
 
     // update amount paid
     $db = Db::getInstance();
-    $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `status`='".$order_status."' WHERE `id_order`=" . intval($order_id) . ';';
-    $result = array();
-    $result = $db->Execute($query);
+    $query = 'UPDATE `' . _DB_PREFIX_ . "order_bitcoin` SET `status`='" . $order_status . "' WHERE `id_order`=" . (int)$order_id . ';';
+    $db->Execute($query);
 
     // add Order status change to Order history table
-    if ( $order->current_state != $order_status) {
+    if ($order->current_state != $order_status) {
         $new_history = new OrderHistory();
         $new_history->id_order = (int)$order_id;
         // bitcoin confirmation ok
