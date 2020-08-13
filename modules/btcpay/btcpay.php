@@ -73,7 +73,7 @@ class BTCpay extends PaymentModule
 
         $this->name = 'btcpay';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.0';
+        $this->version = '2.1.0';
         $this->author = 'BTCPayServer';
         $this->currencies = true;
         $this->currencies_mode = 'checkbox';
@@ -205,19 +205,20 @@ class BTCpay extends PaymentModule
             return null;
         }
 
-        $btcpay_option = new PaymentOption();
-        $btcpay_option->setModuleName($this->name)
-            ->setCallToActionText($this->l('Pay with Bitcoin'))
-            ->setAction(Configuration::get('PS_FO_PROTOCOL') . __PS_BASE_URI__ . "modules/{$this->name}/payment.php");
+        $paymentOption = new PaymentOption();
+        $paymentOption->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/images/bitcoin.png'));
+        $paymentOption->setModuleName($this->name);
+        $paymentOption->setCallToActionText($this->l('Pay with Bitcoin'));
+        $paymentOption->setAction(Configuration::get('PS_FO_PROTOCOL') . __PS_BASE_URI__ . "modules/{$this->name}/payment.php");
 
-        return [$btcpay_option];
+        return [$paymentOption];
     }
 
     private function _setbtcpaySubscription()
     {
         $btcpayserver_url = Configuration::get('btcpay_URL');
         if (true === empty($btcpayserver_url)) {
-            $btcpayserver_url = 'https://btcpay-server-testnet.azurewebsites.net';
+            $btcpayserver_url = 'https://testnet.demo.btcpayserver.org';
         }
 
         $this->_html .= '<div style="float: right; width: 440px; height: 150px; border: dashed 1px #666; padding: 8px; margin-left: 12px;">

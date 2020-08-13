@@ -5,7 +5,7 @@ BUILD_FOLDER := "./build"
 ZIP_NAME := "${MODULE}.zip"
 MODULE_OUT := "${BUILD_FOLDER}/${ZIP_NAME}"
 
-.PHONY: all deps build clean
+.PHONY: all deps build clean lint lint-fix
 
 all: build
 
@@ -35,6 +35,12 @@ clean: ## Remove previous builds
 
 	# Remove all unnecessary modules
 	@ls -d $(MODULE_FOLDER)/* | grep -v $(MODULE) | xargs rm -rf
+
+lint: ## Lints the module
+	@./bin/php-cs-fixer fix --diff --dry-run -v
+
+lint-fix: ## Resolves linter issues
+	@./bin/php-cs-fixer fix -v
 
 help: ## Display this help screen
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

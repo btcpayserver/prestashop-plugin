@@ -49,14 +49,9 @@
         "composer/installers": "^1.0.21"
     },
     "require-dev": {
-        "behat/behat": "^3.5",
         "cssjanus/cssjanus": "dev-patch-1",
         "friendsofphp/php-cs-fixer": "^2.16.1",
         "johnkary/phpunit-speedtrap": "^3",
-        "mikey179/vfsstream": "^1.6",
-        "phake/phake": "@stable",
-        "phpstan/phpstan": "^0.12.32",
-        "phpunit/phpunit": "~7.5.18",
         "prestashop/prestashop": "^1.7.6.7",
         "symfony/phpunit-bridge": "^3.4"
     },
