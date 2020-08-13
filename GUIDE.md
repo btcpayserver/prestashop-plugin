@@ -2,10 +2,11 @@
 
 ## Prerequisites
 You must have a BTCPay merchant account to use this plugin.
-If you want to test in test mode, just paste an other btcpayserver url with testing port.
+
+If you want to test the integration, use a BTCPayServer which is running on testnet. A sane default has been provided.
 
 ## Making a release
-Run `make`
+Run `make` and add it to a tag or upload it yourself to your server.
 
 ## Server Requirements
 
@@ -14,17 +15,16 @@ Run `make`
 + Curl PHP Extension
 + JSON PHP Extension
 + Install PHP bcmath module
-+ be sure your BTCPay server is whitelisted by Prestashop server
-+ be sure your Prestashop server is whitelisted by BTCPay server
++ Be sure your BTCPay server is whitelisted by Prestashop server
++ Be sure your Prestashop server is whitelisted by BTCPay server
 
 ## Plugin Configuration
 
-### For Prestashop versions 1.7:
-1. Download the latest release from https://github.com/btcpayserver/prestashop-plugin/releases
-2. Go to your PrestaShop administration. Under "Modules and services" select "Upload a module" (v1.7)
-3. Go to your "installed modules" -> "BTCPay" and click [Configure]<br />
-4. Go on your BTCPay server, in your store and display access tokens.
-5. Click on "Create a new token API", select your store and then approve
+1. Download the latest release from https://github.com/btcpayserver/prestashop-plugin/releases.
+2. Go to your PrestaShop backend, under "Modules" select "Upload a module" and upload the ZIP file you downloaded or made. 
+3. Go to your "Installed modules" -> "BTCPay" and click \[Configure\].
+4. Go to your BTCPay server, select a store, open it's settings and select "Access Tokens".
+5. Click on "Create a new token", select your store and then approve.
 6. You will see: "Server initiated pairing code: XXXX". Go back to prestashop and enter your pairing code.
 7. Validate.
 8. Test a payment.

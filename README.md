@@ -1,49 +1,36 @@
-# Prestashop Plugin for BTCPay server, an opensource Payment processor
+# BTCPay server - Prestashop Plugin
 
-Warning this is an Beta version
-Use it at your own risk
+Be warned, this version should be considered as beta. Use it at your own risk.
 
 ## Description
 
-A bitcoin payment plugin for PrestaShop using BTCPay server.
-BTCPay Server is a free and open source server for merchants wanting to accept Bitcoin for their business.
-The API is compatible with Bitpay service to allow seamless migration.
+A bitcoin payment plugin for PrestaShop using BTCPay server. [BTCPayServer](https://btcpayserver.org/) is a free and open source server for merchants wanting to accept Bitcoin for their business.
 
-BTCPay is design to be easy to deploy on container hosting platform like Azure.
-and if you want, some companies provide hosting services.
+## Tested successfully
+* Prestashop 1.7.6.x
+* BTCPay server v1.0.1 up to v1.0.5.4
 
 ## Quick Start Guide
 
 To get up and running with our plugin quickly, see the GUIDE here: https://github.com/btcpayserver/prestashop-plugin/blob/master/GUIDE.md
 
-
 # Internals
 
-This plugin only generate Prestashop order and invoice (aka postponed order), when payment is received.
-Prestashop design ensure customer is ready to pay, with a checkbox, when he is forwarded to payment processor.
-
+This plugin only support creating orders before and after payment. 
 
 # TODO
-Their is still a lot's of place for improvement.
-* ~~on/off postponed order~~
-* ~~direct configuration for block confirmations~~
-* composer with php-bitpay-client
-* docker for testing
-* travis integration
-* check 1.6.X compatibility
-* ensure stats are correctly displayed in prestashop
-* share the same order number BTCPay server and prestashop, or give insight in order details
-* give bitcoin rate in local currency in order details
-* still in order details, give exact time of payment and bitcoin transaction
-* find a way to not override order state numbers currently used in case another plugin use it.
-e.g: plugin use order state id: 39,40,41,42.  Should use 49,50,51,52 if other plugins use the first one.
-* refactoring in ipn.php
+There is a lot of improvements that can still be made:
+* IPN.php requires a massive refactoring as it's a mess
+* Create a docker container for testing
+* Enable CI integration with auto builds + releases
+* Ensure stats are correctly displayed in prestashop
+* Share the same order number BTCPay server and prestashop, or give insight in order details
+* Give bitcoin rate in local currency in order details
+    * Also give exact time of payment and bitcoin transaction
+* Find a way to not override order state numbers currently used in case another plugin use it.
+   * e.g: plugin use order state id: 39,40,41,42.  Should use 49,50,51,52 if other plugins use the first one.
 
 # Support
-
-## Tested successfully
-* Prestashop 1.7.x
-* BTCPay server v1.0.1 and v1.0.2
 
 ## Contribute
 
@@ -56,12 +43,11 @@ To contribute to this project, please fork and submit a pull request.
 * [Documentation](http://doc.prestashop.com/)
 * [Support Forums](http://www.prestashop.com/forums/)
 
-
 # License
 
 The MIT License (MIT)
 
-Copyright (c) 2011-2018 BitPay
+Copyright (c) 2011-2020 BitPay
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
