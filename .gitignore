@@ -93,9 +93,65 @@ download/
 upload/
 
 # Other modules we don't care about
+/modules/statssales/
+/modules/dashproducts/
+/modules/ps_customeraccountlinks/
+/modules/statsbestcategories/
+/modules/ps_searchbar/
+/modules/statsstock/
+/modules/ps_customersignin/
+/modules/ps_featuredproducts/
+/modules/statssearch/
+/modules/statsbestmanufacturers/
+/modules/statsvisits/
+/modules/ps_contactinfo/
+/modules/statsorigin/
+/modules/ps_customtext/
+/modules/ps_imageslider/
+/modules/statsproduct/
+/modules/gsitemap/
+/modules/gridhtml/
+/modules/ps_categorytree/
+/modules/contactform/
+/modules/statsbestvouchers/
+/modules/ps_mainmenu/
+/modules/statsequipment/
+/modules/statsforecast/
+/modules/ps_emailsubscription/
+/modules/ps_languageselector/
+/modules/welcome/
+/modules/statscarrier/
+/modules/statscheckup/
+/modules/pagesnotfound/
+/modules/statscatalog/
+/modules/sekeywords/
+/modules/dashactivity/
+/modules/statsbestcustomers/
+/modules/dashtrends/
+/modules/statsbestsuppliers/
+/modules/ps_banner/
+/modules/statsnewsletter/
+/modules/blockreassurance/
+/modules/ps_socialfollow/
+/modules/statspersonalinfos/
+/modules/ps_themecusto/
+/modules/statslive/
+/modules/ps_faviconnotificationbo/
+/modules/ps_shoppingcart/
+/modules/statsregistrations/
+/modules/ps_facetedsearch/
+/modules/ps_sharebuttons/
+/modules/ps_linklist/
+/modules/ps_currencyselector/
+/modules/statsbestproducts/
+/modules/statsdata/
+/modules/ps_wirepayment/
+/modules/dashgoals/
+/modules/ps_checkpayment/
+/modules/graphnvd3/
 
-/modules/
-!/modules/btcpay/*
+# We dont care about the lib folder
+/modules/btcpay/lib/
 
 ### Symfony ###
 # Cache and logs (Symfony2)
