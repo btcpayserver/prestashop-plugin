@@ -1,4 +1,4 @@
-{capture name=path}{l s='Bictoin payment.' mod='btcpay'}{/capture}
+{capture name=path}{l s='Bitcoin payment.' mod='btcpay'}{/capture}
 
 {include file="$tpl_dir./breadcrumb.tpl"}
 
