@@ -8,7 +8,7 @@ A bitcoin payment plugin for PrestaShop using BTCPay server. [BTCPayServer](http
 
 ## Tested successfully
 * Prestashop 1.7.6.x
-* BTCPay server v1.0.1 up to v1.0.5.4
+* BTCPay server v1.0.5.4
 
 ## Quick Start Guide
 
@@ -18,9 +18,8 @@ To get up and running with our plugin quickly, see the GUIDE here: https://githu
 
 This plugin only support creating orders before and after payment. 
 
-# TODO
+# Future improvements
 There is a lot of improvements that can still be made:
-* IPN.php requires a massive refactoring as it's a mess
 * Create a docker container for testing
 * Enable CI integration with auto builds + releases
 * Ensure stats are correctly displayed in prestashop

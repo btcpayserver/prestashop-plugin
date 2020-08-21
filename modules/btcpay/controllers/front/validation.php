@@ -1,74 +1,96 @@
 <?php
+use BTCPay\LegacyOrderBitcoinRepository;
 
 class BTCpayValidationModuleFrontController extends ModuleFrontController
 {
-    /**
-     * @see FrontController::postProcess()
-     */
-    public function postProcess()
-    {
-        $cart = $this->context->cart;
-        if ($cart->id_customer === 0 || $cart->id_address_delivery === 0 || $cart->id_address_invoice === 0 || !$this->module->active) {
-            Tools::redirect('index.php?controller=order&step=1');
-        }
+	/**
+	 * Enable SSL only.
+	 *
+	 * @var bool
+	 */
+	public $ssl = true;
 
-        // Check that this payment option is still available in case the customer changed his address just before the end of the checkout process
-        $authorized = false;
-        foreach (Module::getPaymentModules() as $module) {
-            if ($module['name'] === $this->module->name) {
-                $authorized = true;
-                break;
-            }
-        }
+	/**
+	 * @var LegacyOrderBitcoinRepository
+	 */
+	private $repository;
 
-        if (!$authorized) {
-            die($this->module->l('This payment method is not available.', 'validation'));
-        }
+	public function __construct()
+	{
+		parent::__construct();
 
-        // Get the passed invoice reference, which we can then use to get the actual order
-        $invoice_reference = Tools::getValue('invoice_reference', 0);
-        $cart_id = (int) $this->get_order_field_by_reference($invoice_reference, 'cart_id');
+		$this->repository = new LegacyOrderBitcoinRepository();
+	}
 
-        // Check if the cart has been made by a guest customer
-        $is_guest = Cart::isGuestCartByCartId($cart_id);
+	/**
+	 * {@inheritdoc}
+	 */
+	public function postProcess(): void
+	{
+		// Check if the cart we have is even valid
+		$cart = $this->context->cart;
+		if (0 === $cart->id_customer || 0 === $cart->id_address_delivery || 0 === $cart->id_address_invoice || !$this->module->active) {
+			Tools::redirect($this->context->link->getPageLink('order', $this->ssl, null, ['step' => 1]));
 
-        // Set basic redirect URL
-        $redirectLink = $is_guest
-            ? 'index.php?controller=guest-tracking'
-            : 'index.php?controller=history';
+			return;
+		}
 
-        // If this module is fucked, just redirect away
-        if (!$this->module->id) {
-            Tools::redirect($redirectLink);
-        }
+		// Get the translator so we can translate our errors
+		if (null === ($translator = $this->getTranslator())) {
+			throw new \RuntimeException('Expected the translator to be available');
+		}
 
-        // Get the order and validate it
-        $order = Order::getByCartId($cart_id);
-        if ($order === null || $order->id === 0 || (int) $order->id_customer !== (int) $this->context->customer->id) {
-            Tools::redirect($redirectLink);
-        }
+		// Check if our payment option is still valid
+		$authorized = false;
+		foreach (Module::getPaymentModules() as $module) {
+			if ($module['name'] === $this->module->name) {
+				$authorized = true;
+				break;
+			}
+		}
 
-        // Get the customer so we can do a fancy redirect
-        $customer = new Customer((int) $cart->id_customer);
-        if ($is_guest) {
-            Tools::redirect($redirectLink . '&order_reference=' . $order->reference . '&email=' . urlencode($customer->email));
+		// If it's no longer valid, redirect the customer.
+		if (!$authorized) {
+			$this->warning[] = $translator->trans('This payment method is not available.', [], 'Modules.Btcpay.Front');
+			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
 
-            return;
-        }
+			return;
+		}
 
-        Tools::redirect('index.php?controller=order-confirmation&id_cart=' . $order->id_cart . '&id_module=' . $this->module->id . '&id_order=' . $order->id . '&key=' . $customer->secure_key);
-    }
+		// Get the passed invoice reference, which we can then use to get the actual order
+		$invoiceReference = Tools::getValue('invoice_reference', 0);
+		if (null === ($orderBitcoin = $this->repository->getOneByInvoiceReference($invoiceReference))) {
+			$this->warning[] = $translator->trans('There is no order that we can validate.', [], 'Modules.Btcpay.Front');
+			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
 
-    private function get_order_field_by_reference($invoice_reference, $order_field)
-    {
-        $db = Db::getInstance();
-        $query = 'SELECT `' . $order_field . '` FROM `' . _DB_PREFIX_ . "order_bitcoin` WHERE `invoice_reference`='" . $invoice_reference . "';";
-        $result = $db->ExecuteS($query);
+			return;
+		}
 
-        if (count($result) > 0 && $result[0] !== null && $result[0][$order_field] !== null) {
-            return $result[0][$order_field];
-        }
+		// Get the order and validate it
+		$order = Order::getByCartId($orderBitcoin->getCartId());
+		if (null === $order || 0 === $order->id || (int) $order->id_customer !== (int) $this->context->customer->id) {
+			$this->warning[] = $translator->trans('There is no order that we can process.', [], 'Modules.Btcpay.Front');
+			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
 
-        return null;
-    }
+			return;
+		}
+
+		// Get the customer so we can do a fancy redirect
+		$customer = new Customer((int) $cart->id_customer);
+
+		// If it's a guest, sent them to guest tracking
+		if (Cart::isGuestCartByCartId($orderBitcoin->getCartId())) {
+			Tools::redirect($this->context->link->getPageLink('guest-tracking', $this->ssl, null, ['order_reference' => $order->reference, 'email' => $customer->email]));
+
+			return;
+		}
+
+		// If it's an actual customer, sent them to the order confirmation page
+		Tools::redirect($this->context->link->getPageLink('order-confirmation', $this->ssl, null, [
+			'id_cart'   => $order->id_cart,
+			'id_module' => $this->module->id,
+			'id_order'  => $order->id,
+			'key'       => $customer->secure_key,
+		]));
+	}
 }

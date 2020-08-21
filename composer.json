@@ -1,62 +1,85 @@
 {
-    "name": "btcpay/prestashop",
-    "description": "BTCPay payment plugin for PrestaShop",
-    "type": "prestashop-module",
-    "keywords": ["prestashop","plugin","payment","ecommerce","bitcoin","btcpay"],
-    "homepage": "https://github.com/btcpayserver/prestashop-plugin",
-    "license": "MIT",
-    "support": {
-        "issues": "https://github.com/btcpayserver/prestashop-plugin/issues",
-        "source": "https://github.com/btcpayserver/prestashop-plugin"
+  "name": "btcpay/prestashop",
+  "description": "BTCPay payment plugin for PrestaShop",
+  "type": "prestashop-module",
+  "keywords": [
+    "prestashop",
+    "plugin",
+    "payment",
+    "ecommerce",
+    "bitcoin",
+    "BTCPay"
+  ],
+  "homepage": "https://github.com/btcpayserver/prestashop-plugin",
+  "license": "MIT",
+  "support": {
+    "issues": "https://github.com/btcpayserver/prestashop-plugin/issues",
+    "source": "https://github.com/btcpayserver/prestashop-plugin"
+  },
+  "minimum-stability": "stable",
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/btcpayserver/php-bitpay-client"
     },
-    "minimum-stability": "stable",
-    "authors": [
-        {
-            "name": "Adrien",
-            "email": "adrien@adapp.tech"
-        }
-    ],
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/btcpayserver/php-bitpay-client"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/PrestaShop/PrestaShop"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/prestashop/php-cssjanus"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/prestashop/CsaGuzzleBundle"
-        }
-    ],
-    "require": {
-        "php": ">=7.1.3",
-        "ext-curl": "*",
-        "ext-dom": "*",
-        "ext-fileinfo": "*",
-        "ext-gd": "*",
-        "ext-iconv": "*",
-        "ext-intl": "*",
-        "ext-json": "*",
-        "ext-mbstring": "*",
-        "ext-zip": "*",
-        "bitpay/php-client": "dev-master",
-        "composer/installers": "^1.0.21"
+    {
+      "type": "vcs",
+      "url": "https://github.com/PrestaShop/PrestaShop"
     },
-    "require-dev": {
-        "cssjanus/cssjanus": "dev-patch-1",
-        "friendsofphp/php-cs-fixer": "^2.16.1",
-        "johnkary/phpunit-speedtrap": "^3",
-        "prestashop/prestashop": "^1.7.6.7",
-        "symfony/phpunit-bridge": "^3.4"
+    {
+      "type": "vcs",
+      "url": "https://github.com/prestashop/php-cssjanus"
     },
-    "config": {
-        "bin-dir": "bin",
-        "sort-packages": true
+    {
+      "type": "vcs",
+      "url": "https://github.com/prestashop/CsaGuzzleBundle"
     }
+  ],
+  "require": {
+    "php": ">=7.2.0",
+    "ext-PDO": "*",
+    "ext-curl": "*",
+    "ext-dom": "*",
+    "ext-fileinfo": "*",
+    "ext-gd": "*",
+    "ext-iconv": "*",
+    "ext-intl": "*",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "ext-zip": "*",
+    "composer/installers": "^v1.9.0"
+  },
+  "require-dev": {
+    "cssjanus/cssjanus": "dev-patch-1",
+    "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
+    "friendsofphp/php-cs-fixer": "^v2.16.4",
+    "johnkary/phpunit-speedtrap": "^v3.2.0",
+    "phpspec/prophecy-phpunit": "^2.0",
+    "prestashop/prestashop": "^v1.7.6.7",
+    "roave/security-advisories": "dev-master",
+    "slevomat/coding-standard": "^6.3",
+    "squizlabs/php_codesniffer": "^3.5",
+    "symfony/phpunit-bridge": "^v3.4.43"
+  },
+  "config": {
+    "preferred-install": "dist",
+    "prepend-autoloader": false,
+    "sort-packages": true
+  },
+  "scripts": {
+    "install-codestandards": [
+      "Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
+    ],
+    "post-install-cmd": [
+      "@install-codestandards"
+    ]
+  },
+  "autoload": {
+    "psr-4": {
+      "BTCPay\\": "modules/btcpay/src"
+    },
+    "classmap": [
+      "modules/btcpay/btcpay.php"
+    ]
+  }
 }

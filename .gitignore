@@ -9,6 +9,14 @@ btcpay.zip
 # Ignore php-cs-fixer cache
 .php_cs.cache
 
+# Ignore phpcs cache
+.phpcs-cache
+
+# Ignore files in the module that are added via `make`
+/modules/btcpay/LICENSE
+/modules/btcpay/GUIDE.md
+/modules/btcpay/README.md
+
 ### PhpStorm ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
@@ -150,8 +158,9 @@ upload/
 /modules/ps_checkpayment/
 /modules/graphnvd3/
 
-# We dont care about the lib folder
+# We dont care about the lib/vendor folder
 /modules/btcpay/lib/
+/modules/btcpay/vendor/
 
 ### Symfony ###
 # Cache and logs (Symfony2)

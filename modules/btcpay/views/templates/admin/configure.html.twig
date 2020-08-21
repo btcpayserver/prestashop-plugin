@@ -1,0 +1,49 @@
+{% extends '@PrestaShop/Admin/layout.html.twig' %}
+
+{% block content %}
+  <div style="width: 100%; height: 125px;">
+    <div style="float: right; border: dashed 1px #666; padding: 8px;">
+      <a href="{{ form.btcpay.vars.data.url }}" target="_blank">
+        <img src="{{ asset('../modules/btcpay/views/images/prestashop-btcpay.png') }}" alt="PrestaShop & BTCPay"/>
+      </a>
+    </div>
+    <img src="{{ asset('../modules/btcpay/views/images/btcpay-plugin.png') }}" alt="PrestaShop & BTCPay" style="float:left; margin-right:15px;"/>
+    <p><strong>{{ 'This module allows you to accept payments by BTCPay.'|trans({}, 'Modules.Btcpay.Admin') }}</strong></p>
+    <p>{{ 'You need to configure your BtcPay account before using this module.'|trans({}, 'Modules.Btcpay.Admin') }}</p>
+  </div>
+
+  {{ form_start(form, {'action': url('admin_btcpay_configure_process'), 'attr': {'class': 'form', 'id': 'BTCPAY_form'}}) }}
+  <div class="row ps17">
+    <div class="col-lg-12">
+      <div class="card">
+        <h3 class="card-header">
+          <i class="material-icons">mode_edit</i>
+          {{ 'Settings'|trans({}, 'Admin.Global') }}
+        </h3>
+        <div class="card-block row">
+          <div class="card-text">
+            {{ form_row(form.btcpay.url) }}
+            {{ form_row(form.btcpay.transaction_speed) }}
+            {{ form_row(form.btcpay.order_mode) }}
+            {{ form_row(form.btcpay.pairing_code) }}
+            {{ form_rest(form) }}
+          </div>
+          <small>
+            {% if form.btcpay.vars.data.url is not empty %}
+              {{ 'You can get a pairing code from your BTCPay server by visiting <a href="%url%/api-tokens" target="_blank">%url%/api-tokens</a>.'|trans({'%url%': form.btcpay.vars.data.url }, 'Modules.Btcpay.Admin')|raw }}
+            {% else %}
+              {{ 'You can get a pairing code from your BTCPay server by visiting /api-tokens on your BTCPay server.'|trans({}, 'Modules.Btcpay.Admin') }}
+            {% endif %}
+          </small>
+        </div>
+        <div class="card-footer">
+          <div class="d-flex justify-content-between">
+            <a href="{{ getAdminLink('AdminDashboard') }}" class="btn btn-secondary">{{ 'Cancel'|trans({}, 'Admin.Actions') }}</a>
+            <button class="btn btn-primary">{{ 'Save'|trans({}, 'Admin.Actions') }}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{ form_end(form) }}
+{% endblock %}

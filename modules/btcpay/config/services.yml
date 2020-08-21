@@ -1,0 +1,32 @@
+services:
+  _defaults:
+    public: true
+
+  prestashop.module.btcpay.repository:
+    class: BTCPay\Repository\BitcoinPaymentRepository
+    arguments:
+      $connection: '@doctrine.dbal.default_connection'
+      $prefix: '%database_prefix%'
+
+  # BTCPay form data provider
+  prestashop.module.btcpay.form.configure.provider:
+    class: BTCPay\Form\ConfigureFormDataProvider
+
+  # Form types
+  prestashop.module.btcpay.form.type.configure:
+    class: BTCPay\Form\Type\ConfigureType
+    parent: 'form.type.translatable.aware'
+    public: true
+    tags:
+      - { name: form.type }
+
+  # BTCPay form handler
+  prestashop.module.btcpay.form_handler:
+    class: 'PrestaShop\PrestaShop\Core\Form\FormHandler'
+    arguments:
+      $formBuilder: '@=service("form.factory").createBuilder()'
+      $hookDispatcher: '@prestashop.core.hook.dispatcher'
+      $formDataProvider: '@prestashop.module.btcpay.form.configure.provider'
+      $formTypes:
+        'btcpay': 'BTCPay\Form\Type\ConfigureType'
+      $hookName: 'AdminConfigureBTCPay'

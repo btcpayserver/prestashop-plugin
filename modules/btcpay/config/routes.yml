@@ -1,0 +1,14 @@
+admin_btcpay_configure:
+  path: /btcpay/configure
+  methods: [GET]
+  defaults:
+    _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::editAction'
+    _legacy_controller: AdminConfigureBTCPay
+    _legacy_link: AdminConfigureBTCPay
+
+admin_btcpay_configure_process:
+  path: /btcpay/configure
+  methods: [POST]
+  defaults:
+    _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::editProcessAction'
+    _legacy_controller: AdminConfigureBTCPay
