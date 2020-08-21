@@ -49,7 +49,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class BTCpay extends PaymentModule
+class BTCpay extends \PaymentModule
 {
     private $_html = '';
     protected $_postErrors = [];
@@ -58,6 +58,13 @@ class BTCpay extends PaymentModule
      * @var string
      */
     private $btcpayurl;
+
+    public $tabs = [[
+        'name' => 'BTCPay',
+        'visible' => true,
+        'class_name' => 'AdminBTCpay',
+        'parent_class_name' => 'AdminParentPayment',
+    ]];
 
     public function __construct()
     {
@@ -73,16 +80,17 @@ class BTCpay extends PaymentModule
 
         $this->name = 'btcpay';
         $this->tab = 'payments_gateways';
-        $this->version = '2.1.0';
+        $this->version = '2.1.1';
         $this->author = 'BTCPayServer';
-        $this->currencies = true;
-        $this->currencies_mode = 'checkbox';
-        $this->btcpayurl = '';
         $this->is_eu_compatible = 1;
-        $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => '1.7'];
-
+        $this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => _PS_VERSION_];
         $this->controllers = ['payment', 'validation'];
         $this->bootstrap = true;
+
+        $this->currencies = true;
+        $this->currencies_mode = 'radio';
+
+        $this->btcpayurl = '';
 
         parent::__construct();
 
