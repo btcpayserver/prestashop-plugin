@@ -18,6 +18,9 @@ deps: ## Download and make all dependencies
 	@cp -r ./vendor/bitpay/php-client/src/Bitpay "$(MODULE_FOLDER)/$(MODULE)/lib/Bitpay"
 
 build: deps ## Build the bastard binary file
+	# Removing the old ZIP if present
+	@rm -f $(MODULE_OUT)
+
 	# Make the build folder
 	@mkdir -p $(BUILD_FOLDER)
 
