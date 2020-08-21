@@ -51,7 +51,6 @@ if (!defined('_PS_VERSION_')) {
 
 class BTCpay extends \PaymentModule
 {
-    private $_html = '';
     protected $_postErrors = [];
 
     /**
@@ -196,15 +195,25 @@ class BTCpay extends \PaymentModule
         return parent::uninstall();
     }
 
-    public function getContent()
+    public function getContent(): string
     {
-        $this->_html .= '<h2>' . $this->l('btcpay') . '</h2>';
+        $result = $this->_postProcess();
 
-        $this->_postProcess();
-        $this->_setbtcpaySubscription();
-        $this->_setConfigurationForm();
+        // Get BTCPay URL or use sane default
+        $btcpayurl = Configuration::get('btcpay_URL');
+        if (true === empty($btcpayurl)) {
+            $btcpayurl = 'https://testnet.demo.btcpayserver.org';
+        }
 
-        return $this->_html;
+        $this->context->smarty->assign([
+            'btcpayurl' => $btcpayurl,
+            'txSpeed' => Configuration::get('btcpay_TXSPEED'),
+            'orderMode' => Configuration::get('btcpay_ORDERMODE'),
+            'formBTCPayURL' => Tools::getValue('serverurl', Configuration::get('btcpay_URL')),
+            'formPairingCode' => Tools::getValue('pairingcode', Configuration::get('btcpay_PAIRINGCODE')),
+        ]);
+
+        return $result . $this->display(__FILE__, 'views/templates/admin/configure.tpl');
     }
 
     public function hookPaymentOptions($params)
@@ -222,135 +231,46 @@ class BTCpay extends \PaymentModule
         return [$paymentOption];
     }
 
-    private function _setbtcpaySubscription()
+    private function _postProcess()
     {
-        $btcpayserver_url = Configuration::get('btcpay_URL');
-        if (true === empty($btcpayserver_url)) {
-            $btcpayserver_url = 'https://testnet.demo.btcpayserver.org';
+        if (Tools::isSubmit('submitpairing')) {
+            $this->_errors = [];
+
+            if (Tools::getValue('form_btcpay_pairingcode') == null) {
+                $this->_errors[] = $this->l('Missing Pairing Code');
+            }
+
+            if (Tools::getValue('form_btcpay_url') == null) {
+                $this->_errors[] = $this->l('Missing BTCPay server url');
+            }
+
+            // ONly update the pairing code if it's different
+            if (Tools::getValue('form_btcpay_pairingcode') !== Configuration::get('btcpay_PAIRINGCODE')) {
+                $this->_ajax_bitpay_pair_code(
+                    Tools::getValue('form_btcpay_pairingcode'),
+                    Tools::getValue('form_btcpay_url')
+                );
+            }
+
+            if (count($this->_errors) > 0) {
+                $error_msg = '';
+
+                foreach ($this->_errors as $error) {
+                    $error_msg .= $error . '<br />';
+                }
+
+                return $this->displayError($error_msg);
+            }
+
+            Configuration::updateValue('btcpay_ORDERMODE', trim(Tools::getValue('form_btcpay_ordermode')));
+            Configuration::updateValue('btcpay_TXSPEED', trim(Tools::getValue('form_btcpay_txspeed')));
+            Configuration::updateValue('btcpay_PAIRINGCODE', trim(Tools::getValue('form_btcpay_pairingcode')));
+            Configuration::updateValue('btcpay_URL', trim(Tools::getValue('form_btcpay_url')));
+
+            return $this->displayConfirmation($this->l('Settings updated'));
         }
 
-        $this->_html .= '<div style="float: right; width: 440px; height: 150px; border: dashed 1px #666; padding: 8px; margin-left: 12px;">
-                       <h2>' . $this->l('Opening your BTCPay account') . '</h2>
-                       <div style="clear: both;"></div>
-                       <p>' . $this->l('When opening your BTCPay account by clicking on the following image, you are helping us significantly to improve the BTCPay solution:') . '</p>
-                       <p style="text-align: center;"><a href="' . $btcpayserver_url . '/Account/Login"><img src="../modules/btcpay/prestashop_btcpay.png" alt="PrestaShop & btcpay" style="margin-top: 12px;" /></a></p>
-                       <div style="clear: right;"></div>
-                       </div>
-                       <img src="../modules/btcpay/btcpay-plugin.png" style="float:left; margin-right:15px;" />
-                       <b>' . $this->l('This module allows you to accept payments by BTCPay.') . '</b><br /><br />
-                       ' . $this->l('If the client chooses this payment mode, your BTCPay account will be automatically credited.') . '<br />
-                       ' . $this->l('You need to configure your BtcPay account before using this module.') . '
-                       <div style="clear:both;">&nbsp;</div>';
-    }
-
-    private function _setConfigurationForm()
-    {
-        $this->_html .= '<form method="post" action="' . htmlentities($_SERVER['REQUEST_URI']) . '">
-                       <script type="text/javascript">
-                       var pos_select = ' . (($tab = (int) Tools::getValue('tabs')) ? $tab : '0') . ';
-                       </script>';
-
-        if (_PS_VERSION_ <= '1.5') {
-            $this->_html .= '<script type="text/javascript" src="' . _PS_BASE_URL_ . _PS_JS_DIR_ . 'tabpane.js"></script>
-                         <link type="text/css" rel="stylesheet" href="' . _PS_BASE_URL_ . _PS_CSS_DIR_ . 'tabpane.css" />';
-        } else {
-            $this->_html .= '<script type="text/javascript" src="' . _PS_BASE_URL_ . _PS_JS_DIR_ . 'jquery/plugins/tabpane/jquery.tabpane.js"></script>
-                         <link type="text/css" rel="stylesheet" href="' . _PS_BASE_URL_ . _PS_JS_DIR_ . 'jquery/plugins/tabpane/jquery.tabpane.css" />';
-        }
-
-        $this->_html .= '<input type="hidden" name="tabs" id="tabs" value="0" />
-                       <div class="tab-pane" id="tab-pane-1" style="width:100%;">
-                       <div class="tab-page" id="step1">
-                       <h4 class="tab">' . $this->l('Settings') . '</h2>
-                       ' . $this->_getSettingsTabHtml() . '
-                       </div>
-                       </div>
-                       <div class="clear"></div>
-                       <script type="text/javascript">
-                       function loadTab(id){}
-                       setupAllTabs();
-                       </script>
-                       </form>';
-    }
-
-    private function _getSettingsTabHtml()
-    {
-        // default set a test btcpayserver
-        $btcpayserver_url = Configuration::get('btcpay_URL');
-        if (true === empty($btcpayserver_url)) {
-            $btcpayserver_url = 'https://btcpay-server-testnet.azurewebsites.net';
-        }
-
-        // select list for bitcoin confirmation
-        // 'default' => 'Keep store level configuration',
-        // 'high'    => '0 confirmation on-chain',
-        // 'medium'  => '1 confirmation on-chain',
-        // 'low-medium'  => '2 confirmations on-chain',
-        // 'low'     => '6 confirmations on-chain',
-        $lowSelected = '';
-        $mediumSelected = '';
-        $highSelected = '';
-
-        // Remember which speed has been selected and display that upon reaching the settings page; default to low
-        if (Configuration::get('btcpay_TXSPEED') == 'high') {
-            $highSelected = 'selected="selected"';
-        } elseif (Configuration::get('btcpay_TXSPEED') == 'medium') {
-            $mediumSelected = 'selected="selected"';
-        } else {
-            $lowSelected = 'selected="selected"';
-        }
-
-        // delayed order mecanism
-        // create a 'prestashop order' when you create btcpay invoice
-        // or
-        // create a 'prestashop order' when you receive bitcoin payment
-        // or
-        // create a 'prestashop order' when you receive bitcoin payment and confirmation
-        $orderBeforePaymentSelected = '';
-        $orderAfterPaymentSelected = '';
-
-        if (Configuration::get('btcpay_ORDERMODE') == 'afterpayment') {
-            $orderAfterPaymentSelected = 'selected="selected"';
-        } else {
-            $orderBeforePaymentSelected = 'selected="selected"';
-        }
-
-        $html = '<h2>' . $this->l('Settings') . '</h2>
-               <style type="text/css" src="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css"></style>
-               <style type="text/css" src="../modules/btcpay/assets/css/style.css"></style>
-
-               <div style="clear:both;margin-bottom:30px;">
-               <h3 style="clear:both;">' . $this->l('BTCPAY Server URL') . '</h3>
-               <div class="bitpay-pairing bitpay-pairing--live">
-                 <input name="form_btcpay_url" type="text" value="' . htmlentities(Tools::getValue('serverurl', Configuration::get('btcpay_URL')), ENT_COMPAT, 'UTF-8') . '" placeholder="BTCPay Url (eg. ' . $btcpayserver_url . ')" class="bitpay-url"> <br />
-               </div>
-
-               <div style="clear:both;margin-bottom:30px;">
-               <h3 style="clear:both;">' . $this->l('Transaction Speed') . '</h3>
-                 <select name="form_btcpay_txspeed">
-                   <option value="low" ' . $lowSelected . '>Low</option>
-                   <option value="medium" ' . $mediumSelected . '>Medium</option>
-                   <option value="high" ' . $highSelected . '>High</option>
-                 </select>
-               </div>
-
-               <div style="clear:both;margin-bottom:30px;">
-               <h3 style="clear:both;">' . $this->l('Order Mode') . '</h3>
-                 <select name="form_btcpay_ordermode">
-                   <option value="beforepayment" ' . $orderBeforePaymentSelected . '>Order before payment</option>
-                   <option value="afterpayment" ' . $orderAfterPaymentSelected . '>Order after payment</option>
-                 </select>
-               </div>
-
-               <div style="clear:both;margin-bottom:30px;">
-               <h3 style="clear:both;">' . $this->l('Pairing Code') . '</h3>
-               <input type="text" style="width:400px;" name="form_btcpay_pairingcode" value="' . htmlentities(Tools::getValue('pairingcode', Configuration::get('btcpay_PAIRINGCODE')), ENT_COMPAT, 'UTF-8') . '" />
-               </div>
-
-               <button class="bitpay-pairing__find ui-button-text button" type="submit" name="submitpairing" >Pair</button>
-               <div class="bitpay-pairing__help">Get a pairing code: <a href="' . $btcpayserver_url . '/api-tokens" class="bitpay-pairing__link" target="_blank">' . $btcpayserver_url . '/api-tokens</a></div>';
-
-        return $html;
+        return null;
     }
 
     private function _ajax_bitpay_pair_code($pairing_code, $btcpay_url)
@@ -364,20 +284,20 @@ class BTCpay extends \PaymentModule
         } else {
             $this->_errors[] = $this->l('Missing Pairing Code');
 
-            return;
+            return null;
         }
 
         if (!preg_match('/^[a-zA-Z0-9]{7}$/', $pairing_code)) {
             $this->_errors[] = $this->l('Invalid Pairing Code');
 
-            return;
+            return null;
         }
 
         // check btcpayserver hosting url
         if ((substr($_btcpay_url, 0, 7) !== 'http://' && substr($_btcpay_url, 0, 8) !== 'https://')) {
             $this->_errors[] = $this->l('Invalid BTCPay server url');
 
-            return;
+            return null;
         }
 
         // Generate Private Key for api security
@@ -385,7 +305,7 @@ class BTCpay extends \PaymentModule
         if (true === empty($key)) {
             $this->_errors[] = $this->l('The BTCPay payment plugin was called to process a pairing code but could not instantiate a PrivateKey object. Cannot continue!');
 
-            return;
+            return null;
         }
         $key->generate();
 
@@ -394,7 +314,7 @@ class BTCpay extends \PaymentModule
         if (true === empty($pub)) {
             $this->_errors[] = $this->l('The BTCPay payment plugin was called to process a pairing code but could not instantiate a PublicKey object. Cannot continue!');
 
-            return;
+            return null;
         }
         $pub->setPrivateKey($key);
         $pub->generate();
@@ -404,8 +324,9 @@ class BTCpay extends \PaymentModule
         if (true === empty($sin)) {
             $this->_errors[] = $this->l('The BTCPay payment plugin was called to process a pairing code but could not instantiate a SinKey object. Cannot continue!');
 
-            return;
+            return null;
         }
+
         $sin->setPublicKey($pub);
         $sin->generate();
 
@@ -414,14 +335,15 @@ class BTCpay extends \PaymentModule
         if (true === empty($client)) {
             $this->_errors[] = $this->l('The BTCPay payment plugin was called to process a pairing code but could not instantiate a Client object. Cannot continue!');
 
-            return;
+            return null;
         }
+
         $client->setUri($_btcpay_url);
         $curlAdapter = new CurlAdapter();
         if (true === empty($curlAdapter)) {
             $this->_errors[] = $this->l('The BTCPay payment plugin was called to process a pairing code but could not instantiate a CurlAdapter object. Cannot continue!');
 
-            return;
+            return null;
         }
 
         $client->setAdapter($curlAdapter);
@@ -441,6 +363,10 @@ class BTCpay extends \PaymentModule
             PrestaShopLogger::addLog('error:' . $e->getMessage(), 2);
         }
 
+        if (false === isset($token)) {
+            $this->_errors[] = $this->l('Failed to create token, you are maybe using an already activated pairing code.');
+        }
+
         if (count($this->_errors) > 0) {
             $error_msg = '';
 
@@ -448,15 +374,7 @@ class BTCpay extends \PaymentModule
                 $error_msg .= $error . '<br />';
             }
 
-            $this->_html = $this->displayError($error_msg);
-
-            return;
-        }
-
-        if (false === isset($token)) {
-            $this->_errors[] = $this->l('Failed to create token, you are maybe using an already activated pairing code.');
-
-            return;
+            return $this->displayError($error_msg);
         }
 
         Configuration::updateValue('btcpay_URL', $_btcpay_url);
@@ -465,44 +383,8 @@ class BTCpay extends \PaymentModule
         Configuration::updateValue('btcpay_SIN', (string) $sin);
         Configuration::updateValue('btcpay_TOKEN', (string) $this->bitpay_encrypt($token));
         Configuration::updateValue('btcpay_KEY', (string) $this->bitpay_encrypt($key));
-    }
 
-    private function _postProcess()
-    {
-        if (Tools::isSubmit('submitpairing')) {
-            $this->_errors = [];
-
-            if (Tools::getValue('form_btcpay_pairingcode') == null) {
-                $this->_errors[] = $this->l('Missing Pairing Code');
-            }
-
-            if (Tools::getValue('form_btcpay_url') == null) {
-                $this->_errors[] = $this->l('Missing BTCPay server url');
-            }
-
-            $this->_ajax_bitpay_pair_code(
-                Tools::getValue('form_btcpay_pairingcode'),
-                Tools::getValue('form_btcpay_url')
-            );
-
-            if (count($this->_errors) > 0) {
-                $error_msg = '';
-
-                foreach ($this->_errors as $error) {
-                    $error_msg .= $error . '<br />';
-                }
-
-                $this->_html = $this->displayError($error_msg);
-
-                return;
-            }
-
-            Configuration::updateValue('btcpay_ORDERMODE', trim(Tools::getValue('form_btcpay_ordermode')));
-            Configuration::updateValue('btcpay_TXSPEED', trim(Tools::getValue('form_btcpay_txspeed')));
-            Configuration::updateValue('btcpay_PAIRINGCODE', trim(Tools::getValue('form_btcpay_pairingcode')));
-            Configuration::updateValue('btcpay_URL', trim(Tools::getValue('form_btcpay_url')));
-            $this->_html = $this->displayConfirmation($this->l('Pairing done'));
-        }
+        return null;
     }
 
     /**
