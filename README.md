@@ -22,12 +22,7 @@ This plugin only support creating orders before and after payment.
 There is a lot of improvements that can still be made:
 * Create a docker container for testing
 * Enable CI integration with auto builds + releases
-* Ensure stats are correctly displayed in prestashop
-* Share the same order number BTCPay server and prestashop, or give insight in order details
-* Give bitcoin rate in local currency in order details
-    * Also give exact time of payment and bitcoin transaction
-* Find a way to not override order state numbers currently used in case another plugin use it.
-   * e.g: plugin use order state id: 39,40,41,42.  Should use 49,50,51,52 if other plugins use the first one.
+* Show exact time of payment and bitcoin transaction
 
 # Support
 
