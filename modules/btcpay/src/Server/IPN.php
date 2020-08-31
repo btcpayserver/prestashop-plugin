@@ -468,7 +468,7 @@ class IPN
 			$orderHistory->changeIdOrderState($orderStatus, $orderBitcoin->getOrderId(), true);
 			$orderHistory->add(true);
 		} else {
-			\PrestaShopLogger::addLog('[Error] current state is not different than new order status in invoice confirmed', 3);
+			\PrestaShopLogger::addLog('[Info] current state is not different than new order status in invoice confirmed', 1);
 		}
 	}
 }
