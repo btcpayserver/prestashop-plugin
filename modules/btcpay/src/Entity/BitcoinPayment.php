@@ -119,9 +119,9 @@ class BitcoinPayment extends \ObjectModel
 		return $this->order_id;
 	}
 
-	public function setOrderId(?int $id_order): void
+	public function setOrderId(?int $order_id): void
 	{
-		$this->order_id = $id_order;
+		$this->order_id = $order_id;
 	}
 
 	public function getStatus(): string

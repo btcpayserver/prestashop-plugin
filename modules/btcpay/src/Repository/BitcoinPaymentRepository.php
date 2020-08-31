@@ -35,15 +35,15 @@ class BitcoinPaymentRepository
 			"CREATE TABLE IF NOT EXISTS `{$this->prefix}bitcoin_payment`(
     			`id` int(11) NOT NULL AUTO_INCREMENT,
                 `cart_id` int(11) NOT NULL,
-                `id_order` int(11),
+                `order_id` int(11),
                 `status` varchar(255) NOT NULL,
                 `invoice_id` varchar(255),
                 `invoice_reference` varchar(255),
                 `amount` varchar(255),
-                `btc_price` varchar(255),
-                `btc_paid` varchar(255),
-                `btc_address` varchar(255),
-                `btc_refundaddress` varchar(255),
+                `bitcoin_price` varchar(255),
+                `bitcoin_paid` varchar(255),
+                `bitcoin_address` varchar(255),
+                `bitcoin_refund_address` varchar(255),
                 `redirect` varchar(255),
                 `rate` varchar(255),
                 PRIMARY KEY (`id`),
@@ -72,7 +72,7 @@ class BitcoinPaymentRepository
 	public function dropTables(): array
 	{
 		$errors = [];
-		$query  = 'DROP TABLE IF EXISTS `{$this->prefix}bitcoin_payment`';
+		$query  = "DROP TABLE IF EXISTS `{$this->prefix}bitcoin_payment`";
 
 		// Execute query
 		$statement = $this->connection->executeQuery($query);

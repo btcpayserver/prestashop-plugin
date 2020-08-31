@@ -99,7 +99,7 @@ class LegacyOrderBitcoinRepository
 		$query = new \DbQuery();
 		$query->select('bp.*')
 			->from('bitcoin_payment', 'bp')
-			->where(sprintf('bp.id_order = "%s"', $orderID))
+			->where(sprintf('bp.order_id = "%s"', $orderID))
 			->limit(1);
 
 		$result = $this->connection->query($query);
