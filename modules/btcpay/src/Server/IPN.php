@@ -99,7 +99,7 @@ class IPN
 		}
 
 		\PrestaShopLogger::addLog('[Error] Could not process IPN', 3);
-		\PrestaShopLogger::addLog('[INFO] Received IPN: ' . $json, 3);
+		\PrestaShopLogger::addLog('[INFO] Received IPN: ' . $json, 1);
 	}
 
 	private function invoiceCreated(array $data, \BTCPay $btcpay): void
