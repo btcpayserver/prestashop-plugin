@@ -135,7 +135,7 @@ class IPN
 		}
 
 		// waiting payment
-		$orderStatus = 39;
+		$orderStatus = \Configuration::get('BTCPAY_OS_WAITING');
 
 		// on Order, just say payment processor is BTCPay
 		$displayName = $btcpay->displayName;
@@ -229,7 +229,7 @@ class IPN
 		$orderId = $orderBitcoin->getOrderId();
 
 		// waiting confirmation
-		$orderStatus = 40;
+		$orderStatus = \Configuration::get('BTCPAY_OS_CONFIRMING');
 
 		$orderBitcoin->setBitcoinPaid($data['btcPaid']);
 		$orderBitcoin->setStatus((string) $orderStatus);
@@ -283,7 +283,7 @@ class IPN
 		}
 
 		// waiting confirmation
-		$orderStatus = 40;
+		$orderStatus = \Configuration::get('BTCPAY_OS_CONFIRMING');
 
 		// on Order, just say payment processor is BTCPay
 		$displayName = $btcpay->displayName;
@@ -378,11 +378,11 @@ class IPN
 		}
 
 		// wait for confirm
-		$orderStatus = 41;
+		$orderStatus = \Configuration::get('BTCPAY_OS_CONFIRMING');
 
 		if ('invalid' === $data['status'] || 'expired' === $data['status']) {
 			// time setup on invoice is expired
-			$orderStatus = 41;
+			$orderStatus = \Configuration::get('BTCPAY_OS_FAILED');
 		}
 
 		$orderBitcoin->setStatus((string) $orderStatus);
@@ -434,21 +434,21 @@ class IPN
 		$order = new \Order($orderBitcoin->getOrderId());
 
 		// wait for confirm
-		$orderStatus = 40;
+		$orderStatus = \Configuration::get('BTCPAY_OS_CONFIRMING');
 
 		if ('invalid' === $data['status'] || 'expired' === $data['status']) {
 			// time setup on invoice is expired
-			$orderStatus = 41;
+			$orderStatus = \Configuration::get('BTCPAY_OS_FAILED');
 		}
 
 		if ('paid' === $data['status']) {
 			// TX received but we have to wait some confirmation
-			$orderStatus = 40;
+			$orderStatus = \Configuration::get('BTCPAY_OS_CONFIRMING');
 		}
 
 		if ('confirmed' === $data['status'] || 'complete' === $data['status']) {
 			//Transaction confirmed
-			$orderStatus = 42;
+			$orderStatus = \Configuration::get('BTCPAY_OS_PAID');
 		}
 
 		$orderBitcoin->setStatus((string) $orderStatus);

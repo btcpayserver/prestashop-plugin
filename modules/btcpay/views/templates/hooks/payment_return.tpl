@@ -1,12 +1,12 @@
 <h3>{l s="Follow your order's status step-by-step" d='Shop.Theme.Customeraccount'}</h3>
-{if $order_state == '42'}
+{if $order_state == $os_paid}
   <p>{l s='Your order has been paid for.' d='Modules.Btcpay.Front'}</p>
   <p><strong>{l s="We will ship out your order as soon as we're able to." d='Modules.Btcpay.Front'}</strong></p>
   <p>{l s='If you have questions, comments or concerns, please contact our' d='Modules.Btcpay.Front'} <a href="{$link->getPageLink('contact', true)|escape:'html'}">{l s='expert customer support team.' d='Modules.Btcpay.Front'}</a></p>
-{elseif $order_state == '41'}
+{elseif $order_state == $os_failed}
   <p class="warning">{l s='The invoice was not succesfully paid. Either because the invoice expired or your transaction never confirmed.' d='Modules.Btcpay.Front'}</p>
   <p>{l s='If you think this is an error, feel free to contact our' d='Modules.Btcpay.Front'} <a href="{$link->getPageLink('contact', true)|escape:'html'}">{l s='expert customer support team.' d='Modules.Btcpay.Front'}</a></p>
-{elseif $order_state == '40' or $order_state == '39'}
+{elseif $order_state == $os_confirming or $order_state == $os_waiting}
   <p>{l s='Your order is awaiting Bitcoin confirmations.' d='Modules.Btcpay.Front'}</p>
   <p><strong>{l s='Your order will be processed as soon as your payment is confirmed by the Bitcoin network.' d='Modules.Btcpay.Front'}</strong></p>
   <p>{l s='If you have questions, comments or concerns, please contact our' d='Modules.Btcpay.Front'} <a href="{$link->getPageLink('contact', true)|escape:'html'}">{l s='expert customer support team.' d='Modules.Btcpay.Front'}</a></p>

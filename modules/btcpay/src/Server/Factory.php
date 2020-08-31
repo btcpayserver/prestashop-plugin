@@ -57,7 +57,7 @@ class Factory
 		}
 
 		// If another BTCPay invoice was created before, returns the original one
-		if (null !== ($redirect = $client->getBTCPayRedirect($cart, $client))) {
+		if (null !== ($redirect = $client->getBTCPayRedirect($cart))) {
 			\PrestaShopLogger::addLog(
 				'[WARNING] Existing BTCPay invoice has already been created, redirecting to it...',
 				2
@@ -140,7 +140,7 @@ class Factory
 
 			// Register invoice into bitcoin_payment table, if we didn't have one before.
 			if (null === ($orderBitcoin = $this->repository->getOneByCartID($cart->id))) {
-				$orderBitcoin = $this->repository->create($cart->id, (string) 39, $invoice->getId());
+				$orderBitcoin = $this->repository->create($cart->id, (string) \Configuration::get('BTCPAY_OS_WAITING'), $invoice->getId());
 			}
 
 			$orderBitcoin->setInvoiceId($invoice->getId());

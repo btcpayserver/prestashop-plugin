@@ -11,6 +11,23 @@ if (!defined('_PS_VERSION_')) {
  */
 function upgrade_module_3_0_0(ModuleInterface $module): bool
 {
+	if (!$module instanceof BTCPay) {
+		throw new LogicException('Received invalid module');
+	}
+
+	if (false === updateDatabase()) {
+		return false;
+	}
+
+	if (false === updateConfig()) {
+		return false;
+	}
+
+	return updateHooks($module);
+}
+
+function updateDatabase(): bool
+{
 	/** @var PDO $connection */
 	$connection = Db::getInstance()->connect();
 
@@ -48,6 +65,57 @@ function upgrade_module_3_0_0(ModuleInterface $module): bool
 		throw new \RuntimeException(json_encode($connection->errorInfo()));
 	}
 
+	return true;
+}
+
+function updateConfig(): bool
+{
+	// Remap the old configuration
+	$remapped_config = [
+		'btcpay_URL'         => 'BTCPAY_URL',
+		'btcpay_LABEL'       => 'BTCPAY_LABEL',
+		'btcpay_PAIRINGCODE' => 'BTCPAY_PAIRINGCODE',
+		'btcpay_KEY'         => 'BTCPAY_KEY',
+		'btcpay_PUB'         => 'BTCPAY_PUB',
+		'btcpay_SIN'         => 'BTCPAY_SIN',
+		'btcpay_TOKEN'       => 'BTCPAY_TOKEN',
+		'btcpay_TXSPEED'     => 'BTCPAY_TXSPEED',
+		'btcpay_ORDERMODE'   => 'BTCPAY_ORDERMODE',
+	];
+
+	foreach ($remapped_config as $old => $new) {
+		if (false === ($previousValue = Configuration::get($old))) {
+			throw new \LogicException('Could not get old configuration: ' . $old);
+		}
+
+		if (false === Configuration::deleteByName($old)) {
+			throw new \LogicException('Could not remove old configuration: ' . $old);
+		}
+
+		if (false === Configuration::updateValue($new, $previousValue)) {
+			throw new \LogicException('Could not store new configuration: ' . $new);
+		}
+	}
+
+	// Add old order states to the configuration
+	$order_states = [
+		'BTCPAY_OS_WAITING'    => 39,
+		'BTCPAY_OS_CONFIRMING' => 40,
+		'BTCPAY_OS_FAILED'     => 41,
+		'BTCPAY_OS_PAID'       => 42,
+	];
+
+	foreach ($order_states as $order_state => $id) {
+		if (false === Configuration::updateValue($order_state, $id)) {
+			throw new \LogicException('Could not store order state ID for: ' . $order_state);
+		}
+	}
+
+	return true;
+}
+
+function updateHooks(BTCPay $module): bool
+{
 	return $module->registerHook('displayAdminOrderTop')
 		&& $module->registerHook('displayOrderDetail')
 		&& $module->registerHook('payment')

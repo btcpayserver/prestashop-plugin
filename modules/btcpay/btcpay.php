@@ -1,5 +1,9 @@
 <?php
 
+use BTCPay\Installer\Config;
+use BTCPay\Installer\Hooks;
+use BTCPay\Installer\OrderStates;
+use BTCPay\Installer\Tables;
 use BTCPay\LegacyOrderBitcoinRepository;
 use BTCPay\Repository\BitcoinPaymentRepository;
 use PrestaShop\PrestaShop\Adapter\Presenter\Order\OrderPresenter;
@@ -63,42 +67,26 @@ class BTCPay extends PaymentModule
 			return false;
 		}
 
-		if (!$this->registerHook('displayInvoice')
-			|| !$this->registerHook('displayAdminOrderTop')
-			|| !$this->registerHook('displayOrderDetail')
-			|| !$this->registerHook('displayPaymentEU')
-			|| !$this->registerHook('payment')
-			|| !$this->registerHook('paymentReturn')
-			|| !$this->registerHook('paymentOptions')
-			|| !$this->registerHook('actionCartSave')) {
-			$this->uninstall();
+		if (!empty($errors = (new Config())->install())) {
+			$this->addModuleErrors($errors);
 
 			return false;
 		}
 
-		// Init clear configurations
-		if (!Configuration::updateValue('BTCPAY_URL', null)
-			|| !Configuration::updateValue('BTCPAY_LABEL', null)
-			|| !Configuration::updateValue('BTCPAY_PAIRINGCODE', null)
-			|| !Configuration::updateValue('BTCPAY_KEY', null)
-			|| !Configuration::updateValue('BTCPAY_PUB', null)
-			|| !Configuration::updateValue('BTCPAY_SIN', null)
-			|| !Configuration::updateValue('BTCPAY_TOKEN', null)
-			|| !Configuration::updateValue('BTCPAY_TXSPEED', null)
-			|| !Configuration::updateValue('BTCPAY_ORDERMODE', null)) {
-			$this->uninstall();
+		if (!empty($errors = (new Hooks($this))->install())) {
+			$this->addModuleErrors($errors);
 
 			return false;
 		}
 
-		if (!empty($errors = $repository->createTables())) {
+		if (!empty($errors = (new Tables($repository))->install())) {
 			$this->addModuleErrors($errors);
 			$this->uninstall();
 
 			return false;
 		}
 
-		if (!empty($errors = $repository->installOrderStates($this->name))) {
+		if (!empty($errors = (new OrderStates($this->name))->install())) {
 			$this->addModuleErrors($errors);
 			$this->uninstall();
 
@@ -114,65 +102,25 @@ class BTCPay extends PaymentModule
 			return false;
 		}
 
-		// Remove configuration
-		if (!Configuration::deleteByName('BTCPAY_URL')
-			|| !Configuration::deleteByName('BTCPAY_LABEL')
-			|| !Configuration::deleteByName('BTCPAY_PAIRINGCODE')
-			|| !Configuration::deleteByName('BTCPAY_KEY')
-			|| !Configuration::deleteByName('BTCPAY_PUB')
-			|| !Configuration::deleteByName('BTCPAY_SIN')
-			|| !Configuration::deleteByName('BTCPAY_TOKEN')
-			|| !Configuration::deleteByName('BTCPAY_TXSPEED')
-			|| !Configuration::deleteByName('BTCPAY_ORDERMODE')) {
-			$this->addModuleErrors(
-				[
-					'key'        => 'Could not clear configuration',
-					'parameters' => [],
-					'domain'     => 'Admin.Modules.Notification',
-				]
-			);
-
-			return false;
-		}
-
-		if (!empty($errors = $repository->dropTables())) {
+		if (!empty($errors = (new Config())->uninstall())) {
 			$this->addModuleErrors($errors);
 
 			return false;
 		}
 
-		if (!empty($errors = $this->uninstallOrderStates())) {
+		if (!empty($errors = (new Tables($repository))->uninstall())) {
+			$this->addModuleErrors($errors);
+
+			return false;
+		}
+
+		if (!empty($errors = (new OrderStates($this->name))->uninstall())) {
 			$this->addModuleErrors($errors);
 
 			return false;
 		}
 
 		return parent::uninstall();
-	}
-
-	public function uninstallOrderStates(): array
-	{
-		$collection = new PrestaShopCollection('OrderState');
-		$collection->where('module_name', '=', $this->name);
-
-		if (empty($orderStates = $collection->getResults())) {
-			return [];
-		}
-
-		$errors = [];
-
-		/** @var OrderState $orderState */
-		foreach ($orderStates as $orderState) {
-			if (false === $orderState->delete()) {
-				$errors[] = [
-					'key'        => 'Could not delete order state ' . $orderState->name,
-					'parameters' => [],
-					'domain'     => 'Admin.Modules.Notification',
-				];
-			}
-		}
-
-		return $errors;
 	}
 
 	public function reset(): bool
@@ -347,8 +295,12 @@ class BTCPay extends PaymentModule
 		// Prepare smarty to present order details
 		$this->context->smarty->assign(
 			[
-				'presenter'   => (new OrderPresenter())->present($order),
-				'order_state' => $order->getCurrentState(),
+				'presenter'     => (new OrderPresenter())->present($order),
+				'order_state'   => $order->getCurrentState(),
+				'os_waiting'    => (string) Configuration::get('BTCPAY_OS_WAITING'),
+				'os_confirming' => (string) Configuration::get('BTCPAY_OS_CONFIRMING'),
+				'os_failed'     => (string) Configuration::get('BTCPAY_OS_FAILED'),
+				'os_paid'       => (string) Configuration::get('BTCPAY_OS_PAID'),
 			]
 		);
 
