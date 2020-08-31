@@ -185,14 +185,6 @@ class IPN
 				throw new \RuntimeException($error);
 			}
 
-			// add Order status change to Order history table
-			$orderHistory           = new \OrderHistory();
-			$orderHistory->id_order = $orderId;
-			// bitcoin confirmation ok
-			$orderHistory->changeIdOrderState($orderStatus, $orderId, true);
-			//add with email is mandatory to add new order state in order_history
-			$orderHistory->add(true);
-
 			return;
 		}
 
@@ -332,13 +324,6 @@ class IPN
 				\PrestaShopLogger::addLog($error, 3);
 				throw new \RuntimeException($error);
 			}
-
-			// add Order status change to Order history table
-			$orderHistory           = new \OrderHistory();
-			$orderHistory->id_order = $orderId;
-			// bitcoin confirmation ok
-			$orderHistory->changeIdOrderState($orderStatus, $orderId, true);
-			$orderHistory->add(true);
 
 			return;
 		}
