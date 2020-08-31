@@ -85,7 +85,7 @@ class IPN
 		}
 
 		// Payment Confirmed
-		if (true === \array_key_exists('name', $event) && 'invoice_confirmed' === $event['name']) {
+		if (true === \array_key_exists('name', $event) && ('invoice_confirmed' === $event['name'] || 'invoice_markedComplete' === $event['name'])) {
 			$this->paymentConfirmed($data);
 
 			return;
