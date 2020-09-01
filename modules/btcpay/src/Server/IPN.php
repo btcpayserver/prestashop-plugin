@@ -2,6 +2,7 @@
 
 namespace BTCPay\Server;
 
+use BTCPay\Form\Data\Configuration;
 use BTCPay\LegacyOrderBitcoinRepository;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -21,112 +22,106 @@ class IPN
 	{
 		$json = json_decode($request->getContent(), true);
 		if (false === $json || null === $json) {
-			\PrestaShopLogger::addLog(sprintf('[Error] JSON encoding issue: %s', json_last_error_msg()), 1);
-
-			throw new \RuntimeException(sprintf('[Error] JSON encoding issue: %s', json_last_error_msg()));
+			return;
 		}
 
+		// Check if we received an event
 		if (!\array_key_exists('event', $json)) {
 			return;
 		}
 
+		// Get event from JSON
 		$event = $json['event'];
 
-		$data = [];
-		if (true === \array_key_exists('data', $json)) {
-			$data = $json['data'];
+		// Check if event code exist and is not empty
+		if (!\array_key_exists('code', $event) || empty($event['code'])) {
+			return;
 		}
 
-		if (empty($event['code'])) {
-			\PrestaShopLogger::addLog('[Error] Event code missing from callback.', 1);
-
-			throw new \RuntimeException('[Error] Event code missing from callback.');
+		// Check if event name exist and is not empty
+		if (!\array_key_exists('name', $event) || empty($event['name'])) {
+			return;
 		}
 
-		if (true === empty($data)) {
-			\PrestaShopLogger::addLog('[Error] invalide json', 3);
-
-			throw new \RuntimeException('[Error] invalide json');
+		// Check if event data exist and is not empty
+		if (!\array_key_exists('data', $json) || empty($json['data'])) {
+			return;
 		}
 
+		// Get data
+		$data = $json['data'];
+
+		// Check if ID exists and that it's not empty.
+		if (!\array_key_exists('id', $data) || empty($data['id'])) {
+			return;
+		}
+
+		// Get order mode
 		$orderMode = \Configuration::get('BTCPAY_ORDERMODE');
 
-		// Invoice created
-		if (\array_key_exists('name', $event) && 'invoice_created' === $event['name'] && 'beforepayment' === $orderMode) {
+		// Invoice created - Before
+		if ('invoice_created' === $event['name'] && Configuration::ORDER_MODE_BEFORE === $orderMode) {
 			$this->invoiceCreated($data, $btcpay);
 
 			return;
 		}
 
-		// Payment Received
-		if (\array_key_exists('name', $event) && 'invoice_receivedPayment' === $event['name'] && 'afterpayment' === $orderMode) {
-			$this->receivedPaymentAfter($data, $btcpay);
+		// Invoice created - After
+		if ('invoice_created' === $event['name'] && Configuration::ORDER_MODE_AFTER === $orderMode) {
+			\PrestaShopLogger::addLog('[INFO] Received invoice_created event, but not creating order because order mode is ' . Configuration::ORDER_MODE_AFTER, 1);
 
 			return;
 		}
 
-		// Payment Received
-		if (\array_key_exists('name', $event) && 'invoice_receivedPayment' === $event['name'] && 'beforepayment' === $orderMode) {
+		// Payment Received - Before
+		if ('invoice_receivedPayment' === $event['name'] && Configuration::ORDER_MODE_BEFORE === $orderMode) {
 			$this->receivedPaymentBefore($data);
 
 			return;
 		}
 
+		// Payment Received - After
+		if ('invoice_receivedPayment' === $event['name'] && Configuration::ORDER_MODE_AFTER === $orderMode) {
+			$this->receivedPaymentAfter($data, $btcpay);
+
+			return;
+		}
+
 		// Pending full payment, not much to do but wait
-		if (\array_key_exists('name', $event) && 'invoice_paidInFull' === $event['name']) {
+		if ('invoice_paidInFull' === $event['name']) {
 			return;
 		}
 
 		// Payment failed
-		if (\array_key_exists('name', $event) && ('invoice_failedToConfirm' === $event['name'] || 'invoice_markedInvalid' === $event['name'] || 'invoice_expired' === $event['name'])) {
+		if ('invoice_failedToConfirm' === $event['name'] || 'invoice_markedInvalid' === $event['name'] || 'invoice_expired' === $event['name']) {
 			$this->failedPayment($data);
 
 			return;
 		}
 
-		// Payment Confirmed
-		if (true === \array_key_exists('name', $event) && ('invoice_confirmed' === $event['name'] || 'invoice_markedComplete' === $event['name'])) {
+		// Payment confirmed
+		if ('invoice_confirmed' === $event['name'] || 'invoice_markedComplete' === $event['name']) {
 			$this->paymentConfirmed($data);
 
 			return;
 		}
 
 		// Payment completed
-		if (true === \array_key_exists('name', $event) && 'invoice_completed' === $event['name']) {
+		if ('invoice_completed' === $event['name']) {
 			\PrestaShopLogger::addLog('[INFO] BTCPay server has told us that invoice "' . $data['id'] . '" is finished', 1);
 
 			return;
 		}
 
+		// Log other IPN's.
 		\PrestaShopLogger::addLog('[Error] Could not process IPN', 3);
-		\PrestaShopLogger::addLog('[INFO] Received IPN: ' . $json, 1);
+		\PrestaShopLogger::addLog('[INFO] Received IPN: ' . $request->getContent(), 1);
 	}
 
 	private function invoiceCreated(array $data, \BTCPay $btcpay): void
 	{
-		// sleep to not receive ipn notification
-		// before the update of bitcoin order table
-		// sleep(15);
-
-		if (false === \array_key_exists('id', $data)) {
-			\PrestaShopLogger::addLog('[Error] No data id', 3);
-
-			throw new \RuntimeException('[Error] No data id');
-		}
-
-		if (false === \array_key_exists('url', $data)) {
-			\PrestaShopLogger::addLog('[Error] No data url', 3);
-
-			throw new \RuntimeException('[Error] No data url');
-		}
-
-		// get invoice id, to go back on cart and check the amount
 		$invoiceId = (string) $data['id'];
-		if (false === isset($invoiceId)) {
-			\PrestaShopLogger::addLog('[Error] No invoice id', 3);
-
-			throw new \RuntimeException('[Error] No invoice id');
-		}
+		\PrestaShopLogger::addLog('[Info] invoice created for ' . $invoiceId, 1);
 
 		if (null === ($orderBitcoin = $this->repository->getOneByInvoiceID($invoiceId))) {
 			\PrestaShopLogger::addLog('[Error] Could not load order', 3);
@@ -196,21 +191,8 @@ class IPN
 
 	private function receivedPaymentBefore(array $data): void
 	{
-		\PrestaShopLogger::addLog('[Info] payment received', 1);
-
-		if (false === \array_key_exists('id', $data)) {
-			\PrestaShopLogger::addLog('[Error] No id in data', 3);
-
-			throw new \RuntimeException('[Error] No id in data');
-		}
-
-		// get invoice id, to go back on cart and check the amount
 		$invoiceId = (string) $data['id'];
-		if (false === isset($invoiceId)) {
-			\PrestaShopLogger::addLog('[Error] No invoice id', 3);
-
-			throw new \RuntimeException('[Error] No invoice id');
-		}
+		\PrestaShopLogger::addLog('[Info] payment received for ' . $invoiceId, 1);
 
 		if (null === ($orderBitcoin = $this->repository->getOneByInvoiceID($invoiceId))) {
 			\PrestaShopLogger::addLog('[Error] Could not load order', 3);
@@ -244,29 +226,8 @@ class IPN
 
 	private function receivedPaymentAfter(array $data, \BTCPay $btcpay): void
 	{
-		// sleep to not receive ipn notification
-		// before the update of bitcoin order table
-		// sleep(15);
-
-		if (false === \array_key_exists('id', $data)) {
-			\PrestaShopLogger::addLog('[Error] No data id', 3);
-
-			throw new \RuntimeException('[Error] No data id');
-		}
-
-		if (false === \array_key_exists('url', $data)) {
-			\PrestaShopLogger::addLog('[Error] No data url', 3);
-
-			throw new \RuntimeException('[Error] No data url');
-		}
-
-		// get invoice id, to go back on cart and check the amount
 		$invoiceId = (string) $data['id'];
-		if (false === isset($invoiceId)) {
-			\PrestaShopLogger::addLog('[Error] No invoice id', 3);
-
-			throw new \RuntimeException('[Error] No invoice id');
-		}
+		\PrestaShopLogger::addLog('[Info] payment received for ' . $invoiceId, 1);
 
 		if (null === ($orderBitcoin = $this->repository->getOneByInvoiceID($invoiceId))) {
 			\PrestaShopLogger::addLog('[Error] Could not load order', 3);
@@ -336,25 +297,8 @@ class IPN
 
 	private function failedPayment(array $data): void
 	{
-		if (false === \array_key_exists('id', $data)) {
-			\PrestaShopLogger::addLog('[Error] No id in data', 3);
-
-			throw new \RuntimeException('[Error] No id in data');
-		}
-
-		if (false === \array_key_exists('url', $data)) {
-			\PrestaShopLogger::addLog('[Error] No url in data', 3);
-
-			throw new \RuntimeException('[Error] No url in data');
-		}
-
-		// get invoice id, to go back on cart and check the amount
 		$invoiceId = (string) $data['id'];
-		if (false === isset($invoiceId)) {
-			\PrestaShopLogger::addLog('[Error] No invoice id', 3);
-
-			throw new \RuntimeException('[Error] No invoice id');
-		}
+		\PrestaShopLogger::addLog('[Info] payment failed for ' . $invoiceId, 1);
 
 		if (null === ($orderBitcoin = $this->repository->getOneByInvoiceID($invoiceId))) {
 			\PrestaShopLogger::addLog('[Error] Could not load order', 3);
@@ -390,25 +334,8 @@ class IPN
 
 	private function paymentConfirmed(array $data): void
 	{
-		if (false === \array_key_exists('id', $data)) {
-			\PrestaShopLogger::addLog('[Error] No id in data', 3);
-
-			throw new \RuntimeException('[Error] No id in data');
-		}
-
-		if (false === \array_key_exists('url', $data)) {
-			\PrestaShopLogger::addLog('[Error] No url in data', 3);
-
-			throw new \RuntimeException('[Error] No url in data');
-		}
-
-		// get invoice id, to go back on cart and check the amount
 		$invoiceId = (string) $data['id'];
-		if (false === isset($invoiceId)) {
-			\PrestaShopLogger::addLog('[Error] No invoice id', 3);
-
-			throw new \RuntimeException('[Error] No invoice id');
-		}
+		\PrestaShopLogger::addLog('[Info] payment confirmed for ' . $invoiceId, 1);
 
 		if (null === ($orderBitcoin = $this->repository->getOneByInvoiceID($invoiceId))) {
 			\PrestaShopLogger::addLog('[Error] Could not load order', 3);
