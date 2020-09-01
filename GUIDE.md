@@ -3,19 +3,19 @@
 ## Prerequisites
 You must have a BTCPay merchant account to use this plugin.
 
-If you want to test the integration, use a BTCPayServer which is running on testnet. A sane default has been provided.
+If you want to test the integration, use a BTCPayServer which is running on testnet. A sane default _for testnet_ has been provided.
 
 ## Making a release
-Run `make` and tag it or upload it yourself to your server.
+We currently do not have a working CI, so to create releases you'll have to tag the code, run `make` locally and attach the ZIP file to the release.
 
 ## Server Requirements
 
 + PrestaShop 1.7.6+
 + PHP 7.2+
 + Curl PHP Extension
++ PDO PHP Extension
 + JSON PHP Extension
-+ BCMath PHP Extension 
-+ SSL must be enabled
++ SSL **must** be enabled
 + Be sure your BTCPay server is whitelisted by Prestashop server
 + Be sure your Prestashop server is whitelisted by BTCPay server
 
@@ -28,4 +28,4 @@ Run `make` and tag it or upload it yourself to your server.
 5. Click on "Create a new token", select your store and then approve.
 6. You will see: "Server initiated pairing code: XXXX". Go back to prestashop and enter your pairing code.
 7. Press save. Prestashop will now attempt to make a connection with your BTCPayServer.
-8. If successful, make a test a payment.
+8. If successful, make a test payment.
