@@ -1,7 +1,7 @@
 {
   "name": "btcpay/prestashop",
-  "description": "BTCPay payment plugin for PrestaShop",
   "type": "prestashop-module",
+  "description": "BTCPay payment plugin for PrestaShop",
   "keywords": [
     "prestashop",
     "plugin",
@@ -12,11 +12,46 @@
   ],
   "homepage": "https://github.com/btcpayserver/prestashop-plugin",
   "license": "MIT",
-  "support": {
-    "issues": "https://github.com/btcpayserver/prestashop-plugin/issues",
-    "source": "https://github.com/btcpayserver/prestashop-plugin"
+  "require": {
+    "php": ">=7.2.0",
+    "ext-PDO": "*",
+    "ext-curl": "*",
+    "ext-dom": "*",
+    "ext-fileinfo": "*",
+    "ext-gd": "*",
+    "ext-iconv": "*",
+    "ext-intl": "*",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "ext-zip": "*",
+    "composer/installers": "^v1.9.0"
   },
-  "minimum-stability": "stable",
+  "require-dev": {
+    "cssjanus/cssjanus": "dev-patch-1",
+    "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
+    "ergebnis/composer-normalize": "^2.8",
+    "friendsofphp/php-cs-fixer": "^v2.16.4",
+    "johnkary/phpunit-speedtrap": "^v3.2.0",
+    "phpspec/prophecy-phpunit": "^2.0",
+    "prestashop/prestashop": "^v1.7.6.7",
+    "roave/security-advisories": "dev-master",
+    "slevomat/coding-standard": "^6.3",
+    "squizlabs/php_codesniffer": "^3.5",
+    "symfony/phpunit-bridge": "^v3.4.43"
+  },
+  "config": {
+    "preferred-install": "dist",
+    "prepend-autoloader": false,
+    "sort-packages": true
+  },
+  "autoload": {
+    "psr-4": {
+      "BTCPay\\": "modules/btcpay/src"
+    },
+    "classmap": [
+      "modules/btcpay/btcpay.php"
+    ]
+  },
   "repositories": [
     {
       "type": "vcs",
@@ -35,51 +70,17 @@
       "url": "https://github.com/prestashop/CsaGuzzleBundle"
     }
   ],
-  "require": {
-    "php": ">=7.2.0",
-    "ext-PDO": "*",
-    "ext-curl": "*",
-    "ext-dom": "*",
-    "ext-fileinfo": "*",
-    "ext-gd": "*",
-    "ext-iconv": "*",
-    "ext-intl": "*",
-    "ext-json": "*",
-    "ext-mbstring": "*",
-    "ext-zip": "*",
-    "composer/installers": "^v1.9.0"
-  },
-  "require-dev": {
-    "cssjanus/cssjanus": "dev-patch-1",
-    "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
-    "friendsofphp/php-cs-fixer": "^v2.16.4",
-    "johnkary/phpunit-speedtrap": "^v3.2.0",
-    "phpspec/prophecy-phpunit": "^2.0",
-    "prestashop/prestashop": "^v1.7.6.7",
-    "roave/security-advisories": "dev-master",
-    "slevomat/coding-standard": "^6.3",
-    "squizlabs/php_codesniffer": "^3.5",
-    "symfony/phpunit-bridge": "^v3.4.43"
-  },
-  "config": {
-    "preferred-install": "dist",
-    "prepend-autoloader": false,
-    "sort-packages": true
-  },
+  "minimum-stability": "stable",
   "scripts": {
-    "install-codestandards": [
-      "Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
-    ],
     "post-install-cmd": [
       "@install-codestandards"
+    ],
+    "install-codestandards": [
+      "Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
     ]
   },
-  "autoload": {
-    "psr-4": {
-      "BTCPay\\": "modules/btcpay/src"
-    },
-    "classmap": [
-      "modules/btcpay/btcpay.php"
-    ]
+  "support": {
+    "issues": "https://github.com/btcpayserver/prestashop-plugin/issues",
+    "source": "https://github.com/btcpayserver/prestashop-plugin"
   }
 }
