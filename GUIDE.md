@@ -5,8 +5,13 @@ You must have a BTCPay merchant account to use this plugin.
 
 If you want to test the integration, use a BTCPayServer which is running on testnet. A sane default _for testnet_ has been provided.
 
-## Making a release
-We currently do not have a working CI, so to create releases you'll have to tag the code, run `make` locally and attach the ZIP file to the release.
+## Releasing 
+
+### Making a ZIP
+If you want to make your own ZIP, just clone the repository and run `make`. The zip can then be found in `./build/btcpay.zip`.
+
+### Making a release
+If a new tag is pushed, a release will be build by GitHub actions.
 
 ## Server Requirements
 
