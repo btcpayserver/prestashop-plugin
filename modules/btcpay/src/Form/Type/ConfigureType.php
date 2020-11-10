@@ -2,6 +2,7 @@
 
 namespace BTCPay\Form\Type;
 
+use BTCPay\Constants;
 use BTCPay\Form\Data\Configuration;
 use BTCPayServer\Invoice;
 use PrestaShopBundle\Form\Admin\Type\TranslatorAwareType;
@@ -32,8 +33,8 @@ class ConfigureType extends TranslatorAwareType
 			])
 			->add('order_mode', ChoiceType::class, [
 				'choices' => [
-					$this->trans('Order before payment', 'Modules.Btcpay.Admin') => Configuration::ORDER_MODE_BEFORE,
-					$this->trans('Order after payment', 'Modules.Btcpay.Admin')  => Configuration::ORDER_MODE_AFTER,
+					$this->trans('Order before payment', 'Modules.Btcpay.Admin') => Constants::ORDER_MODE_BEFORE,
+					$this->trans('Order after payment', 'Modules.Btcpay.Admin')  => Constants::ORDER_MODE_AFTER,
 				],
 				'label'   => $this->trans('Order mode', 'Modules.Btcpay.Admin'),
 			])
