@@ -2,7 +2,7 @@
 
 namespace BTCPay\Server;
 
-use BTCPay\Form\Data\Configuration;
+use BTCPay\Constants;
 use BTCPay\LegacyOrderBitcoinRepository;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -60,28 +60,28 @@ class IPN
 		$orderMode = \Configuration::get('BTCPAY_ORDERMODE');
 
 		// Invoice created - Before
-		if ('invoice_created' === $event['name'] && Configuration::ORDER_MODE_BEFORE === $orderMode) {
+		if ('invoice_created' === $event['name'] && Constants::ORDER_MODE_BEFORE === $orderMode) {
 			$this->invoiceCreated($data, $btcpay);
 
 			return;
 		}
 
 		// Invoice created - After
-		if ('invoice_created' === $event['name'] && Configuration::ORDER_MODE_AFTER === $orderMode) {
-			\PrestaShopLogger::addLog('[INFO] Received invoice_created event, but not creating order because order mode is ' . Configuration::ORDER_MODE_AFTER, 1);
+		if ('invoice_created' === $event['name'] && Constants::ORDER_MODE_AFTER === $orderMode) {
+			\PrestaShopLogger::addLog('[INFO] Received invoice_created event, but not creating order because order mode is ' . Constants::ORDER_MODE_AFTER, 1);
 
 			return;
 		}
 
 		// Payment Received - Before
-		if ('invoice_receivedPayment' === $event['name'] && Configuration::ORDER_MODE_BEFORE === $orderMode) {
+		if ('invoice_receivedPayment' === $event['name'] && Constants::ORDER_MODE_BEFORE === $orderMode) {
 			$this->receivedPaymentBefore($data);
 
 			return;
 		}
 
 		// Payment Received - After
-		if ('invoice_receivedPayment' === $event['name'] && Configuration::ORDER_MODE_AFTER === $orderMode) {
+		if ('invoice_receivedPayment' === $event['name'] && Constants::ORDER_MODE_AFTER === $orderMode) {
 			$this->receivedPaymentAfter($data, $btcpay);
 
 			return;

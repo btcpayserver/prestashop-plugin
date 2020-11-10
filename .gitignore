@@ -157,6 +157,7 @@ upload/
 /modules/dashgoals/
 /modules/ps_checkpayment/
 /modules/graphnvd3/
+/modules/ps_legalcompliance/
 
 # We dont care about the lib/vendor folder
 /modules/btcpay/lib/
