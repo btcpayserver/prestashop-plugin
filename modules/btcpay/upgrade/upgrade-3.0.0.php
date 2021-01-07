@@ -39,7 +39,7 @@ function updateDatabase(): bool
 		'ALTER TABLE `' . _DB_PREFIX_ . 'order_bitcoin` RENAME TO `' . _DB_PREFIX_ . 'bitcoin_payment`',
 
 		// Rename columns
-		'ALTER TABLE `' . _DB_PREFIX_ . '_bitcoin_payment`
+		'ALTER TABLE `' . _DB_PREFIX_ . 'bitcoin_payment`
 			CHANGE COLUMN `id_payment` `id` INT(11) NOT NULL AUTO_INCREMENT FIRST,
 			CHANGE COLUMN `id_order` `order_id` INT(11) NULL DEFAULT NULL AFTER `cart_id`,
 			CHANGE COLUMN `btc_price` `bitcoin_price` VARCHAR(255) NULL DEFAULT NULL AFTER `amount`,
