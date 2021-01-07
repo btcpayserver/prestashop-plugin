@@ -18,8 +18,7 @@ class Hooks
 
 	public function install(): array
 	{
-		if (!$this->module->registerHook('displayInvoice')
-			|| !$this->module->registerHook('displayAdminOrderTop')
+		if (!$this->module->registerHook('displayAdminOrderMainBottom')
 			|| !$this->module->registerHook('displayOrderDetail')
 			|| !$this->module->registerHook('displayPaymentEU')
 			|| !$this->module->registerHook('payment')

@@ -40,9 +40,9 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '3.0.0';
+		$this->version                = '4.0.0';
 		$this->author                 = 'BTCPayServer';
-		$this->ps_versions_compliancy = ['min' => '1.7.6', 'max' => _PS_VERSION_];
+		$this->ps_versions_compliancy = ['min' => '1.7.7', 'max' => _PS_VERSION_];
 		$this->controllers            = ['payment', 'validation', 'ipn'];
 		$this->is_eu_compatible       = true;
 		$this->bootstrap              = true;
@@ -146,13 +146,8 @@ class BTCPay extends PaymentModule
 		Tools::redirectAdmin($this->context->link->getAdminLink('AdminConfigureBTCPay'));
 	}
 
-	public function hookDisplayInvoice($params): ?string
-	{
-		return $this->hookDisplayAdminOrderTop($params);
-	}
-
 	// Hooks on prestashop invoice
-	public function hookDisplayAdminOrderTop($params): ?string
+	public function hookDisplayAdminOrderMainBottom($params): ?string
 	{
 		// If the module is not active, abort
 		if (!$this->active) {
@@ -191,13 +186,11 @@ class BTCPay extends PaymentModule
 		$currency = Currency::getCurrencyInstance((int) $cart->id_currency);
 
 		// Prepare smarty
-		$this->context->smarty->assign(
-			[
-				'server_url'      => $serverUrl,
-				'currency_sign'   => $currency->sign,
-				'payment_details' => $orderBitcoin->toArray(),
-			]
-		);
+		$this->context->smarty->assign([
+			'server_url'      => $serverUrl,
+			'currency_sign'   => $currency->getSymbol(),
+			'payment_details' => $orderBitcoin->toArray(),
+		]);
 
 		return $this->display(__FILE__, 'views/templates/admin/invoice_block.tpl');
 	}

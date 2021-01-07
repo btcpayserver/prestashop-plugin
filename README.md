@@ -5,8 +5,8 @@ A bitcoin payment plugin for PrestaShop using BTCPay server. [BTCPayServer](http
 **Warning**: This version should be considered as beta. Use it at your own risk.
 
 ## Tested successfully
-* Prestashop 1.7.6.x
-* BTCPay server v1.0.5.4
+* Prestashop 1.7.7.x
+* BTCPay server v1.0.6.4
 
 ## Quick Start Guide
 

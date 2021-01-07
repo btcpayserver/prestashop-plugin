@@ -15,8 +15,8 @@ If a new tag is pushed, a release will be build by GitHub actions.
 
 ## Server Requirements
 
-+ PrestaShop 1.7.6+
-+ PHP 7.2+
++ PrestaShop 1.7.7+
++ PHP 7.3+
 + Curl PHP Extension
 + PDO PHP Extension
 + JSON PHP Extension

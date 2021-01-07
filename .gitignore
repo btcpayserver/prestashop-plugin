@@ -113,8 +113,10 @@ upload/
 /modules/statsbestmanufacturers/
 /modules/statsvisits/
 /modules/ps_contactinfo/
+/modules/ps_crossselling/
 /modules/statsorigin/
 /modules/ps_customtext/
+/modules/ps_dataprivacy/
 /modules/ps_imageslider/
 /modules/statsproduct/
 /modules/gsitemap/
@@ -131,6 +133,7 @@ upload/
 /modules/statscarrier/
 /modules/statscheckup/
 /modules/pagesnotfound/
+/modules/productcomments/
 /modules/statscatalog/
 /modules/sekeywords/
 /modules/dashactivity/

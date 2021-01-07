@@ -13,7 +13,7 @@
   "homepage": "https://github.com/btcpayserver/prestashop-plugin",
   "license": "MIT",
   "require": {
-    "php": ">=7.2.0",
+    "php": ">=7.3.0",
     "ext-PDO": "*",
     "ext-curl": "*",
     "ext-dom": "*",
@@ -27,13 +27,14 @@
     "composer/installers": "^v1.9.0"
   },
   "require-dev": {
+    "csa/guzzle-bundle": "dev-compat-php",
     "cssjanus/cssjanus": "dev-patch-1",
     "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
     "ergebnis/composer-normalize": "^2.8",
     "friendsofphp/php-cs-fixer": "^v2.16.4",
     "johnkary/phpunit-speedtrap": "^v3.2.0",
     "phpspec/prophecy-phpunit": "^2.0",
-    "prestashop/prestashop": "^v1.7.6.7",
+    "prestashop/prestashop": "^v1.7.7.0",
     "roave/security-advisories": "dev-master",
     "slevomat/coding-standard": "^6.3",
     "squizlabs/php_codesniffer": "^3.5",
@@ -63,11 +64,13 @@
     },
     {
       "type": "vcs",
-      "url": "https://github.com/prestashop/php-cssjanus"
+      "url": "https://github.com/PrestaShop/php-cssjanus",
+      "canonical": false
     },
     {
       "type": "vcs",
-      "url": "https://github.com/prestashop/CsaGuzzleBundle"
+      "url": "https://github.com/PrestaShop/CsaGuzzleBundle",
+      "canonical": false
     }
   ],
   "minimum-stability": "stable",
