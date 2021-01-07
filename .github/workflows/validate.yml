@@ -32,10 +32,6 @@ jobs:
       - name: "Install Composer dependencies"
         run: "composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader"
 
-      # Ensure our composer.json file is normalized
-      - name: "Normalized composer.json"
-        uses: "docker://ergebnis/composer-normalize-action:latest"
-
       # Ensure our code looks proper
       - name: "PHPCS"
         uses: "chekalsky/phpcs-action@v1"
