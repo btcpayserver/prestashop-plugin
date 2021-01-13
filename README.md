@@ -41,7 +41,7 @@ Main community chat is located on [Mattermost](https://chat.btcpayserver.org/).
 
 ### Quick Start Guide
 
-To get up and running with our plugin quickly, see the [GUIDE](GUIDE.md).
+To get up and running with our plugin quickly, see the [PrestaShop Guide on our documentation website](https://docs.btcpayserver.org/PrestaShop/).
 
 ## Contributing
 
