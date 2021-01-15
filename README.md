@@ -43,6 +43,11 @@ Main community chat is located on [Mattermost](https://chat.btcpayserver.org/).
 
 To get up and running with our plugin quickly, see the [PrestaShop Guide on our documentation website](https://docs.btcpayserver.org/PrestaShop/).
 
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the 
+[tags on this repository](https://github.com/BitcoinMitchell/docker-prestashop/tags).
+
 ## Contributing
 
 [![Twitter Follow](https://img.shields.io/twitter/follow/btcpayserver?color=brightgreen&label=Follow%20%40BTCPayServer&style=flat-square)](https://twitter.com/btcpayserver)
