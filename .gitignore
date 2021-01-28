@@ -14,7 +14,6 @@ btcpay.zip
 
 # Ignore files in the module that are added via `make`
 /modules/btcpay/LICENSE
-/modules/btcpay/GUIDE.md
 /modules/btcpay/README.md
 
 ### PhpStorm ###

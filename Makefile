@@ -31,9 +31,6 @@ build: deps ## Build the bastard binary file
 	# Copy the README to the module
 	@cp ./README.md "$(MODULE_FOLDER)/$(MODULE)"
 
-	# Copy the GUIDE to the module
-	@cp ./GUIDE.md "$(MODULE_FOLDER)/$(MODULE)"
-
 	# Zip the module
 	@cd $(MODULE_FOLDER) \
 		&& zip -r $(ZIP_NAME) $(MODULE) \
