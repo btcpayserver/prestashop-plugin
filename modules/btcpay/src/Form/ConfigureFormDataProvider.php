@@ -4,7 +4,6 @@ namespace BTCPay\Form;
 
 use BTCPay\Form\Data\Configuration;
 use BTCPay\Server\Client;
-use BTCPayServer\Client\Adapter\CurlAdapter;
 use BTCPayServer\PrivateKey;
 use BTCPayServer\PublicKey;
 use BTCPayServer\SinKey;
@@ -76,7 +75,6 @@ class ConfigureFormDataProvider implements FormDataProviderInterface
 		// Create an API Client
 		$client = new Client();
 		$client->setUri(Client::getURI($serverUrl));
-		$client->setAdapter(new CurlAdapter());
 		$client->setPrivateKey($privateKey);
 		$client->setPublicKey($publicKey);
 

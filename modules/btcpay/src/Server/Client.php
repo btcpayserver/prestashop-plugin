@@ -23,6 +23,9 @@ class Client extends BaseClient
 	{
 		$this->encryption = new Encryption();
 		$this->repository = new LegacyOrderBitcoinRepository();
+
+		// Set our own CURL adapter, always
+		$this->setAdapter(new CurlAdapter());
 	}
 
 	public function getEncryption(): Encryption

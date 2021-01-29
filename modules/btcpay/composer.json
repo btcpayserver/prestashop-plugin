@@ -25,7 +25,8 @@
     "ext-intl": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
-    "btcpayserver/btcpayserver-php-client": "^1.0"
+    "btcpayserver/btcpayserver-php-client": "^1.0",
+    "stechstudio/backoff": "^1.2"
   },
   "require-dev": {
     "roave/security-advisories": "dev-master"

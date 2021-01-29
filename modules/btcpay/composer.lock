@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "56dd37d0b578e56536266276571c5584",
+    "content-hash": "465b64025ce7a0e5f1685205118e9717",
     "packages": [
         {
             "name": "btcpayserver/btcpayserver-php-client",
@@ -68,6 +68,49 @@
                 "btcpayserver"
             ],
             "time": "2019-08-17T07:20:25+00:00"
+        },
+        {
+            "name": "stechstudio/backoff",
+            "version": "1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/stechstudio/backoff.git",
+                "reference": "816e46107a6be2e1072ba0ff2cb26034872dfa49"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/stechstudio/backoff/zipball/816e46107a6be2e1072ba0ff2cb26034872dfa49",
+                "reference": "816e46107a6be2e1072ba0ff2cb26034872dfa49",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "5.5.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "STS\\Backoff\\": "src"
+                },
+                "files": [
+                    "src/helpers.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Joseph Szobody",
+                    "email": "joseph@stechstudio.com"
+                }
+            ],
+            "description": "PHP library providing retry functionality with multiple backoff strategies and jitter support",
+            "support": {
+                "issues": "https://github.com/stechstudio/backoff/issues",
+                "source": "https://github.com/stechstudio/backoff/tree/1.2"
+            },
+            "time": "2020-12-26T14:57:10+00:00"
         }
     ],
     "packages-dev": [
@@ -375,5 +418,6 @@
         "ext-json": "*",
         "ext-mbstring": "*"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "2.0.0"
 }
