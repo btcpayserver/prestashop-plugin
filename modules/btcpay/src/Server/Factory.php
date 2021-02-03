@@ -2,15 +2,12 @@
 
 namespace BTCPay\Server;
 
-use Address;
 use BTCPay\Exception\BTCPayException;
 use BTCPay\LegacyOrderBitcoinRepository;
 use BTCPayServer\Buyer;
 use BTCPayServer\Currency as BTCPayCurrency;
 use BTCPayServer\Invoice;
 use BTCPayServer\Item;
-use Customer;
-use State;
 
 class Factory
 {
@@ -103,13 +100,13 @@ class Factory
 		$buyer = new Buyer();
 
 		// Add customer information to buyer
-		$customer = new Customer((int) $cart->id_customer);
+		$customer = new \Customer((int) $cart->id_customer);
 		$buyer->setEmail($customer->email);
 		$buyer->setFirstName($customer->firstname);
 		$buyer->setLastName($customer->lastname);
 
 		// Add address information to buyer
-		$address = new Address($cart->id_address_delivery);
+		$address = new \Address($cart->id_address_delivery);
 		$buyer->setAddress([$address->address1, $address->address2]);
 		$buyer->setCountry($address->country);
 		$buyer->setZip($address->postcode);
@@ -117,7 +114,7 @@ class Factory
 
 		// Add the state if available
 		if (0 !== ($stateId = $address->id_state)) {
-			$buyer->setState((new State($stateId))->name);
+			$buyer->setState((new \State($stateId))->name);
 		}
 
 		// Finally, add the build buyer to the invoice
@@ -148,7 +145,7 @@ class Factory
 			$orderBitcoin->setAmount((string) $orderTotal);
 			$orderBitcoin->setRedirect($invoice->getUrl());
 
-			$response = json_decode($client->getResponse()->getBody(), false);
+			$response = \json_decode($client->getResponse()->getBody(), false, 512, JSON_THROW_ON_ERROR);
 			$orderBitcoin->setRate($response->data->rate);
 			$orderBitcoin->setBitcoinPrice($response->data->btcPrice);
 			$orderBitcoin->setBitcoinPaid($response->data->btcPaid);

@@ -1,10 +1,12 @@
 <?php
 
+use PhpCsFixer\Fixer\FunctionNotation\NativeFunctionInvocationFixer;
+
 $finder = PhpCsFixer\Finder::create()
 	->in([__DIR__ . '/modules/btcpay'])
 	->exclude('vendor');
 
-return PhpCsFixer\Config::create()
+return (new PhpCsFixer\Config())
 	->setRules([
 		'@Symfony'                     => true,
 		'@Symfony:risky'               => true,
@@ -15,8 +17,10 @@ return PhpCsFixer\Config::create()
 		'combine_nested_dirname'       => true,
 		'concat_space'                 => false,
 		'fopen_flags'                  => false,
+		'native_function_invocation'   => false,
 		'phpdoc_summary'               => false,
 		'protected_to_private'         => false,
+		'psr_autoloading'              => false,
 		'psr4'                         => false,
 		'yoda_style'                   => true,
 	])

@@ -32,6 +32,6 @@ jobs:
       - name: "Install Composer dependencies"
         run: "composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader"
 
-      # Lint the module
+      # Ensure our code looks proper
       - name: "Lint the code"
         run: "make lint"

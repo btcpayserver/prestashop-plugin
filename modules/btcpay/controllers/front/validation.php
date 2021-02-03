@@ -1,7 +1,9 @@
 <?php
+
 use BTCPay\LegacyOrderBitcoinRepository;
 
-class BTCpayValidationModuleFrontController extends ModuleFrontController
+/** @noinspection AutoloadingIssuesInspection */
+class BTCPayValidationModuleFrontController extends ModuleFrontController
 {
 	/**
 	 * Enable SSL only.
