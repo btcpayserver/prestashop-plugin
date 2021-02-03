@@ -30,14 +30,6 @@ jobs:
       - name: "Install Composer dependencies"
         run: "composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader"
 
-      # We run all lint steps as well, just to make sure all code is valid
-      - name: "PHPCS"
-        uses: "chekalsky/phpcs-action@v1"
-        with:
-          phpcs_bin_path: "./vendor/bin/phpcs"
-      - name: "PHP-CS-Fixer"
-        uses: "docker://oskarstark/php-cs-fixer-ga"
-
       # Zip the module
       - name: "Make zip"
         run: "make"
