@@ -1,8 +1,10 @@
 <?php
+
 use BTCPay\LegacyOrderBitcoinRepository;
 use BTCPay\Server\IPN;
 use Symfony\Component\HttpFoundation\Request;
 
+/** @noinspection AutoloadingIssuesInspection */
 class BTCPayIpnModuleFrontController extends \ModuleFrontController
 {
 	/**

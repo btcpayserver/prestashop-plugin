@@ -35,7 +35,6 @@ class CurlAdapter extends BaseCurlAdapter
 	 * 3. The call fails and we retry 3 times using the default strategy, if all retries fail, it will throw the last error
 	 * 4. The maximum waiting time exceeds and we will just throw the last error
 	 *
-	 * @return ResponseInterface
 	 * @throws \Exception
 	 */
 	public function sendRequest(RequestInterface $request): ResponseInterface
