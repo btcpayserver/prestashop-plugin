@@ -7261,16 +7261,16 @@
         },
         {
             "name": "prestashop/ps_emailsubscription",
-            "version": "v2.6.0",
+            "version": "v2.6.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PrestaShop/ps_emailsubscription.git",
-                "reference": "d4ef6d74fe3dd3f2f3a0cd7c7c6b92bf0f9277f6"
+                "reference": "3908c6cfed00ebb4be1302a876885439d9f1ae8c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PrestaShop/ps_emailsubscription/zipball/d4ef6d74fe3dd3f2f3a0cd7c7c6b92bf0f9277f6",
-                "reference": "d4ef6d74fe3dd3f2f3a0cd7c7c6b92bf0f9277f6",
+                "url": "https://api.github.com/repos/PrestaShop/ps_emailsubscription/zipball/3908c6cfed00ebb4be1302a876885439d9f1ae8c",
+                "reference": "3908c6cfed00ebb4be1302a876885439d9f1ae8c",
                 "shasum": ""
             },
             "require": {
@@ -7290,9 +7290,9 @@
             "description": "PrestaShop module ps_emailsubscription",
             "homepage": "https://github.com/PrestaShop/ps_emailsubscription",
             "support": {
-                "source": "https://github.com/PrestaShop/ps_emailsubscription/tree/v2.6.0"
+                "source": "https://github.com/PrestaShop/ps_emailsubscription/tree/v2.6.1"
             },
-            "time": "2020-06-18T06:13:36+00:00"
+            "time": "2021-03-31T10:29:23+00:00"
         },
         {
             "name": "prestashop/ps_facetedsearch",
