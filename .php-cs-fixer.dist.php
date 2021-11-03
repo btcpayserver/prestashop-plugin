@@ -1,8 +1,6 @@
 <?php
 
-use PhpCsFixer\Fixer\FunctionNotation\NativeFunctionInvocationFixer;
-
-$finder = PhpCsFixer\Finder::create()
+$finder = (new PhpCsFixer\Finder)
 	->in([__DIR__ . '/modules/btcpay'])
 	->exclude('vendor');
 
@@ -21,7 +19,6 @@ return (new PhpCsFixer\Config())
 		'phpdoc_summary'               => false,
 		'protected_to_private'         => false,
 		'psr_autoloading'              => false,
-		'psr4'                         => false,
 		'yoda_style'                   => true,
 	])
 	->setRiskyAllowed(true)

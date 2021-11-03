@@ -129,7 +129,7 @@ class Factory
 		// Ask BTCPay to create an invoice with cart information
 		try {
 			$errorReporting = error_reporting();
-			error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED & ~E_WARNING);
+			error_reporting(\E_ALL & ~\E_NOTICE & ~\E_STRICT & ~\E_DEPRECATED & ~\E_WARNING);
 			$invoice = $client->createInvoice($invoice);
 			error_reporting($errorReporting);
 
@@ -145,7 +145,7 @@ class Factory
 			$orderBitcoin->setAmount((string) $orderTotal);
 			$orderBitcoin->setRedirect($invoice->getUrl());
 
-			$response = \json_decode($client->getResponse()->getBody(), false, 512, JSON_THROW_ON_ERROR);
+			$response = \json_decode($client->getResponse()->getBody(), false, 512, \JSON_THROW_ON_ERROR);
 			$orderBitcoin->setRate($response->data->rate);
 			$orderBitcoin->setBitcoinPrice($response->data->btcPrice);
 			$orderBitcoin->setBitcoinPaid($response->data->btcPaid);
