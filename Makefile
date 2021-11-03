@@ -47,12 +47,18 @@ clean: ## Remove previous builds
 	@ls -d $(MODULE_FOLDER)/* | grep -v $(MODULE) | xargs rm -rf
 
 lint: ## Lints the module
+	# Run PHP CS Fixer
 	@./vendor/bin/php-cs-fixer fix --diff --dry-run -v
+
+	# Run PHPCS
 	@./vendor/bin/phpcs
 
 lint-fix: ## Resolves linter issues
+	# Run PHP CS Fixer
 	@./vendor/bin/php-cs-fixer fix -v
-	@./vendor/bin/phpcbf
+
+	# Run PHPCBF
+	@./vendor/bin/phpcbf -p
 
 help: ## Display this help screen
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'

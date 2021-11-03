@@ -49,7 +49,7 @@ class Client extends BaseClient
 		}
 
 		$errorReporting = error_reporting();
-		error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED & ~E_WARNING);
+		error_reporting(\E_ALL & ~\E_NOTICE & ~\E_STRICT & ~\E_DEPRECATED & ~\E_WARNING);
 		$invoice = $this->getInvoice($orderBitcoin->getInvoiceId());
 		error_reporting($errorReporting);
 
@@ -92,7 +92,7 @@ class Client extends BaseClient
 	{
 		// Sanitize URL first
 		$url = rtrim($url, '/\\');
-		if ('https' === (parse_url($url, PHP_URL_SCHEME))) {
+		if ('https' === (parse_url($url, \PHP_URL_SCHEME))) {
 			return sprintf('%s:443', $url);
 		}
 

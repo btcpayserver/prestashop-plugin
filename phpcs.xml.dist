@@ -120,12 +120,6 @@
     <type>error</type>
   </rule>
 
-  <!-- Force camel case -->
-  <rule ref="Squiz.NamingConventions.ValidVariableName">
-    <exclude name="Squiz.NamingConventions.ValidVariableName.PrivateNoUnderscore"/>
-    <exclude name="Squiz.NamingConventions.ValidVariableName.NotCamelCaps"/>
-  </rule>
-
   <!-- Require comma after last element in multi-line array -->
   <rule ref="SlevomatCodingStandard.Arrays.TrailingArrayComma"/>
 

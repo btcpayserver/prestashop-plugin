@@ -27,14 +27,12 @@
     "composer/installers": "^v1.9.0"
   },
   "require-dev": {
-    "csa/guzzle-bundle": "dev-compat-php",
-    "cssjanus/cssjanus": "dev-patch-1",
     "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
     "ergebnis/composer-normalize": "^2.8",
     "friendsofphp/php-cs-fixer": "^v2.16.4",
     "johnkary/phpunit-speedtrap": "^v3.2.0",
     "phpspec/prophecy-phpunit": "^2.0",
-    "prestashop/prestashop": "^v1.7.7.0",
+    "prestashop/prestashop": "dev-develop",
     "roave/security-advisories": "dev-master",
     "slevomat/coding-standard": "^6.3",
     "squizlabs/php_codesniffer": "^3.5",
@@ -53,26 +51,6 @@
       "modules/btcpay/btcpay.php"
     ]
   },
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/btcpayserver/php-bitpay-client"
-    },
-    {
-      "type": "vcs",
-      "url": "https://github.com/PrestaShop/PrestaShop"
-    },
-    {
-      "type": "vcs",
-      "url": "https://github.com/PrestaShop/php-cssjanus",
-      "canonical": false
-    },
-    {
-      "type": "vcs",
-      "url": "https://github.com/PrestaShop/CsaGuzzleBundle",
-      "canonical": false
-    }
-  ],
   "minimum-stability": "stable",
   "scripts": {
     "post-install-cmd": [

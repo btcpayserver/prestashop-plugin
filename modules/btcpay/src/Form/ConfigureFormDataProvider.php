@@ -83,7 +83,7 @@ class ConfigureFormDataProvider implements FormDataProviderInterface
 		try {
 			// Ignore notices and warnings for now
 			$old_error_reporting = error_reporting();
-			error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED & ~E_WARNING);
+			error_reporting(\E_ALL & ~\E_NOTICE & ~\E_STRICT & ~\E_DEPRECATED & ~\E_WARNING);
 
 			$token = $client->createToken(
 				[
