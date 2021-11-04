@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f6e2b93ecdc81881d919d33399579c69",
+    "content-hash": "2040fadb00db7d620d062342ebc97cb3",
     "packages": [
         {
             "name": "btcpayserver/btcpayserver-php-client",
@@ -883,7 +883,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.2.0",
+        "php": ">=7.3.0",
         "ext-pdo": "*",
         "ext-curl": "*",
         "ext-gd": "*",

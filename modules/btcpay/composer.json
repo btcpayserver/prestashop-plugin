@@ -13,7 +13,7 @@
   "homepage": "https://github.com/btcpayserver/prestashop-plugin",
   "license": "MIT",
   "require": {
-    "php": ">=7.2.0",
+    "php": ">=7.3.0",
     "ext-PDO": "*",
     "ext-curl": "*",
     "ext-gd": "*",
