@@ -1,7 +1,7 @@
 {
   "name": "btcpay/prestashop",
-  "description": "BTCPay payment plugin for PrestaShop",
   "type": "prestashop-module",
+  "description": "BTCPay payment plugin for PrestaShop",
   "keywords": [
     "prestashop",
     "plugin",
@@ -12,11 +12,6 @@
   ],
   "homepage": "https://github.com/btcpayserver/prestashop-plugin",
   "license": "MIT",
-  "support": {
-    "issues": "https://github.com/btcpayserver/prestashop-plugin/issues",
-    "source": "https://github.com/btcpayserver/prestashop-plugin"
-  },
-  "minimum-stability": "stable",
   "require": {
     "php": ">=7.2.0",
     "ext-PDO": "*",
@@ -29,7 +24,16 @@
     "stechstudio/backoff": "^1.2"
   },
   "require-dev": {
-    "roave/security-advisories": "dev-master"
+    "ergebnis/composer-normalize": "^2.15",
+    "roave/security-advisories": "dev-latest"
+  },
+  "config": {
+    "platform": {
+      "php": "7.3"
+    },
+    "preferred-install": "dist",
+    "prepend-autoloader": false,
+    "sort-packages": true
   },
   "autoload": {
     "psr-4": {
@@ -40,9 +44,9 @@
     ],
     "exclude-from-classmap": []
   },
-  "config": {
-    "preferred-install": "dist",
-    "prepend-autoloader": false,
-    "sort-packages": true
+  "minimum-stability": "stable",
+  "support": {
+    "issues": "https://github.com/btcpayserver/prestashop-plugin/issues",
+    "source": "https://github.com/btcpayserver/prestashop-plugin"
   }
 }
