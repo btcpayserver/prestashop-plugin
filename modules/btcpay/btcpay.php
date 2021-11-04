@@ -40,7 +40,7 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '4.0.1';
+		$this->version                = '4.0.2';
 		$this->author                 = 'BTCPayServer';
 		$this->ps_versions_compliancy = ['min' => '1.7.7', 'max' => _PS_VERSION_];
 		$this->controllers            = ['payment', 'validation', 'ipn'];
