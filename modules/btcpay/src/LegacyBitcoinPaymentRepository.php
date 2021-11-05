@@ -4,7 +4,7 @@ namespace BTCPay;
 
 use BTCPay\Entity\BitcoinPayment;
 
-class LegacyOrderBitcoinRepository
+class LegacyBitcoinPaymentRepository
 {
 	/**
 	 * @var \Db
@@ -16,24 +16,31 @@ class LegacyOrderBitcoinRepository
 		$this->connection = \Db::getInstance();
 	}
 
+	/**
+	 * @throws \PrestaShopException
+	 */
 	public function create(int $cartId, string $status, string $invoiceId): BitcoinPayment
 	{
-		$orderBitcoin = new BitcoinPayment();
-		$orderBitcoin->setCartId($cartId);
-		$orderBitcoin->setStatus($status);
-		$orderBitcoin->setInvoiceId($invoiceId);
+		$bitcoinPayment = new BitcoinPayment();
+		$bitcoinPayment->setCartId($cartId);
+		$bitcoinPayment->setStatus($status);
+		$bitcoinPayment->setInvoiceId($invoiceId);
 
-		if (false === $orderBitcoin->save(true)) {
+		if (false === $bitcoinPayment->save(true)) {
 			\PrestaShopLogger::addLog('[ERROR] Could not store bitcoin_payment', 3);
 
 			throw new \RuntimeException('[ERROR] Could not store bitcoin_payment');
 		}
 
-		\PrestaShopLogger::addLog('Created bitcoin_payment for invoice ' . $invoiceId);
+		\PrestaShopLogger::addLog('[INFO] Created bitcoin_payment for invoice ' . $invoiceId);
 
-		return $orderBitcoin;
+		return $bitcoinPayment;
 	}
 
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \JsonException
+	 */
 	public function getOneByInvoiceID(string $invoiceId): ?BitcoinPayment
 	{
 		$query = new \DbQuery();
@@ -44,7 +51,7 @@ class LegacyOrderBitcoinRepository
 
 		$result = $this->connection->query($query);
 		if (0 !== ($errorCode = (int) $result->errorCode())) {
-			throw new \PrestaShopDatabaseException(json_encode($result->errorInfo()), $errorCode);
+			throw new \PrestaShopDatabaseException(json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
 		}
 
 		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
@@ -54,6 +61,10 @@ class LegacyOrderBitcoinRepository
 		return $object;
 	}
 
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \JsonException
+	 */
 	public function getOneByInvoiceReference(string $invoiceReference): ?BitcoinPayment
 	{
 		$query = new \DbQuery();
@@ -64,7 +75,7 @@ class LegacyOrderBitcoinRepository
 
 		$result = $this->connection->query($query);
 		if (0 !== ($errorCode = (int) $result->errorCode())) {
-			throw new \PrestaShopDatabaseException(json_encode($result->errorInfo()), $errorCode);
+			throw new \PrestaShopDatabaseException(json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
 		}
 
 		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
@@ -74,6 +85,10 @@ class LegacyOrderBitcoinRepository
 		return $object;
 	}
 
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \JsonException
+	 */
 	public function getOneByCartID(int $cartID): ?BitcoinPayment
 	{
 		$query = new \DbQuery();
@@ -84,7 +99,7 @@ class LegacyOrderBitcoinRepository
 
 		$result = $this->connection->query($query);
 		if (0 !== ($errorCode = (int) $result->errorCode())) {
-			throw new \PrestaShopDatabaseException(json_encode($result->errorInfo()), $errorCode);
+			throw new \PrestaShopDatabaseException(json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
 		}
 
 		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
@@ -94,6 +109,10 @@ class LegacyOrderBitcoinRepository
 		return $object;
 	}
 
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \JsonException
+	 */
 	public function getOneByOrderID(int $orderID): ?BitcoinPayment
 	{
 		$query = new \DbQuery();
@@ -104,7 +123,7 @@ class LegacyOrderBitcoinRepository
 
 		$result = $this->connection->query($query);
 		if (0 !== ($errorCode = (int) $result->errorCode())) {
-			throw new \PrestaShopDatabaseException(json_encode($result->errorInfo()), $errorCode);
+			throw new \PrestaShopDatabaseException(json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
 		}
 
 		if (false === ($object = \Db::getInstance()->query($query)->fetchObject(BitcoinPayment::class))) {

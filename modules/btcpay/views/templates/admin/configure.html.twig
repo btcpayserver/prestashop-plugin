@@ -4,46 +4,120 @@
   <div style="width: 100%; height: 125px;">
     <div style="float: right; border: dashed 1px #666; padding: 8px;">
       <a href="{{ form.btcpay.vars.data.url }}" target="_blank">
-        <img src="{{ asset('../modules/btcpay/views/images/prestashop-btcpay.png') }}" alt="PrestaShop & BTCPay"/>
+        <img src="{{ asset('../modules/btcpay/views/images/prestashop-btcpay.png') }}" alt="PrestaShop & BTCPay Server"/>
       </a>
     </div>
-    <img src="{{ asset('../modules/btcpay/views/images/btcpay-plugin.png') }}" alt="PrestaShop & BTCPay" style="float:left; margin-right:15px;"/>
-    <p><strong>{{ 'This module allows you to accept payments by BTCPay.'|trans({}, 'Modules.Btcpay.Admin') }}</strong></p>
-    <p>{{ 'You need to configure your BtcPay account before using this module.'|trans({}, 'Modules.Btcpay.Admin') }}</p>
+    <img src="{{ asset('../modules/btcpay/views/images/btcpay-plugin.png') }}" alt="BTCPay Server logo" style="float:left; margin-right:15px;"/>
+    <p><strong>{{ 'This module allows you to accept payments via BTCPay Server.'|trans({}, 'Modules.Btcpay.Admin') }}</strong></p>
+    <p>{{ 'To be able to use this payment module you need to have a BTCPay Server instance, either <a href="https://docs.btcpayserver.org/Deployment/" target="_blank">self-hosted</a> or <a href="https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/." target="_blank">hosted by a third-party</a>.<br/>With <a href="https://docs.btcpayserver.org/RegisterAccount" target="_blank">a registered account on the instance</a>, <a href="https://docs.btcpayserver.org/CreateStore" target="_blank">an actual store on the instance</a> and <a href="https://docs.btcpayserver.org/WalletSetup" target="_blank">a wallet connected to your store</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
   </div>
 
-  {{ form_start(form, {'action': url('admin_btcpay_configure_process'), 'attr': {'class': 'form', 'id': 'BTCPAY_form'}}) }}
+  {{ form_start(form, {'action': url('admin_btcpay_configure_process'), 'attr': {'class': 'form', 'id': 'btcpay-form'}}) }}
   <div class="row ps17">
-    <div class="col-lg-12">
+    <div class="col-12 col-spx-12 col-lg-10 col-md-10 offset-md-1 offset-lg-1">
       <div class="card">
         <h3 class="card-header">
           <i class="material-icons">mode_edit</i>
           {{ 'Settings'|trans({}, 'Admin.Global') }}
         </h3>
-        <div class="card-block row">
+
+        <div class="card-block">
           <div class="card-text">
             {{ form_row(form.btcpay.url) }}
-            {{ form_row(form.btcpay.transaction_speed) }}
+            {{ form_row(form.btcpay.speed) }}
             {{ form_row(form.btcpay.order_mode) }}
-            {{ form_row(form.btcpay.pairing_code) }}
             {{ form_rest(form) }}
           </div>
-          <small>
-            {% if form.btcpay.vars.data.url is not empty %}
-              {{ 'You can get a pairing code from your BTCPay server by visiting <a href="%url%/api-tokens" target="_blank">%url%/api-tokens</a>.'|trans({'%url%': form.btcpay.vars.data.url }, 'Modules.Btcpay.Admin')|raw }}
-            {% else %}
-              {{ 'You can get a pairing code from your BTCPay server by visiting /api-tokens on your BTCPay server.'|trans({}, 'Modules.Btcpay.Admin') }}
+          <div class="card-text text-center">
+            {% if invalidApiKey is defined %}
+              <small>{{ 'Press "Connect" to get an API key from the specified host.'|trans({}, 'Modules.Btcpay.Admin') }}</small>
             {% endif %}
-          </small>
+          </div>
         </div>
+
         <div class="card-footer">
           <div class="d-flex justify-content-between">
             <a href="{{ getAdminLink('AdminDashboard') }}" class="btn btn-secondary">{{ 'Cancel'|trans({}, 'Admin.Actions') }}</a>
-            <button class="btn btn-primary">{{ 'Save'|trans({}, 'Admin.Actions') }}</button>
+              <button class="btn btn-primary">{% if invalidApiKey is defined  %}{{ 'Connect'|trans({}, 'Admin.Actions') }}{% else %}{{ 'Save'|trans({}, 'Admin.Actions') }}{% endif %}</button>
           </div>
         </div>
       </div>
     </div>
   </div>
   {{ form_end(form) }}
+
+  <div class="row ps17">
+    <div class="col-12 col-spx-12 col-lg-10 col-md-10 offset-md-1 offset-lg-1">
+      <div class="card-deck">
+        {% if storeId is defined and client is defined %}
+          {% set storeInfo = client.store().getStore(storeId) %}
+          <div class="card">
+              <h3 class="card-header">
+                <i class="material-icons">store</i>
+                {{ 'Store Information'|trans({}, 'Admin.Actions') }}
+              </h3>
+
+              <div class="card-block">
+                <div class="card-text">
+                  <dl>
+                    <dt><span class="text-muted mb-0"><strong>Name</strong></span></dt>
+                    <dd><span class="px-1">{% if storeInfo.website is not empty %}<a href="{{ storeInfo.website }}" target="_blank">{{ storeInfo.name }}</a>{% else %}{{ storeInfo.name }}{% endif %}</span></dd>
+
+                    <dt><span class="text-muted mb-0"><strong>Default speed policy</strong></span></dt>
+                    <dd><span class="px-1">{{ storeInfo.speedPolicy }}</span></dd>
+
+                    <dt><span class="text-muted mb-0"><strong>Invoice expiration time</strong></span></dt>
+                    <dd><span class="px-1">{{ storeInfo.invoiceExpiration }} minutes</span></dd>
+
+                    <dt><span class="text-muted mb-0"><strong>Invoice monitoring expiration time</strong></span></dt>
+                    <dd><span class="px-1">{{ storeInfo.monitoringExpiration }} minutes</span></dd>
+
+                    <dt><span class="text-muted mb-0"><strong>Default currency</strong></span></dt>
+                    <dd><span class="px-1">{% if storeInfo.defaultCurrency is empty %}None{% else %}{{ storeInfo.defaultCurrency }}{% endif %}</span></dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+        {% endif %}
+
+        {% if storeId is defined and client is defined %}
+          {% set serverInfo = client.server().getInfo() %}
+          <div class="card">
+            <h3 class="card-header">
+              <i class="material-icons">info_outline</i>
+              {{ 'Server Information'|trans({}, 'Admin.Actions') }}
+            </h3>
+
+            <div class="card-body">
+              <dl>
+                <dt><span class="text-muted mb-0"><strong>Version</strong></span></dt>
+                <dd><span class="px-1">{{ serverInfo.version }}</span></dd>
+
+                <dt><span class="text-muted mb-0"><strong>API Key</strong></span></dt>
+                <dd><span class="px-1">{{ client.apiKey().getCurrent().apiKey }}</span></dd>
+
+                <dt><span class="text-muted mb-0"><strong>Webhook ID</strong></span></dt>
+                <dd><span class="px-1">{{ client.webhook().getCurrent(storeId).id }}</span></dd>
+
+                <dt><span class="text-muted mb-0"><strong>Fully synced</strong></span></dt>
+                <dd>{% if serverInfo.fullySynced %}<span class="text-success px-1">Yes</span>{% else %}<span class="text-warning px-1">No</span>{% endif %}</dd>
+
+                <dt><span class="text-muted mb-0"><strong>Payment methods</strong></span></dt>
+                <dd>
+                  <ul class="list-unstyled px-1">
+                  {% for paymentMethod in client.offchain().getPaymentMethods(storeId) %}
+                    <li>{{ paymentMethod.cryptoCode }} Lightning ⚡</li>
+                  {% endfor %}
+                  {% for paymentMethod in client.onchain().getPaymentMethods(storeId) %}
+                    <li>{{ paymentMethod.cryptoCode }} On-Chain</li>
+                  {% endfor %}
+                  </ul>
+                </dd>
+              </dl>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 {% endblock %}

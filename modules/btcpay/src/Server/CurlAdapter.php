@@ -2,12 +2,11 @@
 
 namespace BTCPay\Server;
 
-use BTCPayServer\Client\Adapter\CurlAdapter as BaseCurlAdapter;
-use BTCPayServer\Client\RequestInterface;
-use BTCPayServer\Client\ResponseInterface;
+use BTCPayServer\Http\CurlClient;
+use BTCPayServer\Http\ResponseInterface;
 use STS\Backoff\Backoff;
 
-class CurlAdapter extends BaseCurlAdapter
+class CurlAdapter extends CurlClient
 {
 	/**
 	 * @var int
@@ -19,10 +18,8 @@ class CurlAdapter extends BaseCurlAdapter
 	 */
 	private $backoff;
 
-	public function __construct(array $curlOptions = [])
+	public function __construct()
 	{
-		parent::__construct($curlOptions);
-
 		$this->backoff = new Backoff(self::$defaultMaxAttempts, Backoff::$defaultStrategy, self::$defaultMaxAttempts * 10 * 1000, true);
 	}
 
@@ -37,10 +34,10 @@ class CurlAdapter extends BaseCurlAdapter
 	 *
 	 * @throws \Exception
 	 */
-	public function sendRequest(RequestInterface $request): ResponseInterface
+	public function request(string $method, string $url, array $headers = [], string $body = ''): ResponseInterface
 	{
-		return $this->backoff->run(function () use ($request) {
-			return parent::sendRequest($request);
+		return $this->backoff->run(function () use ($method, $url, $headers, $body) {
+			return parent::request($method, $url, $headers, $body);
 		});
 	}
 }

@@ -2,11 +2,19 @@ services:
   _defaults:
     public: true
 
+  prestashop.module.btcpay:
+    class: BTCPay
+
   prestashop.module.btcpay.repository:
     class: BTCPay\Repository\BitcoinPaymentRepository
     arguments:
-      $connection: '@doctrine.dbal.default_connection'
-      $prefix: '%database_prefix%'
+      - '@doctrine.dbal.default_connection'
+      - '%database_prefix%'
+
+  BTCPay\Controller\Admin\Improve\Payment\ConfigureController:
+    class: BTCPay\Controller\Admin\Improve\Payment\ConfigureController
+    arguments:
+      - '@validator'
 
   # BTCPay form data provider
   prestashop.module.btcpay.form.configure.provider:

@@ -4,10 +4,9 @@ namespace BTCPay\Form\Type;
 
 use BTCPay\Constants;
 use BTCPay\Form\Data\Configuration;
-use BTCPayServer\Invoice;
+use BTCPayServer\Client\InvoiceCheckoutOptions;
 use PrestaShopBundle\Form\Admin\Type\TranslatorAwareType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -20,16 +19,15 @@ class ConfigureType extends TranslatorAwareType
 	public function buildForm(FormBuilderInterface $builder, array $options): void
 	{
 		$builder
-			->add('url', UrlType::class, [
-				'label' => $this->trans('BTCPay server url', 'Modules.Btcpay.Admin'),
-			])
-			->add('transaction_speed', ChoiceType::class, [
-				'choices' => [
-					$this->trans('Low', 'Modules.Btcpay.Admin')    => Invoice::TRANSACTION_SPEED_LOW,
-					$this->trans('Medium', 'Modules.Btcpay.Admin') => Invoice::TRANSACTION_SPEED_MEDIUM,
-					$this->trans('High', 'Modules.Btcpay.Admin')   => Invoice::TRANSACTION_SPEED_HIGH,
+			->add('url', UrlType::class, ['label' => $this->trans('BTCPay server url', 'Modules.Btcpay.Admin')])
+			->add('speed', ChoiceType::class, [
+				'choices'    => [
+					$this->trans('Low', 'Modules.Btcpay.Admin')    => InvoiceCheckoutOptions::SPEED_LOW,
+					$this->trans('Medium', 'Modules.Btcpay.Admin') => InvoiceCheckoutOptions::SPEED_MEDIUM,
+					$this->trans('High', 'Modules.Btcpay.Admin')   => InvoiceCheckoutOptions::SPEED_HIGH,
 				],
-				'label'   => $this->trans('Transaction speed', 'Modules.Btcpay.Admin'),
+				'label'      => $this->trans('Transaction speed', 'Modules.Btcpay.Admin'),
+				'empty_data' => InvoiceCheckoutOptions::SPEED_MEDIUM,
 			])
 			->add('order_mode', ChoiceType::class, [
 				'choices' => [
@@ -37,10 +35,6 @@ class ConfigureType extends TranslatorAwareType
 					$this->trans('Order after payment', 'Modules.Btcpay.Admin')  => Constants::ORDER_MODE_AFTER,
 				],
 				'label'   => $this->trans('Order mode', 'Modules.Btcpay.Admin'),
-			])
-			->add('pairing_code', TextType::class, [
-				'label'    => $this->trans('Pairing code', 'Modules.Btcpay.Admin'),
-				'required' => false,
 			]);
 	}
 

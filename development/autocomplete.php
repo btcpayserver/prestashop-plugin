@@ -1,6 +1,6 @@
 <?php
 
-define('_DB_PREFIX_', 'PS_');
+const _DB_PREFIX_ = 'ps_';
 
 abstract class AbstractAssetManager extends AbstractAssetManagerCore
 {
@@ -55,6 +55,7 @@ abstract class ObjectModel extends ObjectModelCore
 }
 abstract class PaymentModule extends PaymentModuleCore
 {
+	protected $is_eu_compatible;
 }
 abstract class ProductListingFrontController extends ProductListingFrontControllerCore
 {

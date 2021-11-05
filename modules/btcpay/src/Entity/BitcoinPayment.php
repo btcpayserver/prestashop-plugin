@@ -45,32 +45,7 @@ class BitcoinPayment extends \ObjectModel
 	/**
 	 * @var string|null
 	 */
-	public $bitcoin_price;
-
-	/**
-	 * @var string|null
-	 */
-	public $bitcoin_paid;
-
-	/**
-	 * @var string|null
-	 */
-	public $bitcoin_address;
-
-	/**
-	 * @var string|null
-	 */
-	public $bitcoin_refund_address;
-
-	/**
-	 * @var string|null
-	 */
 	public $redirect;
-
-	/**
-	 * @var string|null
-	 */
-	public $rate;
 
 	/**
 	 * {@inheritdoc}
@@ -79,18 +54,12 @@ class BitcoinPayment extends \ObjectModel
 		'table'   => 'bitcoin_payment',
 		'primary' => 'id',
 		'fields'  => [
-			'cart_id'                => ['type' => self::TYPE_INT, 'required' => true, 'validate' => 'isUnsignedInt'],
-			'order_id'               => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
-			'status'                 => ['type' => self::TYPE_STRING, 'required' => true, 'validate' => 'isString'],
-			'invoice_id'             => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
-			'invoice_reference'      => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
-			'amount'                 => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
-			'bitcoin_price'          => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
-			'bitcoin_paid'           => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
-			'bitcoin_address'        => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
-			'bitcoin_refund_address' => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
-			'redirect'               => ['type' => self::TYPE_STRING, 'validate' => 'isUrl'],
-			'rate'                   => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
+			'cart_id'           => ['type' => self::TYPE_INT, 'required' => true, 'validate' => 'isUnsignedInt'],
+			'order_id'          => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
+			'status'            => ['type' => self::TYPE_STRING, 'required' => true, 'validate' => 'isString'],
+			'invoice_id'        => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
+			'invoice_reference' => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
+			'redirect'          => ['type' => self::TYPE_STRING, 'validate' => 'isUrl'],
 		],
 	];
 
@@ -181,46 +150,6 @@ class BitcoinPayment extends \ObjectModel
 		$this->amount = $amount;
 	}
 
-	public function getBitcoinPrice(): ?string
-	{
-		return $this->bitcoin_price;
-	}
-
-	public function setBitcoinPrice(?string $bitcoin_price): void
-	{
-		$this->bitcoin_price = $bitcoin_price;
-	}
-
-	public function getBitcoinPaid(): ?string
-	{
-		return $this->bitcoin_paid;
-	}
-
-	public function setBitcoinPaid(?string $bitcoin_paid): void
-	{
-		$this->bitcoin_paid = $bitcoin_paid;
-	}
-
-	public function getBitcoinAddress(): ?string
-	{
-		return $this->bitcoin_address;
-	}
-
-	public function setBitcoinAddress(?string $bitcoin_address): void
-	{
-		$this->bitcoin_address = $bitcoin_address;
-	}
-
-	public function getBitcoinRefundAddress(): ?string
-	{
-		return $this->bitcoin_refund_address;
-	}
-
-	public function setBitcoinRefundAddress(?string $bitcoin_refund_address): void
-	{
-		$this->bitcoin_refund_address = $bitcoin_refund_address;
-	}
-
 	public function getRedirect(): ?string
 	{
 		return $this->redirect;
@@ -229,16 +158,6 @@ class BitcoinPayment extends \ObjectModel
 	public function setRedirect(?string $redirect): void
 	{
 		$this->redirect = $redirect;
-	}
-
-	public function getRate(): ?string
-	{
-		return $this->rate;
-	}
-
-	public function setRate(?string $rate): void
-	{
-		$this->rate = $rate;
 	}
 
 	public function toArray(): array
@@ -251,12 +170,7 @@ class BitcoinPayment extends \ObjectModel
 			'invoice_id'        => $this->getInvoiceId(),
 			'invoice_reference' => $this->getInvoiceReference(),
 			'amount'            => $this->getAmount(),
-			'btc_price'         => $this->getBitcoinPrice(),
-			'btc_paid'          => $this->getBitcoinPaid(),
-			'btc_address'       => $this->getBitcoinAddress(),
-			'btc_refundaddress' => $this->getBitcoinRefundAddress(),
 			'redirect'          => $this->getRedirect(),
-			'rate'              => $this->getRate(),
 		];
 	}
 }

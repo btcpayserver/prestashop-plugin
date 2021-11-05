@@ -2,22 +2,31 @@
 
 namespace BTCPay\Installer;
 
-use Configuration;
+use BTCPay\Constants;
+use BTCPayServer\Client\InvoiceCheckoutOptions;
+use PrestaShop\PrestaShop\Adapter\Configuration;
 
 class Config
 {
+	/**
+	 * @var Configuration
+	 */
+	private $configuration;
+
+	public function __construct()
+	{
+		$this->configuration = new Configuration();
+	}
+
+	/**
+	 * @throws \Exception
+	 */
 	public function install(): array
 	{
 		// Init clear configurations
-		if (!Configuration::updateValue('BTCPAY_URL', null)
-			|| !Configuration::updateValue('BTCPAY_LABEL', null)
-			|| !Configuration::updateValue('BTCPAY_PAIRINGCODE', null)
-			|| !Configuration::updateValue('BTCPAY_KEY', null)
-			|| !Configuration::updateValue('BTCPAY_PUB', null)
-			|| !Configuration::updateValue('BTCPAY_SIN', null)
-			|| !Configuration::updateValue('BTCPAY_TOKEN', null)
-			|| !Configuration::updateValue('BTCPAY_TXSPEED', null)
-			|| !Configuration::updateValue('BTCPAY_ORDERMODE', null)) {
+		if (!$this->configuration->set(Constants::CONFIGURATION_BTCPAY_HOST, Constants::CONFIGURATION_DEFAULT_HOST)
+			|| !$this->configuration->set(Constants::CONFIGURATION_SPEED_MODE, InvoiceCheckoutOptions::SPEED_MEDIUM)
+			|| !$this->configuration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null)) {
 			return [
 				[
 					'key'        => 'Could not init configuration',
@@ -30,18 +39,15 @@ class Config
 		return [];
 	}
 
+	/**
+	 * @throws \Exception
+	 */
 	public function uninstall(): array
 	{
 		// Remove configuration
-		if (!Configuration::deleteByName('BTCPAY_URL')
-			|| !Configuration::deleteByName('BTCPAY_LABEL')
-			|| !Configuration::deleteByName('BTCPAY_PAIRINGCODE')
-			|| !Configuration::deleteByName('BTCPAY_KEY')
-			|| !Configuration::deleteByName('BTCPAY_PUB')
-			|| !Configuration::deleteByName('BTCPAY_SIN')
-			|| !Configuration::deleteByName('BTCPAY_TOKEN')
-			|| !Configuration::deleteByName('BTCPAY_TXSPEED')
-			|| !Configuration::deleteByName('BTCPAY_ORDERMODE')) {
+		if (!$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_HOST)
+			|| !$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_API_KEY)
+			|| !$this->configuration->remove(Constants::CONFIGURATION_SPEED_MODE)) {
 			return [
 				[
 					'key'        => 'Could not clear configuration',

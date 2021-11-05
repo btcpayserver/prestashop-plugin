@@ -2,17 +2,17 @@
 
 namespace BTCPay\Server;
 
+use BTCPay\Constants;
 use BTCPay\Exception\BTCPayException;
-use BTCPay\LegacyOrderBitcoinRepository;
-use BTCPayServer\Buyer;
-use BTCPayServer\Currency as BTCPayCurrency;
-use BTCPayServer\Invoice;
-use BTCPayServer\Item;
+use BTCPay\LegacyBitcoinPaymentRepository;
+use BTCPayServer\Client\InvoiceCheckoutOptions;
+use BTCPayServer\Util\PreciseNumber;
+use PrestaShop\PrestaShop\Adapter\Configuration;
 
 class Factory
 {
 	/**
-	 * @var LegacyOrderBitcoinRepository
+	 * @var LegacyBitcoinPaymentRepository
 	 */
 	private $repository;
 
@@ -22,146 +22,131 @@ class Factory
 	private $link;
 
 	/**
+	 * @var Configuration
+	 */
+	private $configuration;
+
+	/**
 	 * @var string
 	 */
 	private $moduleName;
 
-	public function __construct(LegacyOrderBitcoinRepository $repository, \Link $link, string $moduleName)
+	public function __construct(string $moduleName)
 	{
-		$this->repository = $repository;
-		$this->link       = $link;
-		$this->moduleName = $moduleName;
+		$this->repository    = new LegacyBitcoinPaymentRepository();
+		$this->link          = new \Link();
+		$this->configuration = new Configuration();
+		$this->moduleName    = $moduleName;
 	}
 
 	public function createPaymentRequest(\Customer $customer, \Cart $cart): ?string
 	{
 		// Check if we have a cart ID we can use
 		if (empty($cart->id)) {
-			\PrestaShopLogger::addLog(
-				'[Error] The BTCPay payment plugin was called to process a payment but the cart ID was missing.',
-				3
-			);
+			\PrestaShopLogger::addLog('[ERROR] The BTCPay payment plugin was called to process a payment but the cart ID was missing.', 3);
 
 			return null;
 		}
 
 		// Build the client from our stored configuration
 		try {
-			$client = Client::createFromConfiguration();
+			$client = Client::createFromConfiguration($this->configuration);
 		} catch (\Exception $e) {
-			\PrestaShopLogger::addLog('[ERROR] ' . $e->getMessage(), $e->getCode());
+			\PrestaShopLogger::addLog(sprintf('[ERROR] %s', $e->getMessage()), $e->getCode());
 			throw new BTCPayException($e->getMessage(), $e->getCode(), $e);
 		}
 
 		// If another BTCPay invoice was created before, returns the original one
 		if (null !== ($redirect = $client->getBTCPayRedirect($cart))) {
-			\PrestaShopLogger::addLog(
-				'[WARNING] Existing BTCPay invoice has already been created, redirecting to it...',
-				2
-			);
+			\PrestaShopLogger::addLog('[WARNING] Existing BTCPay invoice has already been created, redirecting to it...', 2);
 
 			return $redirect;
 		}
 
-		// Setup the Invoice
-		$invoice = new Invoice();
-		$invoice->setFullNotifications(true);
-		$invoice->setExtendedNotifications(true);
-
-		// Get and set transaction speed
-		if (empty($transactionSpeed = \Configuration::get('BTCPAY_TXSPEED'))) {
-			$transactionSpeed = 'default';
-		}
-
-		$invoice->setTransactionSpeed($transactionSpeed);
-
-		// Set an order reference instead of ID, since we haven't made one yet
-		$invoiceReference = \Tools::passwdGen(20);
-		$invoice->setOrderId($invoiceReference);
-
-		// Get shopping currency, currently tested with be EUR
-		$currency       = \Currency::getCurrencyInstance((int) $cart->id_currency);
-		$btcpayCurrency = new BTCPayCurrency($currency->iso_code);
-		$invoice->setCurrency($btcpayCurrency);
-
-		// Add a basic item to our invoice
-		$orderTotal = $cart->getOrderTotal(true);
-		$invoice->setItem(
-			(new Item())
-				->setCode('Cart: ' . $cart->id)
-				->setDescription('Your purchase')
-				->setPrice($orderTotal)
-		);
-
-		// Set POS data so we can verify later on that the call is legit
-		$invoice->setPosData($customer->secure_key);
-
-		// Create a buyer we can add to the invoice
-		$buyer = new Buyer();
-
-		// Add customer information to buyer
-		$customer = new \Customer((int) $cart->id_customer);
-		$buyer->setEmail($customer->email);
-		$buyer->setFirstName($customer->firstname);
-		$buyer->setLastName($customer->lastname);
-
-		// Add address information to buyer
-		$address = new \Address($cart->id_address_delivery);
-		$buyer->setAddress([$address->address1, $address->address2]);
-		$buyer->setCountry($address->country);
-		$buyer->setZip($address->postcode);
-		$buyer->setCity($address->city);
-
-		// Add the state if available
-		if (0 !== ($stateId = $address->id_state)) {
-			$buyer->setState((new \State($stateId))->name);
-		}
-
-		// Finally, add the build buyer to the invoice
-		$invoice->setBuyer($buyer);
-
-		// Create the redirect URL once payment has been done.
-		$invoice->setRedirectUrl($this->link->getModuleLink($this->moduleName, 'validation', ['invoice_reference' => $invoiceReference], true));
-
-		// This is the callback url for invoice paid.
-		$invoice->setNotificationUrl($this->link->getModuleLink($this->moduleName, 'ipn', [], true));
-
-		// Ask BTCPay to create an invoice with cart information
 		try {
-			$errorReporting = error_reporting();
-			error_reporting(\E_ALL & ~\E_NOTICE & ~\E_STRICT & ~\E_DEPRECATED & ~\E_WARNING);
-			$invoice = $client->createInvoice($invoice);
-			error_reporting($errorReporting);
+			// Setup some stuff
+			$currency         = \Currency::getCurrencyInstance($cart->id_currency);
+			$address          = new \Address($cart->id_address_delivery);
+			$invoiceReference = \Tools::passwdGen(20);
 
-			\PrestaShopLogger::addLog('Invoice ' . $invoice->getId() . ' created, see ' . $invoice->getUrl(), 2);
+			// Get totals
+			$taxAmount  = $cart->getOrderTotal(true, \Cart::ONLY_PRODUCTS) - $cart->getOrderTotal(false, \Cart::ONLY_PRODUCTS);
+			$orderTotal = (string) $cart->getOrderTotal(true);
 
-			// Register invoice into bitcoin_payment table, if we didn't have one before.
-			if (null === ($orderBitcoin = $this->repository->getOneByCartID($cart->id))) {
-				$orderBitcoin = $this->repository->create($cart->id, (string) \Configuration::get('BTCPAY_OS_WAITING'), $invoice->getId());
+			// Build metadata
+			$metadata = [
+				'posData'       => $customer->secure_key,
+				'buyerName'     => sprintf('%s %s', $customer->firstname, $customer->lastname),
+				'buyerAddress1' => $address->address1,
+				'buyerAddress2' => $address->address2,
+				'buyerCity'     => $address->city,
+				'buyerZip'      => $address->postcode,
+				'buyerCountry'  => $address->country,
+				'itemDesc'      => sprintf('Purchase: %s', $invoiceReference),
+				'itemCode'      => sprintf('cart-%s', $cart->id),
+				'taxIncluded'   => $taxAmount,
+			];
+
+			// Set state if available
+			if (0 !== ($stateId = $address->id_state)) {
+				$metadata['buyerState'] = (new \State($stateId))->name;
 			}
 
-			$orderBitcoin->setInvoiceId($invoice->getId());
-			$orderBitcoin->setInvoiceReference($invoiceReference);
-			$orderBitcoin->setAmount((string) $orderTotal);
-			$orderBitcoin->setRedirect($invoice->getUrl());
+			// Set phone/mobile phone number if available
+			if (!empty($address->phone)) {
+				$metadata['buyerPhone'] = $address->phone;
+			} elseif (!empty($address->phone_mobile)) {
+				$metadata['buyerPhone'] = $address->phone_mobile;
+			}
 
-			$response = \json_decode($client->getResponse()->getBody(), false, 512, \JSON_THROW_ON_ERROR);
-			$orderBitcoin->setRate($response->data->rate);
-			$orderBitcoin->setBitcoinPrice($response->data->btcPrice);
-			$orderBitcoin->setBitcoinPaid($response->data->btcPaid);
-			$orderBitcoin->setBitcoinAddress($response->data->bitcoinAddress);
+			// Setup custom checkout options, defaults get picked from store config.
+			$checkoutOptions = new InvoiceCheckoutOptions();
+			$checkoutOptions
+				->setSpeedPolicy($this->configuration->get(Constants::CONFIGURATION_SPEED_MODE, null, null, null, InvoiceCheckoutOptions::SPEED_MEDIUM))
+				->setRedirectURL($this->link->getModuleLink($this->moduleName, 'validation', ['invoice_reference' => $invoiceReference], true));
 
-			if (false === $orderBitcoin->save(true)) {
+			// Get the store ID
+			$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
+
+			// Ask BTCPay to create an invoice with cart information
+			$invoice = $client->invoice()->createInvoice(
+				$storeID,
+				$currency->iso_code,
+				PreciseNumber::parseString($orderTotal),
+				$invoiceReference,
+				$customer->email,
+				$metadata,
+				$checkoutOptions
+			);
+
+			// Process response
+			$invoiceResponse = $invoice->getData();
+			$invoiceId       = $invoiceResponse['id'];
+			$invoiceUrl      = $invoiceResponse['checkoutLink'];
+
+			\PrestaShopLogger::addLog(sprintf('[INFO] Invoice %s created, see %s', $invoiceId, $invoiceUrl));
+
+			// Register invoice into bitcoin_payment table, if we didn't have one before.
+			if (null === ($bitcoinPayment = $this->repository->getOneByCartID($cart->id))) {
+				$bitcoinPayment = $this->repository->create($cart->id, $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_WAITING), $invoiceId);
+			}
+
+			$bitcoinPayment->setInvoiceId($invoiceId);
+			$bitcoinPayment->setInvoiceReference($invoiceReference);
+			$bitcoinPayment->setAmount($orderTotal);
+			$bitcoinPayment->setRedirect($invoiceUrl);
+
+			if (false === $bitcoinPayment->save(true)) {
 				\PrestaShopLogger::addLog('[ERROR] Could not store bitcoin_payment', 3);
 
 				throw new \RuntimeException('[ERROR] Could not store bitcoin_payment');
 			}
 
-			\PrestaShopLogger::addLog('Invoice ' . $invoice->getId() . ' updated', 2);
+			\PrestaShopLogger::addLog(sprintf('[INFO] Invoice %s has been updated', $invoiceId));
 
-			return $orderBitcoin->getRedirect();
+			return $bitcoinPayment->getRedirect();
 		} catch (\Exception $e) {
-			\PrestaShopLogger::addLog('[ERROR] ' . $e->getMessage(), 3);
+			\PrestaShopLogger::addLog(sprintf('[ERROR] %s', $e->getMessage()), 3);
 			throw new BTCPayException($e->getMessage(), $e->getCode(), $e);
 		}
 	}

@@ -2,37 +2,132 @@
 
 namespace BTCPay\Server;
 
-use BTCPay\LegacyOrderBitcoinRepository;
-use BTCPayServer\Client\Client as BaseClient;
-use BTCPayServer\PrivateKey;
-use BTCPayServer\TokenInterface;
+use BTCPay\Constants;
+use BTCPay\LegacyBitcoinPaymentRepository;
+use BTCPayServer\Client\AbstractClient;
+use BTCPayServer\Client\ApiKey as ApiKeyClient;
+use BTCPayServer\Client\Invoice as InvoiceClient;
+use BTCPayServer\Client\Server as ServerClient;
+use BTCPayServer\Client\Store as StoreClient;
+use BTCPayServer\Client\StorePaymentMethod;
+use BTCPayServer\Client\StorePaymentMethodLightningNetwork;
+use BTCPayServer\Client\StorePaymentMethodOnChain;
+use PrestaShop\PrestaShop\Adapter\Configuration;
 
-class Client extends BaseClient
+class Client extends AbstractClient
 {
 	/**
-	 * @var Encryption
+	 * @var InvoiceClient
 	 */
-	private $encryption;
+	private $invoice;
 
 	/**
-	 * @var LegacyOrderBitcoinRepository
+	 * @var ApiKeyClient
+	 */
+	private $apiKey;
+
+	/**
+	 * @var ServerClient
+	 */
+	private $server;
+
+	/**
+	 * @var StoreClient
+	 */
+	private $store;
+
+	/**
+	 * @var StorePaymentMethod
+	 */
+	private $payment;
+
+	/**
+	 * @var StorePaymentMethodOnChain
+	 */
+	private $onchain;
+
+	/**
+	 * @var StorePaymentMethodLightningNetwork
+	 */
+	private $offchain;
+
+	/**
+	 * @var Webhook
+	 */
+	private $webhook;
+
+	/**
+	 * @var Configuration
+	 */
+	private $configuration;
+
+	/**
+	 * @var LegacyBitcoinPaymentRepository
 	 */
 	private $repository;
 
-	public function __construct()
+	public function __construct(string $baseUrl, string $apiKey)
 	{
-		$this->encryption = new Encryption();
-		$this->repository = new LegacyOrderBitcoinRepository();
+		$httpClient = new CurlAdapter();
 
-		// Set our own CURL adapter, always
-		$this->setAdapter(new CurlAdapter());
+		parent::__construct($baseUrl, $apiKey, $httpClient);
+		$this->apiKey   = new ApiKeyClient($baseUrl, $apiKey, $httpClient);
+		$this->invoice  = new InvoiceClient($baseUrl, $apiKey, $httpClient);
+		$this->server   = new ServerClient($baseUrl, $apiKey, $httpClient);
+		$this->store    = new StoreClient($baseUrl, $apiKey, $httpClient);
+		$this->payment  = new StorePaymentMethod($baseUrl, $apiKey, $httpClient);
+		$this->onchain  = new StorePaymentMethodOnChain($baseUrl, $apiKey, $httpClient);
+		$this->offchain = new StorePaymentMethodLightningNetwork($baseUrl, $apiKey, $httpClient);
+		$this->webhook  = new Webhook($baseUrl, $apiKey, $httpClient);
+
+		$this->configuration = new Configuration();
+		$this->repository    = new LegacyBitcoinPaymentRepository();
 	}
 
-	public function getEncryption(): Encryption
+	public function invoice(): InvoiceClient
 	{
-		return $this->encryption;
+		return $this->invoice;
 	}
 
+	public function apiKey(): ApiKeyClient
+	{
+		return $this->apiKey;
+	}
+
+	public function server(): ServerClient
+	{
+		return $this->server;
+	}
+
+	public function store(): StoreClient
+	{
+		return $this->store;
+	}
+
+	public function payment(): StorePaymentMethod
+	{
+		return $this->payment;
+	}
+
+	public function onchain(): StorePaymentMethodOnChain
+	{
+		return $this->onchain;
+	}
+
+	public function offchain(): StorePaymentMethodLightningNetwork
+	{
+		return $this->offchain;
+	}
+
+	public function webhook(): Webhook
+	{
+		return $this->webhook;
+	}
+
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \JsonException
+	 */
 	public function getBTCPayRedirect(\Cart $cart): ?string
 	{
 		// Check if we have a cart ID we can use
@@ -40,62 +135,31 @@ class Client extends BaseClient
 			return null;
 		}
 
-		if (null === ($orderBitcoin = $this->repository->getOneByCartID($cart->id))) {
+		if (null === ($bitcoinPayment = $this->repository->getOneByCartID($cart->id))) {
 			return null;
 		}
 
-		if (empty($redirect = $orderBitcoin->getRedirect())) {
+		if (empty($redirect = $bitcoinPayment->getRedirect())) {
 			return null;
 		}
 
-		$errorReporting = error_reporting();
-		error_reporting(\E_ALL & ~\E_NOTICE & ~\E_STRICT & ~\E_DEPRECATED & ~\E_WARNING);
-		$invoice = $this->getInvoice($orderBitcoin->getInvoiceId());
-		error_reporting($errorReporting);
+		// Get the store ID
+		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
 
-		$status = $invoice->getStatus();
-		if ('invalid' === $status || 'expired' === $status) {
+		// Check the invoice status
+		$invoice = $this->invoice->getInvoice($storeID, $bitcoinPayment->getInvoiceId());
+		if ($invoice->isInvalid() || $invoice->isExpired()) {
 			return null;
 		}
 
 		return $redirect;
 	}
 
-	public static function createFromConfiguration(): self
+	public static function createFromConfiguration(Configuration $configuration): self
 	{
-		$client = new self();
-		$client->setUri(self::getURI(\Configuration::get('BTCPAY_URL')));
-
-		$privateKey = $client->getEncryption()->decrypt(\Configuration::get('BTCPAY_KEY'));
-		if (!$privateKey instanceof PrivateKey) {
-			throw new \RuntimeException('Could not decrypted the stored private key', 3);
-		}
-
-		$token = $client->getEncryption()->decrypt(\Configuration::get('BTCPAY_TOKEN'));
-		if (!$token instanceof TokenInterface) {
-			throw new \RuntimeException('Could not decrypted the stored token', 3);
-		}
-
-		$client->setPrivateKey($privateKey);
-		$client->setPublicKey($privateKey->getPublicKey());
-
-		// We need to do some extra work for the token
-		$client->setToken(Token::createToken($token->getToken()));
-
-		return $client;
-	}
-
-	/**
-	 * Inject ports into the URL, because the client somehow demands a port.
-	 */
-	public static function getURI(string $url): string
-	{
-		// Sanitize URL first
-		$url = rtrim($url, '/\\');
-		if ('https' === (parse_url($url, \PHP_URL_SCHEME))) {
-			return sprintf('%s:443', $url);
-		}
-
-		return sprintf('%s:80', $url);
+		return new self(
+			$configuration->get(Constants::CONFIGURATION_BTCPAY_HOST),
+			$configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY)
+		);
 	}
 }

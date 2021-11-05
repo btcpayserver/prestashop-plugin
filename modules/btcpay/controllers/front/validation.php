@@ -1,6 +1,6 @@
 <?php
 
-use BTCPay\LegacyOrderBitcoinRepository;
+use BTCPay\LegacyBitcoinPaymentRepository;
 
 /** @noinspection AutoloadingIssuesInspection */
 class BTCPayValidationModuleFrontController extends ModuleFrontController
@@ -13,7 +13,7 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 	public $ssl = true;
 
 	/**
-	 * @var LegacyOrderBitcoinRepository
+	 * @var LegacyBitcoinPaymentRepository
 	 */
 	private $repository;
 
@@ -21,7 +21,7 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 	{
 		parent::__construct();
 
-		$this->repository = new LegacyOrderBitcoinRepository();
+		$this->repository = new LegacyBitcoinPaymentRepository();
 	}
 
 	/**
@@ -61,7 +61,7 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 
 		// Get the passed invoice reference, which we can then use to get the actual order
 		$invoiceReference = Tools::getValue('invoice_reference', 0);
-		if (null === ($orderBitcoin = $this->repository->getOneByInvoiceReference($invoiceReference))) {
+		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceReference($invoiceReference))) {
 			$this->warning[] = $translator->trans('There is no order that we can validate.', [], 'Modules.Btcpay.Front');
 			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
 
@@ -69,7 +69,7 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 		}
 
 		// Get the order and validate it
-		$order = Order::getByCartId($orderBitcoin->getCartId());
+		$order = Order::getByCartId($bitcoinPayment->getCartId());
 		if (null === $order || 0 === $order->id || (int) $order->id_customer !== (int) $this->context->customer->id) {
 			$this->warning[] = $translator->trans('There is no order that we can process.', [], 'Modules.Btcpay.Front');
 			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
@@ -81,7 +81,7 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 		$customer = new Customer((int) $cart->id_customer);
 
 		// If it's a guest, sent them to guest tracking
-		if (Cart::isGuestCartByCartId($orderBitcoin->getCartId())) {
+		if (Cart::isGuestCartByCartId($bitcoinPayment->getCartId())) {
 			Tools::redirect($this->context->link->getPageLink('guest-tracking', $this->ssl, null, ['order_reference' => $order->reference, 'email' => $customer->email]));
 
 			return;

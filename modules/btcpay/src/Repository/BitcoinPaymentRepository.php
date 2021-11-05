@@ -3,7 +3,7 @@
 namespace BTCPay\Repository;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Exception;
 
 class BitcoinPaymentRepository
 {
@@ -24,7 +24,7 @@ class BitcoinPaymentRepository
 	}
 
 	/**
-	 * @throws DBALException
+	 * @throws \JsonException
 	 */
 	public function createTables(): array
 	{
@@ -51,37 +51,29 @@ class BitcoinPaymentRepository
             ) ENGINE=$engine DEFAULT CHARSET=utf8",
 		];
 
-		foreach ($queries as $query) {
-			// Execute query
-			$statement = $this->connection->executeQuery($query);
-			if (0 !== (int) $statement->errorCode()) {
-				$errors[] = [
-					'key'        => json_encode($statement->errorInfo()),
-					'parameters' => [],
-					'domain'     => 'Admin.Modules.Notification',
-				];
+		try {
+			foreach ($queries as $query) {
+				$this->connection->executeQuery($query);
 			}
+		} catch (Exception $e) {
+			$errors[] = ['key' => json_encode($e->getMessage(), \JSON_THROW_ON_ERROR), 'parameters' => [], 'domain' => 'Admin.Modules.Notification'];
 		}
 
 		return $errors;
 	}
 
 	/**
-	 * @throws DBALException
+	 * @throws \JsonException
 	 */
 	public function dropTables(): array
 	{
 		$errors = [];
 		$query  = "DROP TABLE IF EXISTS `{$this->prefix}bitcoin_payment`";
 
-		// Execute query
-		$statement = $this->connection->executeQuery($query);
-		if (0 !== (int) $statement->errorCode()) {
-			$errors[] = [
-				'key'        => json_encode($statement->errorInfo()),
-				'parameters' => [],
-				'domain'     => 'Admin.Modules.Notification',
-			];
+		try {
+			$this->connection->executeQuery($query);
+		} catch (Exception $e) {
+			$errors[] = ['key' => json_encode($e->getMessage(), \JSON_THROW_ON_ERROR), 'parameters' => [], 'domain' => 'Admin.Modules.Notification'];
 		}
 
 		return $errors;

@@ -1,6 +1,5 @@
 <?php
 
-use BTCPay\LegacyOrderBitcoinRepository;
 use BTCPay\Server\Factory;
 
 /** @noinspection AutoloadingIssuesInspection */
@@ -22,7 +21,7 @@ class BTCPayPaymentModuleFrontController extends ModuleFrontController
 	{
 		parent::__construct();
 
-		$this->factory = new Factory(new LegacyOrderBitcoinRepository(), new \Link(), $this->module->name);
+		$this->factory = new Factory($this->module->name);
 	}
 
 	/**
