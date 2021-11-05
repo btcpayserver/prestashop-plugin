@@ -2,9 +2,10 @@
 
 namespace BTCPay\Installer;
 
-use Configuration;
+use BTCPay\Constants;
 use Language;
 use OrderState;
+use PrestaShop\PrestaShop\Adapter\Configuration;
 use PrestaShopCollection;
 
 class OrderStates
@@ -14,17 +15,29 @@ class OrderStates
 	 */
 	private $moduleName;
 
+	/**
+	 * @var Configuration
+	 */
+	private $configuration;
+
 	public function __construct(string $moduleName)
 	{
-		$this->moduleName = $moduleName;
+		$this->moduleName    = $moduleName;
+		$this->configuration = new Configuration();
 	}
 
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \PrestaShopException
+	 * @throws \Exception
+	 */
 	public function install(): array
 	{
 		$errors = [];
 
 		// Check and insert "awaiting payment" if needed.
-		if (!Configuration::get('BTCPAY_OS_WAITING') || !\Validate::isLoadedObject(new OrderState(Configuration::get('BTCPAY_OS_WAITING')))) {
+		if (!$this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_WAITING)
+			|| !\Validate::isLoadedObject(new OrderState($this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_WAITING)))) {
 			if (false === ($this->installAwaiting())) {
 				$errors[] = [
 					'key'        => 'Could not add new order state: BTCPAY_OS_WAITING',
@@ -35,7 +48,8 @@ class OrderStates
 		}
 
 		// Check and insert "confirming payment" if needed.
-		if (!Configuration::get('BTCPAY_OS_CONFIRMING') || !\Validate::isLoadedObject(new OrderState(Configuration::get('BTCPAY_OS_CONFIRMING')))) {
+		if (!$this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING)
+			|| !\Validate::isLoadedObject(new OrderState($this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING)))) {
 			if (false === ($this->installConfirming())) {
 				$errors[] = [
 					'key'        => 'Could not add new order state: BTCPAY_OS_CONFIRMING',
@@ -46,7 +60,8 @@ class OrderStates
 		}
 
 		// Check and insert "failed payment" if needed.
-		if (!Configuration::get('BTCPAY_OS_FAILED') || !\Validate::isLoadedObject(new OrderState(Configuration::get('BTCPAY_OS_FAILED')))) {
+		if (!$this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED)
+			|| !\Validate::isLoadedObject(new OrderState($this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED)))) {
 			if (false === ($this->installFailed())) {
 				$errors[] = [
 					'key'        => 'Could not add new order state: BTCPAY_OS_FAILED',
@@ -57,7 +72,8 @@ class OrderStates
 		}
 
 		// Check and insert "payment succeeded" if needed.
-		if (!Configuration::get('BTCPAY_OS_PAID') || !\Validate::isLoadedObject(new OrderState(Configuration::get('BTCPAY_OS_PAID')))) {
+		if (!$this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_PAID)
+			|| !\Validate::isLoadedObject(new OrderState($this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_PAID)))) {
 			if (false === ($this->installPaid())) {
 				$errors[] = [
 					'key'        => 'Could not add new order state: BTCPAY_OS_PAID',
@@ -70,6 +86,9 @@ class OrderStates
 		return $errors;
 	}
 
+	/**
+	 * @throws \PrestaShopException
+	 */
 	public function uninstall(): array
 	{
 		$collection = new PrestaShopCollection('OrderState');
@@ -95,6 +114,11 @@ class OrderStates
 		return $errors;
 	}
 
+	/**
+	 * @throws \PrestaShopException
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \Exception
+	 */
 	private function installAwaiting(): bool
 	{
 		$order_state              = new OrderState();
@@ -104,7 +128,7 @@ class OrderStates
 		$order_state->module_name = $this->moduleName;
 
 		foreach (Language::getLanguages(true, false, true) as $languageId) {
-			$order_state->name[$languageId] = 'Awaiting Bitcoin payment';
+			$order_state->name[$languageId] = 'Awaiting crypto payment';
 		}
 
 		if (false === $order_state->add()) {
@@ -112,11 +136,16 @@ class OrderStates
 		}
 
 		$this->installImage($order_state, 'os_bitcoin_waiting.png');
-		Configuration::updateValue('BTCPAY_OS_WAITING', (int) $order_state->id);
+		$this->configuration->set(Constants::CONFIGURATION_ORDER_STATE_WAITING, (int) $order_state->id);
 
 		return true;
 	}
 
+	/**
+	 * @throws \PrestaShopException
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \Exception
+	 */
 	private function installConfirming(): bool
 	{
 		$order_state              = new OrderState();
@@ -126,7 +155,7 @@ class OrderStates
 		$order_state->module_name = $this->moduleName;
 
 		foreach (Language::getLanguages(true, false, true) as $languageId) {
-			$order_state->name[$languageId] = 'Waiting for Bitcoin confirmations';
+			$order_state->name[$languageId] = 'Waiting for confirmations';
 		}
 
 		if (false === $order_state->add()) {
@@ -134,11 +163,16 @@ class OrderStates
 		}
 
 		$this->installImage($order_state, 'os_bitcoin_confirming.png');
-		Configuration::updateValue('BTCPAY_OS_CONFIRMING', (int) $order_state->id);
+		$this->configuration->set(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING, (int) $order_state->id);
 
 		return true;
 	}
 
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \PrestaShopException
+	 * @throws \Exception
+	 */
 	private function installFailed(): bool
 	{
 		$order_state              = new OrderState();
@@ -151,7 +185,7 @@ class OrderStates
 		$order_state->module_name = $this->moduleName;
 
 		foreach (Language::getLanguages(true, false, true) as $languageId) {
-			$order_state->name[$languageId] = 'Bitcoin transaction failed';
+			$order_state->name[$languageId] = 'Crypto transaction failed';
 		}
 
 		if (false === $order_state->add()) {
@@ -159,11 +193,16 @@ class OrderStates
 		}
 
 		$this->installImage($order_state, 'os_bitcoin_failed.png');
-		Configuration::updateValue('BTCPAY_OS_FAILED', (int) $order_state->id);
+		$this->configuration->set(Constants::CONFIGURATION_ORDER_STATE_FAILED, (int) $order_state->id);
 
 		return true;
 	}
 
+	/**
+	 * @throws \PrestaShopException
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \Exception
+	 */
 	private function installPaid(): bool
 	{
 		$order_state              = new OrderState();
@@ -178,7 +217,7 @@ class OrderStates
 		$order_state->module_name = $this->moduleName;
 
 		foreach (Language::getLanguages(true, false, true) as $languageId) {
-			$order_state->name[$languageId] = 'Paid with Bitcoin';
+			$order_state->name[$languageId] = 'Paid with crypto';
 		}
 
 		if (false === $order_state->add()) {
@@ -186,7 +225,7 @@ class OrderStates
 		}
 
 		$this->installImage($order_state, 'os_bitcoin_paid.png');
-		Configuration::updateValue('BTCPAY_OS_PAID', (int) $order_state->id);
+		$this->configuration->set(Constants::CONFIGURATION_ORDER_STATE_PAID, (int) $order_state->id);
 
 		return true;
 	}

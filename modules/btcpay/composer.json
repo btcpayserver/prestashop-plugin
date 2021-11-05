@@ -20,12 +20,13 @@
     "ext-intl": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
-    "btcpayserver/btcpayserver-php-client": "^v1.0.1",
+    "btcpayserver/btcpayserver-greenfield-php": "^1.2",
     "stechstudio/backoff": "^1.2"
   },
   "require-dev": {
     "ergebnis/composer-normalize": "^2.15",
-    "roave/security-advisories": "dev-latest"
+    "roave/security-advisories": "dev-latest",
+    "symfony/var-dumper": "^5.3"
   },
   "config": {
     "platform": {

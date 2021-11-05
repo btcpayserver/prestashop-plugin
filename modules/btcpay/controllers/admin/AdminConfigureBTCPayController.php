@@ -2,15 +2,11 @@
 class AdminConfigureBTCPayController extends ModuleAdminController
 {
 	/**
-	 * BTCpay module instance. It's assigned automatically by PrestaShop  infrastructure.
-	 *
 	 * @var BTCPay
 	 */
 	public $module;
 
 	/**
-	 * Configure the administration controller and define some sane defaults.
-	 *
 	 * {@inheritdoc}
 	 */
 	public function __construct()
@@ -25,7 +21,7 @@ class AdminConfigureBTCPayController extends ModuleAdminController
 	}
 
 	/**
-	 * Redirect to the configuration screen of this module.
+	 * Redirect to the actual configuration screen of this module.
 	 *
 	 * {@inheritdoc}
 	 */

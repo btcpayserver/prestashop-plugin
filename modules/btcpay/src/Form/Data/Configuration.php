@@ -8,24 +8,21 @@ class Configuration
 {
 	/**
 	 * @Assert\Url()
-	 * @Assert\NotNull()
 	 * @Assert\NotBlank()
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	private $url;
 
 	/**
-	 * @Assert\NotNull()
 	 * @Assert\NotBlank()
 	 * @Assert\Choice(choices=\BTCPay\Constants::TRANSACTION_SPEEDS, message="Invalid transaction speed")
 	 *
 	 * @var string
 	 */
-	private $transactionSpeed;
+	private $speed;
 
 	/**
-	 * @Assert\NotNull()
 	 * @Assert\NotBlank()
 	 * @Assert\Choice(choices=\BTCPay\Constants::ORDER_MODES, message="Invalid order mode")
 	 *
@@ -33,40 +30,31 @@ class Configuration
 	 */
 	private $orderMode;
 
-	/**
-	 * @Assert\NotBlank()
-	 * @Assert\Regex(pattern="/^[a-zA-Z0-9]{7}$/", message="Invalid pairing code")
-	 *
-	 * @var string|null
-	 */
-	private $pairingCode;
-
-	public function __construct(string $url, string $transactionSpeed, string $orderMode, ?string $pairingCode)
+	public function __construct(string $url, string $speed, string $orderMode)
 	{
-		$this->url              = $url;
-		$this->transactionSpeed = $transactionSpeed;
-		$this->orderMode        = $orderMode;
-		$this->pairingCode      = $pairingCode;
+		$this->url       = $url;
+		$this->speed     = $speed;
+		$this->orderMode = $orderMode;
 	}
 
-	public function getUrl(): string
+	public function getUrl(): ?string
 	{
 		return $this->url;
 	}
 
-	public function setUrl(string $url): void
+	public function setUrl(?string $url): void
 	{
 		$this->url = $url;
 	}
 
-	public function getTransactionSpeed(): string
+	public function getSpeed(): string
 	{
-		return $this->transactionSpeed;
+		return $this->speed;
 	}
 
-	public function setTransactionSpeed(string $transaction_speed): void
+	public function setSpeed(string $speed): void
 	{
-		$this->transactionSpeed = $transaction_speed;
+		$this->speed = $speed;
 	}
 
 	public function getOrderMode(): string
@@ -79,13 +67,12 @@ class Configuration
 		$this->orderMode = $order_mode;
 	}
 
-	public function getPairingCode(): ?string
+	public function toArray(): array
 	{
-		return $this->pairingCode;
-	}
-
-	public function setPairingCode(?string $pairing_code): void
-	{
-		$this->pairingCode = $pairing_code;
+		return [
+			'url'       => $this->url,
+			'speed'     => $this->speed,
+			'orderMode' => $this->orderMode,
+		];
 	}
 }

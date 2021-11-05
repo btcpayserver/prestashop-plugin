@@ -1,5 +1,6 @@
 <?php
 
+use BTCPay\Constants;
 use PrestaShop\PrestaShop\Core\Module\ModuleInterface;
 
 if (!defined('_PS_VERSION_')) {
@@ -99,10 +100,10 @@ function updateConfig(): bool
 
 	// Add old order states to the configuration
 	$order_states = [
-		'BTCPAY_OS_WAITING'    => 39,
-		'BTCPAY_OS_CONFIRMING' => 40,
-		'BTCPAY_OS_FAILED'     => 41,
-		'BTCPAY_OS_PAID'       => 42,
+		Constants::CONFIGURATION_ORDER_STATE_WAITING    => 39,
+		Constants::CONFIGURATION_ORDER_STATE_CONFIRMING => 40,
+		Constants::CONFIGURATION_ORDER_STATE_FAILED     => 41,
+		Constants::CONFIGURATION_ORDER_STATE_PAID       => 42,
 	];
 
 	foreach ($order_states as $order_state => $id) {

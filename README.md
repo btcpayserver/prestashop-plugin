@@ -5,18 +5,30 @@
 [![GitHub License](https://img.shields.io/github/license/btcpayserver/prestashop-plugin?color=brightgreen&style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/blob/master/LICENSE)
 [![GitHub contributors](https://img.shields.io/github/contributors-anon/btcpayserver/prestashop-plugin?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/graphs/contributors)
 
-[![PrestaShop module version](https://img.shields.io/badge/module%20version-4.0.2-brightgreen?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/releases)
+[![PrestaShop module version](https://img.shields.io/badge/module%20version-5.0.0-brightgreen?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/releases)
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/btcpayserver/prestashop-plugin?sort=semver&style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/releases)
 [![GitHub all releases](https://img.shields.io/github/downloads/btcpayserver/prestashop-plugin/total?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/releases)
-
 
 This is a Bitcoin payment plugin for PrestaShop using BTCPay server. [BTCPay Server](https://btcpayserver.org) is a free and open source server for merchants wanting to accept Bitcoin for their business.
 
 **Warning**: This version should be considered as beta. Use it at your own risk.
 
-## Tested successfully
-* Prestashop 1.7.7.x
-* BTCPay server v1.0.6.4
+## Requirements
+
+Please ensure that you meet the following requirements before installing this plugin.
+
+- You are using PHP 7.3.0 or higher
+- Your PrestaShop is version 1.7.7.0 or higher.
+- Your BTCPay Server is version 1.3.0 or higher
+- The PDO, curl, gd, intl, json, and mbstring PHP extensions are available
+- You have a BTCPay Server, either [self-hosted](https://docs.btcpayserver.org/Deployment/) or [hosted by a third-party](https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/)
+- [You've a registered account on the instance](https://docs.btcpayserver.org/RegisterAccount)
+- [You've a BTCPay store on the instance](https://docs.btcpayserver.org/CreateStore)
+- [You've a wallet connected to your store](https://docs.btcpayserver.org/WalletSetup)
+
+### Tested successfully
+- Prestashop 1.7.7.x
+- BTCPay server v1.0.6.4
 
 **Note**: The legacy version can be found at [prestashop-plugin-legacy](https://github.com/btcpayserver/prestashop-plugin-legacy) and will not recieve any further support at this time.
 
@@ -25,10 +37,6 @@ That said, this module has `v4` as it's module version and includes migration sc
 ## Internals
 
 This plugin support creating orders before or after payment. That said the `before`-mode still requires a callback from the BTCPay server itself so that all relevant data is available during order creation.
-
-## Future improvements
-There is a lot of improvements that can still be made:
-* Rewrite to use the new [Greenfield Invoice API](https://docs.btcpayserver.org/API/Greenfield/v1/).
 
 ## Documentation
 

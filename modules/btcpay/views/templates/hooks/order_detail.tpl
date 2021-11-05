@@ -1,38 +1,76 @@
-<div class="box">
-  <div class="col-lg-6 col-md-6 col-sm-6">
-    <h4>{l s='Payment Information' d='Modules.Btcpay.Global'}</h4>
-    <dl>
-      <dt>{l s='Invoice ID' d='Modules.Btcpay.Global'}</dt>
-      <dd>
-        <a href="{$server_url}/invoice?id={$payment_details.invoice_id}" target="_blank">
-          {$payment_details.invoice_id}
-        </a>
-      </dd>
-      <dt>{l s='Bitcoin address' d='Modules.Btcpay.Global'}</dt>
-      <dd>{$payment_details.btc_address}</dd>
-      <dt>{l s='Rate' d='Modules.Btcpay.Global'}</dt>
-      <dd><span class="tag tag-info">{$currency_sign} {$payment_details.rate}</span></dd>
-    </dl>
+<div class="payment-information my-2">
+  <h4>{l s='Payment information' d='Modules.Btcpay.Global'}</h4>
+  <div class="row">
+    <div class="col-md-4 m-1 my-2">
+      <p class="text-muted mb-0"><strong>Invoice</strong></p>
+      <a class="configure-link" href="{$serverURL}/i/{$invoice.id}" target="_blank">{$invoice.id}</a>
+    </div>
+    <div class="col-md-4 m-1 my-2">
+      <p class="text-muted mb-0"><strong>Status</strong></p>
+        {if $invoice->isInvalid()}
+          <span class="tag tag-danger tag-pill">{if $invoice->isMarked()}Marked invalid via BTCPay Server{else}Payment failed{/if}</span>
+        {elseif $invoice->isFullyPaid()}
+          <span class="tag tag-success tag-pill">{if $invoice->isMarked()}Marked paid via BTCPay Server{else}Paid (and confirmed){/if}</span>
+          {if $invoice->isOverPaid()}<span class="tag tag-info tag-pill">Overpaid</span>{/if}
+        {elseif $invoice->isPaid() or $invoice->isProcessing()}
+          <span class="tag tag-primary tag-pill">Paid (pending confirmations)</span>
+          {if $invoice->isOverPaid()}<span class="tag tag-info tag-pill">Overpaid</span>{/if}
+        {elseif $invoice->isPartiallyPaid()}
+          <span class="tag tag-warning tag-pill">Partially paid (awaiting more funds)</span>
+        {elseif $invoice->isNew()}
+          <span class="tag tag-info tag-pill">Awaiting payment</span>
+        {elseif $invoice->isExpired()}
+          <span class="tag tag-danger tag-pill">Invoice expired</span>
+        {/if}
+    </div>
   </div>
 
-  <div class="col-lg-6 col-md-6 col-sm-6">
-    <h4>{l s='Order Information' d='Modules.Btcpay.Global'}</h4>
-    <dl>
-      <dt>{l s='Cart value' d='Modules.Btcpay.Global'}</dt>
-      <dd><span class="tag tag-info">{$currency_sign} {$payment_details.amount}</span></dd>
-      <dt>{l s='Cart value in Bitcoin' d='Modules.Btcpay.Global'}</dt>
-      <dd><span class="tag tag-info">{$payment_details.btc_price} BTC</span></dd>
-      {if $payment_details.btc_paid > 0}
-        <dt>{l s='Amount paid' d='Modules.Btcpay.Global'}</dt>
-        <dd>
-          {if $payment_details.btc_paid < $payment_details.btc_price}
-            <span class="tag tag-warning">{$payment_details.btc_paid} BTC</span>
-          {else}
-            <span class="tag tag-success">{$payment_details.btc_paid} BTC</span>
-          {/if}
-        </dd>
-      {/if}
-    </dl>
-  </div>
-  <div class="clearfix"></div>
+  {foreach $paymentMethods as $paymentMethod}
+    {if not empty($paymentMethod->getPayments())}
+      {assign currencyCode "_"|explode:$paymentMethod.paymentMethod|current}
+      <h5 class="mt-2 mb-0">{$currencyCode}</h5>
+
+      <table id="{$currencyCode}-details" class="table table-bordered my-2">
+        <thead>
+        <tr>
+          <th class="table-head-rate">{l s='Rate' d='Modules.Btcpay.Global'}</th>
+          <th class="table-head-cart-amount">{l s='Invoice amount' d='Modules.Btcpay.Global'}</th>
+          <th class="table-head-paid-amount">{l s='Total amount paid in %s' sprintf=[$currencyCode] d='Modules.Btcpay.Global'}</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>{$storeCurrency} {$paymentMethod.rate}</td>
+          <td>{$paymentMethod.amount} {$paymentMethod.paymentMethod}</td>
+          <td>{$paymentMethod.paymentMethodPaid} {$paymentMethod.paymentMethod}</td>
+        </tr>
+        </tbody>
+      </table>
+
+      <table id="{$currencyCode}-payments" class="table table-bordered my-2">
+        <thead>
+        <tr>
+          <th class="table-head-date">{l s='Date' d='Modules.Btcpay.Global'}</th>
+          <th class="table-head-amount">{l s='Amount' d='Modules.Btcpay.Global'}</th>
+          <th class="table-head-destination">{l s='Transaction' d='Modules.Btcpay.Global'}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {foreach $paymentMethod->getPayments() as $payment}
+          <tr>
+            <td>{$payment->getReceivedTimestamp()|date_format:"%Y-%m-%d %T"}</td>
+            <td>{$payment.value} {$currencyCode}</td>
+              {if $currencyCode == 'BTC'}
+                <td><a href="https://mempool.space/tx/{$payment->getTransactionId()}" target="_blank">{$payment->getTransactionId()}</a></td>
+              {else}
+                <td><a href="https://blockchair.com/search?q={$payment->getTransactionId()}" target="_blank">{$payment->getTransactionId()}</a></td>
+              {/if}
+          </tr>
+        {/foreach}
+        </tbody>
+      </table>
+    {/if}
+  {/foreach}
 </div>
+
+<div class="clearfix"></div>

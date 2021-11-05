@@ -1,11 +1,14 @@
 <?php
 
+use BTCPay\Constants;
 use BTCPay\Installer\Config;
 use BTCPay\Installer\Hooks;
 use BTCPay\Installer\OrderStates;
 use BTCPay\Installer\Tables;
-use BTCPay\LegacyOrderBitcoinRepository;
+use BTCPay\LegacyBitcoinPaymentRepository;
 use BTCPay\Repository\BitcoinPaymentRepository;
+use BTCPay\Server\Client;
+use PrestaShop\PrestaShop\Adapter\Configuration;
 use PrestaShop\PrestaShop\Adapter\Presenter\Order\OrderPresenter;
 use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
@@ -20,12 +23,23 @@ if (!file_exists(__DIR__ . '/vendor/autoload.php')) {
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+/** @noinspection AutoloadingIssuesInspection */
 class BTCPay extends PaymentModule
 {
+	/**
+	 * @var Client
+	 */
+	private $client;
+
 	/**
 	 * @var BitcoinPaymentRepository
 	 */
 	private $repository;
+
+	/**
+	 * @var Configuration
+	 */
+	private $configuration;
 
 	public $tabs = [
 		[
@@ -40,10 +54,10 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '4.0.2';
+		$this->version                = '5.0.0';
 		$this->author                 = 'BTCPayServer';
-		$this->ps_versions_compliancy = ['min' => '1.7.7', 'max' => _PS_VERSION_];
-		$this->controllers            = ['payment', 'validation', 'ipn'];
+		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
+		$this->controllers            = ['webhook', 'payment', 'validation'];
 		$this->is_eu_compatible       = true;
 		$this->bootstrap              = true;
 
@@ -52,14 +66,39 @@ class BTCPay extends PaymentModule
 
 		parent::__construct();
 
-		$this->displayName      = $this->trans('BTCPay', [], 'Modules.Btcpay.Admin');
-		$this->description      = $this->trans('Accepts Bitcoin payments via BTCPay.', [], 'Modules.Btcpay.Front');
-		$this->confirmUninstall = $this->trans('Are you sure you want to delete your details?', [], 'Modules.Btcpay.Front');
+		$this->displayName = $this->trans('BTCPay', [], 'Modules.Btcpay.Admin');
+		$this->description = $this->trans('Accepts Bitcoin payments via BTCPay.', [], 'Modules.Btcpay.Front');
+
+		$this->configuration = new Configuration();
 	}
 
 	public function install(): bool
 	{
 		if (!parent::install()) {
+			return false;
+		}
+
+		if (version_compare(\PHP_VERSION, Constants::MINIMUM_PHP_VERSION, '<')) {
+			$this->addModuleErrors([
+				[
+					'key'        => sprintf('PHP version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_PHP_VERSION, \PHP_VERSION),
+					'parameters' => [],
+					'domain'     => 'Admin.Modules.Notification',
+				],
+			]);
+
+			return false;
+		}
+
+		if (version_compare(_PS_VERSION_, Constants::MINIMUM_PS_VERSION, '<')) {
+			$this->addModuleErrors([
+				[
+					'key'        => sprintf('PrestaShop version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_PS_VERSION, _PS_VERSION_),
+					'parameters' => [],
+					'domain'     => 'Admin.Modules.Notification',
+				],
+			]);
+
 			return false;
 		}
 
@@ -146,7 +185,12 @@ class BTCPay extends PaymentModule
 		Tools::redirectAdmin($this->context->link->getAdminLink('AdminConfigureBTCPay'));
 	}
 
-	// Hooks on prestashop invoice
+	/**
+	 * Hooks on prestashop invoice
+	 *
+	 * @throws PrestaShopDatabaseException
+	 * @throws JsonException
+	 */
 	public function hookDisplayAdminOrderMainBottom($params): ?string
 	{
 		// If the module is not active, abort
@@ -160,42 +204,50 @@ class BTCPay extends PaymentModule
 		}
 
 		// Get BTCPay URL or abort
-		if (empty($serverUrl = Configuration::get('BTCPAY_URL'))) {
+		if (empty($serverUrl = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_HOST))) {
 			return null;
 		}
 
 		// Get legacy repository
-		$repository = new LegacyOrderBitcoinRepository();
+		$repository = new LegacyBitcoinPaymentRepository();
 
 		// Get the order
-		if (null === ($orderBitcoin = $repository->getOneByOrderID($params['id_order']))) {
+		if (null === ($bitcoinPayment = $repository->getOneByOrderID($params['id_order']))) {
 			return null;
 		}
 
 		// Check if it has an invoice ID
-		if (null === ($invoiceId = $orderBitcoin->getInvoiceId()) || empty($invoiceId)) {
+		if (null === ($invoiceId = $bitcoinPayment->getInvoiceId()) || empty($invoiceId)) {
 			return null;
 		}
 
 		// Get the cart
-		if (false === ($cart = Cart::getCartByOrderId($orderBitcoin->getOrderId()))) {
+		if (false === ($cart = Cart::getCartByOrderId($bitcoinPayment->getOrderId()))) {
 			return null;
 		}
 
-		// Get the currency from our cart
-		$currency = Currency::getCurrencyInstance((int) $cart->id_currency);
+		// Get the store ID
+		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
 
 		// Prepare smarty
 		$this->context->smarty->assign([
-			'server_url'      => $serverUrl,
-			'currency_sign'   => $currency->getSymbol(),
-			'payment_details' => $orderBitcoin->toArray(),
+			'server_url'     => $serverUrl,
+			'storeCurrency'  => Currency::getCurrencyInstance($cart->id_currency)->getSymbol(),
+			'invoice'        => $this->client()->invoice()->getInvoice($storeID, $invoiceId),
+			'paymentMethods' => $this->client()->invoice()->getPaymentMethods($storeID, $invoiceId),
 		]);
 
 		return $this->display(__FILE__, 'views/templates/admin/invoice_block.tpl');
 	}
 
-	// Hooks on prestashop order details in frontend
+	/**
+	 * Hooks on prestashop order details in frontend
+	 *
+	 * @param $params
+	 *
+	 * @throws JsonException
+	 * @throws PrestaShopDatabaseException
+	 */
 	public function hookDisplayOrderDetail($params): ?string
 	{
 		// If the module is not active, abort
@@ -209,7 +261,7 @@ class BTCPay extends PaymentModule
 		}
 
 		// Get BTCPay URL or abort
-		if (empty($serverUrl = Configuration::get('BTCPAY_URL'))) {
+		if (empty($serverUrl = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_HOST))) {
 			return null;
 		}
 
@@ -226,29 +278,28 @@ class BTCPay extends PaymentModule
 		}
 
 		// Get legacy repository
-		$repository = new LegacyOrderBitcoinRepository();
+		$repository = new LegacyBitcoinPaymentRepository();
 
 		// Get the order
-		if (null === ($orderBitcoin = $repository->getOneByOrderID($order->id))) {
+		if (null === ($bitcoinPayment = $repository->getOneByOrderID($order->id))) {
 			return null;
 		}
 
 		// Check if it has an invoice ID
-		if (null === ($invoiceId = $orderBitcoin->getInvoiceId()) || empty($invoiceId)) {
+		if (null === ($invoiceId = $bitcoinPayment->getInvoiceId()) || empty($invoiceId)) {
 			return null;
 		}
 
-		// Get the currency from our cart
-		$currency = Currency::getCurrencyInstance((int) $cart->id_currency);
+		// Get the store ID
+		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
 
 		// Prepare smarty
-		$this->context->smarty->assign(
-			[
-				'server_url'      => $serverUrl,
-				'currency_sign'   => $currency->sign,
-				'payment_details' => $orderBitcoin->toArray(),
-			]
-		);
+		$this->context->smarty->assign([
+			'serverURL'      => $serverUrl,
+			'storeCurrency'  => Currency::getCurrencyInstance($cart->id_currency)->getSymbol(),
+			'invoice'        => $this->client()->invoice()->getInvoice($storeID, $invoiceId),
+			'paymentMethods' => $this->client()->invoice()->getPaymentMethods($storeID, $invoiceId),
+		]);
 
 		return $this->display(__FILE__, 'views/templates/hooks/order_detail.tpl');
 	}
@@ -266,7 +317,11 @@ class BTCPay extends PaymentModule
 		];
 	}
 
-	// Hooks on prestashop payment returns
+	/**
+	 * Hooks on prestashop payment returns
+	 *
+	 * @throws Exception
+	 */
 	public function hookPaymentReturn($params): ?string
 	{
 		// If the module is not active, abort
@@ -290,33 +345,54 @@ class BTCPay extends PaymentModule
 			[
 				'presenter'     => (new OrderPresenter())->present($order),
 				'order_state'   => $order->getCurrentState(),
-				'os_waiting'    => (string) Configuration::get('BTCPAY_OS_WAITING'),
-				'os_confirming' => (string) Configuration::get('BTCPAY_OS_CONFIRMING'),
-				'os_failed'     => (string) Configuration::get('BTCPAY_OS_FAILED'),
-				'os_paid'       => (string) Configuration::get('BTCPAY_OS_PAID'),
+				'os_waiting'    => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_WAITING),
+				'os_confirming' => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING),
+				'os_failed'     => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_FAILED),
+				'os_paid'       => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_PAID),
 			]
 		);
 
 		return $this->display(__FILE__, 'views/templates/hooks/payment_return.tpl');
 	}
 
-	// Hooks on prestashop payment options
+	/**
+	 * Hooks on prestashop payment options
+	 *
+	 * @throws SmartyException
+	 * @throws JsonException
+	 */
 	public function hookPaymentOptions(): array
 	{
 		if (!$this->active) {
 			return [];
 		}
 
-		$paymentOption = new PaymentOption();
-		$paymentOption->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/images/bitcoin.png'));
-		$paymentOption->setModuleName($this->name);
-		$paymentOption->setCallToActionText($this->trans('Pay with Bitcoin', [], 'Modules.Btcpay.Front'));
-		$paymentOption->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true));
+		// Get the store ID
+		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
 
-		return [$paymentOption];
+		// Prepare smarty
+		$this->context->smarty->assign([
+			'onchain'  => $this->client()->onchain()->getPaymentMethods($storeID),
+			'offchain' => $this->client()->offchain()->getPaymentMethods($storeID),
+		]);
+
+		return [
+			(new PaymentOption())
+				->setModuleName($this->name)
+				->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/images/payment.png'))
+				->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
+				->setCallToActionText($this->trans('Pay with BTCPay Server', [], 'Modules.Btcpay.Front'))
+				->setAdditionalInformation($this->context->smarty->fetch('module:btcpay/views/templates/hooks/payment_option.tpl')),
+		];
 	}
 
-	// Hooks on prestashop cart changes
+	/**
+	 * Hooks on prestashop cart changes
+	 *
+	 * @throws JsonException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
+	 */
 	public function hookActionCartSave(array $params): void
 	{
 		// If the module is not active, abort
@@ -340,14 +416,14 @@ class BTCPay extends PaymentModule
 		}
 
 		// Get the order
-		if (null === ($orderBitcoin = (new LegacyOrderBitcoinRepository())->getOneByCartID($cart->id))) {
+		if (null === ($bitcoinPayment = (new LegacyBitcoinPaymentRepository())->getOneByCartID($cart->id))) {
 			return;
 		}
 
 		PrestaShopLogger::addLog('[WARNING] Order has changed for cart: ' . $cart->id . '. Cancelling....', 2);
 
 		// Try to remove the order
-		if (false === $orderBitcoin->delete()) {
+		if (false === $bitcoinPayment->delete()) {
 			PrestaShopLogger::addLog('[ERROR] Expected to remove the order, but failed to do so', 3);
 			throw new \PrestaShopDatabaseException('Expected to remove the order, but failed to do so');
 		}
@@ -360,6 +436,15 @@ class BTCPay extends PaymentModule
 		}
 	}
 
+	private function client(): Client
+	{
+		if (null === $this->client) {
+			$this->client = Client::createFromConfiguration($this->configuration);
+		}
+
+		return $this->client;
+	}
+
 	private function getRepository(): ?BitcoinPaymentRepository
 	{
 		if (null === $this->repository) {
@@ -367,10 +452,7 @@ class BTCPay extends PaymentModule
 				$this->repository = $this->get('prestashop.module.btcpay.repository');
 			} catch (Throwable $e) {
 				if (null !== ($container = SymfonyContainer::getInstance())) {
-					$this->repository = new BitcoinPaymentRepository(
-						$container->get('doctrine.dbal.default_connection'),
-						$container->getParameter('database_prefix')
-					);
+					$this->repository = new BitcoinPaymentRepository($container->get('doctrine.dbal.default_connection'), $container->getParameter('database_prefix'));
 				}
 			}
 		}

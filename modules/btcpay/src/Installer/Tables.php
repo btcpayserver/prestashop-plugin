@@ -16,11 +16,19 @@ class Tables
 		$this->repository = $repository;
 	}
 
+	/**
+	 * @throws \JsonException
+	 * @throws \Doctrine\DBAL\Exception
+	 */
 	public function install(): array
 	{
 		return $this->repository->createTables();
 	}
 
+	/**
+	 * @throws \JsonException
+	 * @throws \Doctrine\DBAL\Exception
+	 */
 	public function uninstall(): array
 	{
 		return $this->repository->dropTables();

@@ -1,14 +1,17 @@
 {
   "name": "btcpay/prestashop-plugin",
   "type": "prestashop-module",
-  "description": "BTCPay payment plugin for PrestaShop",
+  "description": "BTCPay Server payment plugin for PrestaShop",
   "keywords": [
-    "prestashop",
-    "plugin",
-    "payment",
-    "ecommerce",
+    "BTCPay",
+    "BTCPay Server",
     "bitcoin",
-    "BTCPay"
+    "crypto",
+    "ecommerce",
+    "module",
+    "payment",
+    "plugin",
+    "prestashop"
   ],
   "homepage": "https://github.com/btcpayserver/prestashop-plugin",
   "license": "MIT",
@@ -94,13 +97,10 @@
     "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
     "ergebnis/composer-normalize": "^2.8",
     "friendsofphp/php-cs-fixer": "^v2.16.4",
-    "johnkary/phpunit-speedtrap": "^v3.2.0",
-    "phpspec/prophecy-phpunit": "^2.0",
     "prestashop/prestashop": "dev-develop",
     "roave/security-advisories": "dev-latest",
     "slevomat/coding-standard": "^6.3",
-    "squizlabs/php_codesniffer": "^3.5",
-    "symfony/phpunit-bridge": "^v3.4.43"
+    "squizlabs/php_codesniffer": "^3.5"
   },
   "config": {
     "platform": {
