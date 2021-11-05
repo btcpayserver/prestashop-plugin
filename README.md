@@ -28,7 +28,6 @@ This plugin support creating orders before or after payment. That said the `befo
 
 ## Future improvements
 There is a lot of improvements that can still be made:
-* Create a docker container for testing
 * Rewrite to use the new [Greenfield Invoice API](https://docs.btcpayserver.org/API/Greenfield/v1/).
 
 ## Documentation
