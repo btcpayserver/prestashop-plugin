@@ -2,9 +2,6 @@
 Thank you for contributing to the BTCPay plugin! 
 
 Please take the time to edit the "Answers" rows below with the necessary information.
-
-Check out our contribution guidelines to find out how to complete it:
-https://devdocs.prestashop.com/1.7/contribute/contribution-guidelines/#pull-requests
 ------------------------------------------------------------------------------>
 
 | Questions     | Answers
