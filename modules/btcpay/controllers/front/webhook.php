@@ -23,21 +23,27 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 	public $module;
 
 	/**
-	 * @var WebhookHandler
-	 */
-	private $handler;
-
-	/**
 	 * @var Configuration
 	 */
 	private $configuration;
+
+	/**
+	 * @var Client
+	 */
+	private $client;
+
+	/**
+	 * @var WebhookHandler
+	 */
+	private $handler;
 
 	public function __construct()
 	{
 		parent::__construct();
 
 		$this->configuration = new Configuration();
-		$this->handler       = new WebhookHandler(Client::createFromConfiguration($this->configuration), new LegacyBitcoinPaymentRepository());
+		$this->client        = Client::createFromConfiguration($this->configuration);
+		$this->handler       = new WebhookHandler($this->client, new LegacyBitcoinPaymentRepository());
 	}
 
 	/**
@@ -66,10 +72,10 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 			return;
 		}
 
-		// verify hmac256
-		$content = $request->getContent();
-		if ($signature !== 'sha256=' . hash_hmac('sha256', $content, $secret)) {
-			throw new \Exception('Invalid BTCPayServer payment notification message received - signature did not match. Expected ' . hash_hmac('sha256', $content, $secret));
+		// Ensure our webhook is actually valid
+		if (false === $this->client->webhook()->isIncomingWebhookRequestValid($request->getContent(), $signature, $secret)) {
+			\PrestaShopLogger::addLog('Invalid BTCPay Server payment notification message received - signature did not match.');
+			throw new \Exception('Invalid BTCPay Server payment notification message received - signature did not match.');
 		}
 
 		$this->handler->process($this->module, $request);
