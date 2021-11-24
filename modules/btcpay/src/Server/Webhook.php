@@ -60,18 +60,24 @@ class Webhook extends \BTCPayServer\Client\Webhook
 		// Generate new webhook secret
 		$secret = bin2hex(random_bytes(24));
 
-		// Store the webhook secret we made
-		$this->configuration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET, $secret);
-
+		// Build the webhook URL
 		$webhookURL = $this->link->getModuleLink('btcpay', 'webhook', [], true);
-		$webhook    = $this->createWebhook($storeId, $webhookURL, null, $secret);
+
+		// Create the brand-new webhook
+		$webhook = $this->createWebhook($storeId, $webhookURL, null, $secret);
+
+		// Ensure we actually made a proper webhook
 		if (!$webhook->offsetExists('id') || !$webhook->offsetExists('secret')) {
 			throw new BTCPayException('Webhook wasn\'t created correctly.', Response::HTTP_INTERNAL_SERVER_ERROR);
 		}
 
+		// Ensure the webhook was created with the secret we provided
 		if ($webhook->offsetGet('secret') !== $secret) {
 			throw new BTCPayException('Webhook secret doesn\'t match our secret.', Response::HTTP_INTERNAL_SERVER_ERROR);
 		}
+
+		// Store the webhook secret we made, so we can check that the webhook is actually made by us
+		$this->configuration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET, $secret);
 
 		// Store the ID, so we can check if we already have a valid webhook
 		$this->configuration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID, $webhook->offsetGet('id'));
