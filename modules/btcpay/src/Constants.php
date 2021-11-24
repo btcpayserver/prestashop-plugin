@@ -11,7 +11,7 @@ class Constants
 	public const MINIMUM_PS_VERSION     = '1.7.7';
 	public const MINIMUM_PHP_VERSION    = '7.3.0';
 
-	// BTCPay Server webhook headers
+	// BTCPay Server webhook header
 	public const BTCPAY_HEADER_SIG = 'Btcpay-Sig';
 
 	// BTCPay required permissions
@@ -40,6 +40,9 @@ class Constants
 	public const CONFIGURATION_ORDER_STATE_CONFIRMING = 'BTCPAY_OS_CONFIRMING';
 	public const CONFIGURATION_ORDER_STATE_FAILED     = 'BTCPAY_OS_FAILED';
 	public const CONFIGURATION_ORDER_STATE_PAID       = 'BTCPAY_OS_PAID';
+
+	// Do we want to share personal details with BTCPay Server
+	public const CONFIGURATION_SHARE_METADATA = 'BTCPAY_SHARE_METADATA';
 
 	// All possible transaction speeds as defined by BTCPay server
 	public const CONFIGURATION_SPEED_MODE = 'BTCPAY_TXSPEED';

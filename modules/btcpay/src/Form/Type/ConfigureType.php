@@ -19,7 +19,7 @@ class ConfigureType extends TranslatorAwareType
 	public function buildForm(FormBuilderInterface $builder, array $options): void
 	{
 		$builder
-			->add('url', UrlType::class, ['label' => $this->trans('BTCPay server url', 'Modules.Btcpay.Admin')])
+			->add('url', UrlType::class, ['label' => $this->trans('BTCPay Server URL', 'Modules.Btcpay.Admin')])
 			->add('speed', ChoiceType::class, [
 				'choices'    => [
 					$this->trans('Low', 'Modules.Btcpay.Admin')    => InvoiceCheckoutOptions::SPEED_LOW,
@@ -34,7 +34,14 @@ class ConfigureType extends TranslatorAwareType
 					$this->trans('Order before payment', 'Modules.Btcpay.Admin') => Constants::ORDER_MODE_BEFORE,
 					$this->trans('Order after payment', 'Modules.Btcpay.Admin')  => Constants::ORDER_MODE_AFTER,
 				],
-				'label'   => $this->trans('Order mode', 'Modules.Btcpay.Admin'),
+				'label'   => $this->trans('Order creation method', 'Modules.Btcpay.Admin'),
+			])
+			->add('share_metadata', ChoiceType::class, [
+				'choices' => [
+					$this->trans('Yes', 'Modules.Btcpay.Admin') => true,
+					$this->trans('No', 'Modules.Btcpay.Admin')  => false,
+				],
+				'label'   => $this->trans('Set customer data in BTCPay Server invoice', 'Modules.Btcpay.Admin'),
 			]);
 	}
 

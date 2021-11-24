@@ -30,11 +30,17 @@ class Configuration
 	 */
 	private $orderMode;
 
-	public function __construct(string $url, string $speed, string $orderMode)
+	/**
+	 * @Assert\Choice(choices={true, false})
+	 */
+	private $shareMetadata;
+
+	public function __construct(string $url, string $speed, string $orderMode, bool $shareMetadata)
 	{
-		$this->url       = $url;
-		$this->speed     = $speed;
-		$this->orderMode = $orderMode;
+		$this->url           = $url;
+		$this->speed         = $speed;
+		$this->orderMode     = $orderMode;
+		$this->shareMetadata = $shareMetadata;
 	}
 
 	public function getUrl(): ?string
@@ -67,12 +73,23 @@ class Configuration
 		$this->orderMode = $order_mode;
 	}
 
+	public function shareMetadata(): bool
+	{
+		return $this->shareMetadata;
+	}
+
+	public function setShareMetadata(bool $shareMetadata): void
+	{
+		$this->shareMetadata = $shareMetadata;
+	}
+
 	public function toArray(): array
 	{
 		return [
-			'url'       => $this->url,
-			'speed'     => $this->speed,
-			'orderMode' => $this->orderMode,
+			'url'           => $this->url,
+			'speed'         => $this->speed,
+			'orderMode'     => $this->orderMode,
+			'shareMetadata' => $this->shareMetadata,
 		];
 	}
 }

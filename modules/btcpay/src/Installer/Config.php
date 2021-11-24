@@ -26,7 +26,12 @@ class Config
 		// Init clear configurations
 		if (!$this->configuration->set(Constants::CONFIGURATION_BTCPAY_HOST, Constants::CONFIGURATION_DEFAULT_HOST)
 			|| !$this->configuration->set(Constants::CONFIGURATION_SPEED_MODE, InvoiceCheckoutOptions::SPEED_MEDIUM)
-			|| !$this->configuration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null)) {
+			|| !$this->configuration->set(Constants::CONFIGURATION_ORDER_MODE, Constants::ORDER_MODE_BEFORE)
+			|| !$this->configuration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null)
+			|| !$this->configuration->set(Constants::CONFIGURATION_BTCPAY_STORE_ID, null)
+			|| !$this->configuration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID, null)
+			|| !$this->configuration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET, null)
+			|| !$this->configuration->set(Constants::CONFIGURATION_SHARE_METADATA, false)) {
 			return [
 				[
 					'key'        => 'Could not init configuration',
@@ -46,8 +51,13 @@ class Config
 	{
 		// Remove configuration
 		if (!$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_HOST)
+			|| !$this->configuration->remove(Constants::CONFIGURATION_SPEED_MODE)
+			|| !$this->configuration->remove(Constants::CONFIGURATION_ORDER_MODE)
 			|| !$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_API_KEY)
-			|| !$this->configuration->remove(Constants::CONFIGURATION_SPEED_MODE)) {
+			|| !$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_STORE_ID)
+			|| !$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID)
+			|| !$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET)
+			|| !$this->configuration->remove(Constants::CONFIGURATION_SHARE_METADATA)) {
 			return [
 				[
 					'key'        => 'Could not clear configuration',
