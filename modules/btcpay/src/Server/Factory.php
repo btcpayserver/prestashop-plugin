@@ -27,18 +27,28 @@ class Factory
 	private $configuration;
 
 	/**
+	 * @var \Context
+	 */
+	private $context;
+
+	/**
 	 * @var string
 	 */
 	private $moduleName;
 
-	public function __construct(string $moduleName)
+	public function __construct(\Context $context, string $moduleName)
 	{
 		$this->repository    = new LegacyBitcoinPaymentRepository();
 		$this->link          = new \Link();
 		$this->configuration = new Configuration();
+		$this->context       = $context;
 		$this->moduleName    = $moduleName;
 	}
 
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \JsonException
+	 */
 	public function createPaymentRequest(\Customer $customer, \Cart $cart): ?string
 	{
 		// Check if we have a cart ID we can use
@@ -73,36 +83,41 @@ class Factory
 			$taxAmount  = $cart->getOrderTotal(true, \Cart::ONLY_PRODUCTS) - $cart->getOrderTotal(false, \Cart::ONLY_PRODUCTS);
 			$orderTotal = (string) $cart->getOrderTotal(true);
 
-			// Build metadata
 			$metadata = [
-				'posData'       => $customer->secure_key,
-				'buyerName'     => sprintf('%s %s', $customer->firstname, $customer->lastname),
-				'buyerAddress1' => $address->address1,
-				'buyerAddress2' => $address->address2,
-				'buyerCity'     => $address->city,
-				'buyerZip'      => $address->postcode,
-				'buyerCountry'  => $address->country,
-				'itemDesc'      => sprintf('Purchase: %s', $invoiceReference),
-				'itemCode'      => sprintf('cart-%s', $cart->id),
-				'taxIncluded'   => $taxAmount,
+				'posData'     => $customer->secure_key,
+				'itemCode'    => sprintf('invoice-reference-%s', $invoiceReference),
+				'itemDesc'    => sprintf('Purchase from %s', $this->context->shop->name),
+				'taxIncluded' => $taxAmount,
 			];
 
-			// Set state if available
-			if (0 !== ($stateId = $address->id_state)) {
-				$metadata['buyerState'] = (new \State($stateId))->name;
-			}
+			// Only include personal details if enabled
+			if (false !== (bool) $this->configuration->get(Constants::CONFIGURATION_SHARE_METADATA, false)) {
+				$metadata = array_merge($metadata, [
+					'buyerName'     => sprintf('%s %s', $customer->firstname, $customer->lastname),
+					'buyerAddress1' => $address->address1,
+					'buyerAddress2' => $address->address2,
+					'buyerCity'     => $address->city,
+					'buyerZip'      => $address->postcode,
+					'buyerCountry'  => $address->country,
+				]);
 
-			// Set phone/mobile phone number if available
-			if (!empty($address->phone)) {
-				$metadata['buyerPhone'] = $address->phone;
-			} elseif (!empty($address->phone_mobile)) {
-				$metadata['buyerPhone'] = $address->phone_mobile;
+				// Set state if available
+				if (0 !== ($stateId = $address->id_state)) {
+					$metadata['buyerState'] = (new \State($stateId))->name;
+				}
+
+				// Set phone/mobile phone number if available
+				if (!empty($address->phone)) {
+					$metadata['buyerPhone'] = $address->phone;
+				} elseif (!empty($address->phone_mobile)) {
+					$metadata['buyerPhone'] = $address->phone_mobile;
+				}
 			}
 
 			// Setup custom checkout options, defaults get picked from store config.
 			$checkoutOptions = new InvoiceCheckoutOptions();
 			$checkoutOptions
-				->setSpeedPolicy($this->configuration->get(Constants::CONFIGURATION_SPEED_MODE, null, null, null, InvoiceCheckoutOptions::SPEED_MEDIUM))
+				->setSpeedPolicy($this->configuration->get(Constants::CONFIGURATION_SPEED_MODE, InvoiceCheckoutOptions::SPEED_MEDIUM))
 				->setRedirectURL($this->link->getModuleLink($this->moduleName, 'validation', ['invoice_reference' => $invoiceReference], true));
 
 			// Get the store ID

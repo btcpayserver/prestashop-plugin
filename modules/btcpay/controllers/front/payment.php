@@ -21,7 +21,7 @@ class BTCPayPaymentModuleFrontController extends ModuleFrontController
 	{
 		parent::__construct();
 
-		$this->factory = new Factory($this->module->name);
+		$this->factory = new Factory($this->context, $this->module->name);
 	}
 
 	/**
