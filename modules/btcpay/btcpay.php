@@ -164,11 +164,16 @@ class BTCPay extends PaymentModule
 
 	public function reset(): bool
 	{
-		if (!$this->uninstall()) {
+		$config = new Config();
+		if (!empty($errors = $config->uninstall())) {
+			$this->addModuleErrors($errors);
+
 			return false;
 		}
 
-		if (!$this->install()) {
+		if (!empty($errors = $config->install())) {
+			$this->addModuleErrors($errors);
+
 			return false;
 		}
 
