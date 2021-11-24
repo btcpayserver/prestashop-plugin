@@ -2,7 +2,6 @@
 
 use BTCPay\Server\Factory;
 
-/** @noinspection AutoloadingIssuesInspection */
 class BTCPayPaymentModuleFrontController extends ModuleFrontController
 {
 	/**

@@ -2,7 +2,6 @@
 
 use BTCPay\LegacyBitcoinPaymentRepository;
 
-/** @noinspection AutoloadingIssuesInspection */
 class BTCPayValidationModuleFrontController extends ModuleFrontController
 {
 	/**
