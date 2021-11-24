@@ -27,8 +27,8 @@ Please ensure that you meet the following requirements before installing this pl
 - [You've a wallet connected to your store](https://docs.btcpayserver.org/WalletSetup)
 
 ### Tested successfully
-- Prestashop 1.7.7.x
-- BTCPay server v1.0.6.4
+- Prestashop version 1.7.7.x
+- BTCPay server version 1.3.4
 
 **Note**: The legacy version can be found at [prestashop-plugin-legacy](https://github.com/btcpayserver/prestashop-plugin-legacy) and will not recieve any further support at this time.
 
