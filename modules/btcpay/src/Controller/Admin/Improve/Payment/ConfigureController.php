@@ -104,8 +104,12 @@ class ConfigureController extends FrameworkBundleAdminController
 
 		// If we have an apiKey, check if it's valid by fetching the storeId
 		try {
-			$client  = new Client($configuration->getUrl(), $apiKey);
-			$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
+			$client = new Client($configuration->getUrl(), $apiKey);
+
+			// If we don't have a store ID, abort right away
+			if (null === ($storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))) {
+				return $this->redirect(ApiKey::getAuthorizeUrl($configuration->getUrl(), Constants::BTCPAY_PERMISSIONS, $storeName, true, true, $redirectUrl, $storeName));
+			}
 
 			// Ensure we have a webhook
 			$client->webhook()->ensureWebhook($storeID);
