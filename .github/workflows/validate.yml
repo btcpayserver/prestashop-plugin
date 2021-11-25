@@ -1,13 +1,13 @@
 name: "Validate"
 
-on: [ "push", "pull_request" ]
+on: [ "pull_request" ]
 
 jobs:
   linting:
     name: "Linting (PHP ${{ matrix.php-versions }})"
     runs-on: "ubuntu-latest"
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         php-versions: [ '7.3', '7.4', '8.0' ]
     steps:
