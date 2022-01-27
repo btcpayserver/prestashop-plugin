@@ -47,7 +47,7 @@ To get up and running with our plugin quickly, see the [PrestaShop Guide on our 
 ## Versioning
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the 
-[tags on this repository](https://github.com/BitcoinMitchell/docker-prestashop/tags).
+[tags on this repository](https://github.com/btcpayserver/prestashop-plugin/tags).
 
 ## Contributing
 
