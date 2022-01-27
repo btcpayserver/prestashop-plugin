@@ -1,6 +1,6 @@
 # Prestashop Plugin
 
-[![Maintained](https://img.shields.io/maintenance/yes/2021?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/pulse)
+[![Maintained](https://img.shields.io/maintenance/yes/2022?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/pulse)
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/btcpayserver/prestashop-plugin/Validate/master?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/actions)
 [![GitHub License](https://img.shields.io/github/license/btcpayserver/prestashop-plugin?color=brightgreen&style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/blob/master/LICENSE)
 [![GitHub contributors](https://img.shields.io/github/contributors-anon/btcpayserver/prestashop-plugin?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/graphs/contributors)
