@@ -1,7 +1,8 @@
 {
   "name": "btcpay/prestashop-plugin",
-  "type": "prestashop-module",
   "description": "BTCPay Server payment plugin for PrestaShop",
+  "license": "MIT",
+  "type": "prestashop-module",
   "keywords": [
     "BTCPay",
     "BTCPay Server",
@@ -14,7 +15,10 @@
     "prestashop"
   ],
   "homepage": "https://github.com/btcpayserver/prestashop-plugin",
-  "license": "MIT",
+  "support": {
+    "issues": "https://github.com/btcpayserver/prestashop-plugin/issues",
+    "source": "https://github.com/btcpayserver/prestashop-plugin"
+  },
   "require": {
     "php": ">=7.3.0",
     "ext-PDO": "*",
@@ -28,6 +32,16 @@
     "ext-mbstring": "*",
     "ext-zip": "*",
     "composer/installers": "^v1.9.0"
+  },
+  "require-dev": {
+    "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
+    "ergebnis/composer-normalize": "^2.8",
+    "friendsofphp/php-cs-fixer": "^3.4",
+    "prestashop/php-dev-tools": "^4.2",
+    "prestashop/prestashop": "dev-develop",
+    "roave/security-advisories": "dev-latest",
+    "slevomat/coding-standard": "^6.3",
+    "squizlabs/php_codesniffer": "^3.5"
   },
   "replace": {
     "prestashop/blockwishlist": "^2.0",
@@ -93,23 +107,7 @@
     "prestashop/statssearch": "^2",
     "prestashop/statsstock": "^2"
   },
-  "require-dev": {
-    "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
-    "ergebnis/composer-normalize": "^2.8",
-    "friendsofphp/php-cs-fixer": "^v2.16.4",
-    "prestashop/prestashop": "dev-develop",
-    "roave/security-advisories": "dev-latest",
-    "slevomat/coding-standard": "^6.3",
-    "squizlabs/php_codesniffer": "^3.5"
-  },
-  "config": {
-    "platform": {
-      "php": "7.3"
-    },
-    "preferred-install": "dist",
-    "prepend-autoloader": false,
-    "sort-packages": true
-  },
+  "minimum-stability": "stable",
   "autoload": {
     "psr-4": {
       "BTCPay\\": "modules/btcpay/src"
@@ -118,7 +116,19 @@
       "modules/btcpay/btcpay.php"
     ]
   },
-  "minimum-stability": "stable",
+  "config": {
+    "allow-plugins": {
+      "composer/installers": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "ergebnis/composer-normalize": true
+    },
+    "platform": {
+      "php": "7.3"
+    },
+    "preferred-install": "dist",
+    "prepend-autoloader": false,
+    "sort-packages": true
+  },
   "scripts": {
     "post-install-cmd": [
       "@install-codestandards"
@@ -126,9 +136,5 @@
     "install-codestandards": [
       "Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin::run"
     ]
-  },
-  "support": {
-    "issues": "https://github.com/btcpayserver/prestashop-plugin/issues",
-    "source": "https://github.com/btcpayserver/prestashop-plugin"
   }
 }
