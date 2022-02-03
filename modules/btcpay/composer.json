@@ -34,7 +34,10 @@
     },
     "preferred-install": "dist",
     "prepend-autoloader": false,
-    "sort-packages": true
+    "sort-packages": true,
+    "allow-plugins": {
+      "ergebnis/composer-normalize": true
+    }
   },
   "autoload": {
     "psr-4": {
