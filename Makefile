@@ -43,6 +43,14 @@ install: ## Install everything for development
 	@cd "$(MODULE_FOLDER)/$(MODULE)" \
 		&& composer install
 
+upgrade: ## Upgrade all depedencies (including development)
+	# Upgrading all root dependencies
+	composer upgrade
+
+	# Upgrading all module dependencies
+	@cd "$(MODULE_FOLDER)/$(MODULE)" \
+		&& composer upgrade
+
 clean: ## Remove previous builds
 	# Removing the ZIP
 	@rm -f $(MODULE_OUT)
