@@ -26,7 +26,8 @@
   "require-dev": {
     "ergebnis/composer-normalize": "^2.15",
     "roave/security-advisories": "dev-latest",
-    "symfony/var-dumper": "^5.3"
+    "symfony/debug-bundle": "^4.4",
+    "symfony/var-dumper": "^4.4"
   },
   "config": {
     "platform": {
@@ -38,6 +39,12 @@
     "allow-plugins": {
       "ergebnis/composer-normalize": true
     }
+  },
+  "replace": {
+    "symfony/polyfill-php70": "*",
+    "symfony/polyfill-php71": "*",
+    "symfony/polyfill-php72": "*",
+    "symfony/polyfill-php73": "*"
   },
   "autoload": {
     "psr-4": {

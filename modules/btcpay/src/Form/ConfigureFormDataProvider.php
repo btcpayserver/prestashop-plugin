@@ -28,7 +28,6 @@ class ConfigureFormDataProvider implements FormDataProviderInterface
 		$configuration = new Configuration(
 			$this->configuration->get(Constants::CONFIGURATION_BTCPAY_HOST, Constants::CONFIGURATION_DEFAULT_HOST),
 			$this->configuration->get(Constants::CONFIGURATION_SPEED_MODE, InvoiceCheckoutOptions::SPEED_MEDIUM),
-			$this->configuration->get(Constants::CONFIGURATION_ORDER_MODE, Constants::ORDER_MODE_BEFORE),
 			$this->configuration->get(Constants::CONFIGURATION_SHARE_METADATA, false),
 		);
 
@@ -45,7 +44,6 @@ class ConfigureFormDataProvider implements FormDataProviderInterface
 
 		$this->configuration->set(Constants::CONFIGURATION_BTCPAY_HOST, \rtrim(\trim($configuration->getUrl()), '/\\'));
 		$this->configuration->set(Constants::CONFIGURATION_SPEED_MODE, $configuration->getSpeed());
-		$this->configuration->set(Constants::CONFIGURATION_ORDER_MODE, $configuration->getOrderMode());
 		$this->configuration->set(Constants::CONFIGURATION_SHARE_METADATA, $configuration->shareMetadata());
 
 		// All is fine
