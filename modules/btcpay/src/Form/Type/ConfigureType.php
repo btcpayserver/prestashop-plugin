@@ -2,7 +2,6 @@
 
 namespace BTCPay\Form\Type;
 
-use BTCPay\Constants;
 use BTCPay\Form\Data\Configuration;
 use BTCPayServer\Client\InvoiceCheckoutOptions;
 use PrestaShopBundle\Form\Admin\Type\TranslatorAwareType;
@@ -29,13 +28,6 @@ class ConfigureType extends TranslatorAwareType
 				'label'      => $this->trans('Transaction speed', 'Modules.Btcpay.Admin'),
 				'empty_data' => InvoiceCheckoutOptions::SPEED_MEDIUM,
 			])
-			->add('order_mode', ChoiceType::class, [
-				'choices' => [
-					$this->trans('Order before payment', 'Modules.Btcpay.Admin') => Constants::ORDER_MODE_BEFORE,
-					$this->trans('Order after payment', 'Modules.Btcpay.Admin')  => Constants::ORDER_MODE_AFTER,
-				],
-				'label'   => $this->trans('Order creation method', 'Modules.Btcpay.Admin'),
-			])
 			->add('share_metadata', ChoiceType::class, [
 				'choices' => [
 					$this->trans('Yes', 'Modules.Btcpay.Admin') => true,
@@ -45,17 +37,11 @@ class ConfigureType extends TranslatorAwareType
 			]);
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function configureOptions(OptionsResolver $resolver): void
 	{
 		$resolver->setDefaults(['data_class' => Configuration::class]);
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function getBlockPrefix(): string
 	{
 		return 'module_btcpay';

@@ -54,8 +54,8 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '5.0.1';
-		$this->author                 = 'BTCPayServer';
+		$this->version                = '5.1.0';
+		$this->author                 = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
 		$this->controllers            = ['webhook', 'payment', 'validation'];
 		$this->is_eu_compatible       = true;
@@ -67,7 +67,7 @@ class BTCPay extends PaymentModule
 		parent::__construct();
 
 		$this->displayName = $this->trans('BTCPay', [], 'Modules.Btcpay.Admin');
-		$this->description = $this->trans('Accepts Bitcoin payments via BTCPay.', [], 'Modules.Btcpay.Front');
+		$this->description = $this->trans('Accept crypto payments via BTCPay Server.', [], 'Modules.Btcpay.Front');
 
 		$this->configuration = new Configuration();
 	}

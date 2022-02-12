@@ -79,7 +79,7 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 			throw new \Exception($error);
 		}
 
-		$this->handler->process($this->module, $request);
+		$this->handler->process($request);
 
 		echo 'OK';
 	}
