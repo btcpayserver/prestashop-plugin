@@ -97,8 +97,9 @@
                 <dt><span class="text-muted mb-0"><strong>API Key</strong></span></dt>
                 <dd><span class="px-1">{{ client.apiKey().getCurrent().apiKey }}</span></dd>
 
+                {% set webhook = client.webhook().getCurrent(storeId) %}
                 <dt><span class="text-muted mb-0"><strong>Webhook ID</strong></span></dt>
-                <dd><span class="px-1">{{ client.webhook().getCurrent(storeId).id }}</span></dd>
+                <dd><span class="{% if webhook.enabled %}text-success{% else %}text-warning{% endif %} px-1">{{ webhook.id }}</span></dd>
 
                 <dt><span class="text-muted mb-0"><strong>Fully synced</strong></span></dt>
                 <dd>{% if serverInfo.fullySynced %}<span class="text-success px-1">Yes</span>{% else %}<span class="text-warning px-1">No</span>{% endif %}</dd>
