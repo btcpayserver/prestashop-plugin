@@ -13,6 +13,7 @@ class AdminConfigureBTCPayController extends ModuleAdminController
 	{
 		$this->bootstrap = true;
 		$this->display   = 'view';
+
 		parent::__construct();
 
 		if (!$this->module->active) {

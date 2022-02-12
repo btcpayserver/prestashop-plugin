@@ -136,7 +136,7 @@ class ConfigureController extends FrameworkBundleAdminController
 	{
 		// If we didn't receive an API key (or have any errors), just return
 		$validateRequest = new ValidateApiKey($request->request);
-		if (0 !== count($errors = $this->validator->validate($validateRequest))) {
+		if (0 !== \count($errors = $this->validator->validate($validateRequest))) {
 			foreach ($errors as $error) {
 				$this->addFlash('error', $error->getMessage());
 			}
@@ -152,15 +152,15 @@ class ConfigureController extends FrameworkBundleAdminController
 
 		try {
 			// Ensure we have a valid BTCPay Server version
-			if (null !== ($info = $client->server()->getInfo()) && version_compare($info->getVersion(), Constants::MINIMUM_BTCPAY_VERSION, '<')) {
-				$this->addFlash('error', sprintf('BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()));
+			if (null !== ($info = $client->server()->getInfo()) && \version_compare($info->getVersion(), Constants::MINIMUM_BTCPAY_VERSION, '<')) {
+				$this->addFlash('error', \sprintf('BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()));
 
 				return $this->redirectToRoute('admin_btcpay_configure');
 			}
 
 			// Ensure we have a payment methods setup
 			if (empty($client->payment()->getPaymentMethods($storeId))) {
-				$this->addFlash('error', sprintf("This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')));
+				$this->addFlash('error', \sprintf("This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')));
 
 				return $this->redirectToRoute('admin_btcpay_configure');
 			}
@@ -168,8 +168,8 @@ class ConfigureController extends FrameworkBundleAdminController
 			// Ensure we have a webhook
 			$client->webhook()->ensureWebhook($storeId);
 		} catch (\Throwable $exception) {
-			$this->addFlash('error', sprintf('BTCPay plugin: %s', $exception->getMessage()));
-			\PrestaShopLogger::addLog('[ERROR] An error occurred during setup ' . print_r($exception, true));
+			$this->addFlash('error', \sprintf('BTCPay plugin: %s', $exception->getMessage()));
+			\PrestaShopLogger::addLog('[ERROR] An error occurred during setup ' . \print_r($exception, true));
 
 			return $this->redirectToRoute('admin_btcpay_configure');
 		}

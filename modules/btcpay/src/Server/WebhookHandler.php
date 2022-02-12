@@ -38,7 +38,7 @@ class WebhookHandler
 	 */
 	public function process(\BTCPay $btcpay, Request $request): void
 	{
-		$data = json_decode($request->getContent(), true, 512, \JSON_THROW_ON_ERROR);
+		$data = \json_decode($request->getContent(), true, 512, \JSON_THROW_ON_ERROR);
 		if (false === $data || null === $data) {
 			return;
 		}
@@ -49,8 +49,8 @@ class WebhookHandler
 		}
 
 		// If it's a test, just accept it
-		if (false !== strpos($data['invoiceId'], '__test__')) {
-			\PrestaShopLogger::addLog(sprintf('[INFO] Received test IPN: %s', json_encode($data, \JSON_THROW_ON_ERROR)));
+		if (false !== \strpos($data['invoiceId'], '__test__')) {
+			\PrestaShopLogger::addLog(\sprintf('[INFO] Received test IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
 
 			return;
 		}

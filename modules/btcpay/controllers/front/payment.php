@@ -30,9 +30,6 @@ class BTCPayPaymentModuleFrontController extends ModuleFrontController
 		$this->configuration = new Configuration();
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function initContent(): void
 	{
 		parent::initContent();

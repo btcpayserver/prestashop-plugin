@@ -23,9 +23,6 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 		$this->repository = new LegacyBitcoinPaymentRepository();
 	}
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public function postProcess(): void
 	{
 		// Check if the cart we have is even valid
@@ -46,6 +43,7 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 		foreach (Module::getPaymentModules() as $module) {
 			if ($module['name'] === $this->module->name) {
 				$authorized = true;
+
 				break;
 			}
 		}

@@ -47,9 +47,6 @@ class BitcoinPayment extends \ObjectModel
 	 */
 	public $redirect;
 
-	/**
-	 * {@inheritdoc}
-	 */
 	public static $definition = [
 		'table'   => 'bitcoin_payment',
 		'primary' => 'id',
@@ -113,7 +110,7 @@ class BitcoinPayment extends \ObjectModel
 			}
 
 			if (\is_array($orderState->name) && !empty($orderState->name)) {
-				return array_pop($orderState->name);
+				return \array_pop($orderState->name);
 			}
 		}
 

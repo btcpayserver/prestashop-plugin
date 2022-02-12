@@ -43,7 +43,7 @@ class ConfigureFormDataProvider implements FormDataProviderInterface
 		/** @var Configuration $configuration */
 		$configuration = $data['btcpay'];
 
-		$this->configuration->set(Constants::CONFIGURATION_BTCPAY_HOST, rtrim(trim($configuration->getUrl()), '/\\'));
+		$this->configuration->set(Constants::CONFIGURATION_BTCPAY_HOST, \rtrim(\trim($configuration->getUrl()), '/\\'));
 		$this->configuration->set(Constants::CONFIGURATION_SPEED_MODE, $configuration->getSpeed());
 		$this->configuration->set(Constants::CONFIGURATION_ORDER_MODE, $configuration->getOrderMode());
 		$this->configuration->set(Constants::CONFIGURATION_SHARE_METADATA, $configuration->shareMetadata());

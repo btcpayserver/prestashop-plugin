@@ -36,7 +36,7 @@ class ValidateApiKey
 
 	public function getStoreID(): string
 	{
-		return explode(':', $this->permissions[0])[1];
+		return \explode(':', $this->permissions[0])[1];
 	}
 
 	/**
@@ -44,13 +44,13 @@ class ValidateApiKey
 	 */
 	public function hasRequiredPermissions(): bool
 	{
-		$permissions = array_reduce($this->permissions, static function (array $carry, string $permission) {
-			return array_merge($carry, [explode(':', $permission)[0]]);
+		$permissions = \array_reduce($this->permissions, static function (array $carry, string $permission) {
+			return \array_merge($carry, [\explode(':', $permission)[0]]);
 		}, []);
 
-		return empty(array_merge(
-			array_diff(Constants::BTCPAY_PERMISSIONS, $permissions),
-			array_diff($permissions, Constants::BTCPAY_PERMISSIONS)
+		return empty(\array_merge(
+			\array_diff(Constants::BTCPAY_PERMISSIONS, $permissions),
+			\array_diff($permissions, Constants::BTCPAY_PERMISSIONS)
 		));
 	}
 
@@ -61,7 +61,7 @@ class ValidateApiKey
 	{
 		$storeId = null;
 		foreach ($this->permissions as $perms) {
-			if (2 !== count($exploded = explode(':', $perms))) {
+			if (2 !== \count($exploded = \explode(':', $perms))) {
 				return false;
 			}
 
@@ -75,6 +75,7 @@ class ValidateApiKey
 
 			if (null === $storeId) {
 				$storeId = $receivedStoreId;
+
 				continue;
 			}
 

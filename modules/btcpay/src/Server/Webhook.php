@@ -58,7 +58,7 @@ class Webhook extends \BTCPayServer\Client\Webhook
 		}
 
 		// Generate new webhook secret
-		$secret = bin2hex(random_bytes(24));
+		$secret = \bin2hex(\random_bytes(24));
 
 		// Build the webhook URL
 		$webhookURL = $this->link->getModuleLink('btcpay', 'webhook', [], true);
