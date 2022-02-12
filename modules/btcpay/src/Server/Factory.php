@@ -61,8 +61,8 @@ class Factory
 		// Build the client from our stored configuration
 		try {
 			$client = Client::createFromConfiguration($this->configuration);
-		} catch (\Exception $e) {
-			\PrestaShopLogger::addLog(sprintf('[ERROR] %s', $e->getMessage()), $e->getCode());
+		} catch (\Throwable $e) {
+			\PrestaShopLogger::addLog(sprintf('[ERROR] %s', $e->getMessage()), 4, $e->getCode());
 			throw new BTCPayException($e->getMessage(), $e->getCode(), $e);
 		}
 
@@ -160,7 +160,7 @@ class Factory
 			\PrestaShopLogger::addLog(sprintf('[INFO] Invoice %s has been updated', $invoiceId));
 
 			return $bitcoinPayment->getRedirect();
-		} catch (\Exception $e) {
+		} catch (\Throwable $e) {
 			\PrestaShopLogger::addLog(sprintf('[ERROR] %s', $e->getMessage()), 3);
 			throw new BTCPayException($e->getMessage(), $e->getCode(), $e);
 		}

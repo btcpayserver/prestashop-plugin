@@ -113,7 +113,7 @@ class ConfigureController extends FrameworkBundleAdminController
 
 			// Ensure we have a webhook
 			$client->webhook()->ensureWebhook($storeID);
-		} catch (\Exception $e) {
+		} catch (\Throwable $e) {
 			// Reset BTCPay details
 			$this->configuration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
 			$this->configuration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID, null);
@@ -167,7 +167,7 @@ class ConfigureController extends FrameworkBundleAdminController
 
 			// Ensure we have a webhook
 			$client->webhook()->ensureWebhook($storeId);
-		} catch (\Exception $exception) {
+		} catch (\Throwable $exception) {
 			$this->addFlash('error', sprintf('BTCPay plugin: %s', $exception->getMessage()));
 			\PrestaShopLogger::addLog('[ERROR] An error occurred during setup ' . print_r($exception, true));
 
@@ -187,7 +187,7 @@ class ConfigureController extends FrameworkBundleAdminController
 	{
 		try {
 			Client::createFromConfiguration($this->configuration)->server()->getInfo();
-		} catch (\Exception $e) {
+		} catch (\Throwable $e) {
 			return true;
 		}
 
