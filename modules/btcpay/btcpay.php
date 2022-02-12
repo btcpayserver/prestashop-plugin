@@ -234,12 +234,21 @@ class BTCPay extends PaymentModule
 		// Get the store ID
 		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
 
+		// Invoice payments
+		$paymentMethods = $this->client()->invoice()->getPaymentMethods($storeID, $invoiceId);
+
+		// Has any payment been received
+		$paymentReceived = array_reduce($paymentMethods, static function ($carry, $method) {
+			return empty($method->getPayments()) ? $carry : true;
+		}, false);
+
 		// Prepare smarty
 		$this->context->smarty->assign([
-			'server_url'     => $serverUrl,
-			'storeCurrency'  => Currency::getCurrencyInstance($cart->id_currency)->getSymbol(),
-			'invoice'        => $this->client()->invoice()->getInvoice($storeID, $invoiceId),
-			'paymentMethods' => $this->client()->invoice()->getPaymentMethods($storeID, $invoiceId),
+			'server_url'      => $serverUrl,
+			'storeCurrency'   => Currency::getCurrencyInstance($cart->id_currency)->getSymbol(),
+			'invoice'         => $this->client()->invoice()->getInvoice($storeID, $invoiceId),
+			'paymentMethods'  => $paymentMethods,
+			'paymentReceived' => $paymentReceived,
 		]);
 
 		return $this->display(__FILE__, 'views/templates/admin/invoice_block.tpl');
@@ -345,17 +354,21 @@ class BTCPay extends PaymentModule
 			return null;
 		}
 
+		// Get the order
+		if (null === ($bitcoinPayment = (new LegacyBitcoinPaymentRepository())->getOneByOrderID($order->id))) {
+			return null;
+		}
+
 		// Prepare smarty to present order details
-		$this->context->smarty->assign(
-			[
-				'presenter'     => (new OrderPresenter())->present($order),
-				'order_state'   => $order->getCurrentState(),
-				'os_waiting'    => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_WAITING),
-				'os_confirming' => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING),
-				'os_failed'     => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_FAILED),
-				'os_paid'       => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_PAID),
-			]
-		);
+		$this->context->smarty->assign([
+			'presenter'      => (new OrderPresenter())->present($order),
+			'bitcoinPayment' => $bitcoinPayment,
+			'order_state'    => $order->getCurrentState(),
+			'os_waiting'     => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_WAITING),
+			'os_confirming'  => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING),
+			'os_failed'      => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_FAILED),
+			'os_paid'        => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_PAID),
+		]);
 
 		return $this->display(__FILE__, 'views/templates/hooks/payment_return.tpl');
 	}

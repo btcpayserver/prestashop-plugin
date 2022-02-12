@@ -30,13 +30,15 @@
       </div>
     </div>
 
-    {if not empty($paymentMethods)}
+    {if $paymentReceived}
       <nav>
         <div class="nav nav-tabs" id="nav-tab" role="tablist">
         {foreach $paymentMethods as $paymentMethod}
           {if not empty($paymentMethod->getPayments())}
             {assign currencyCode "_"|explode:$paymentMethod.paymentMethod|current}
-            <a class="nav-item nav-link{if $paymentMethod@first} active{/if}" id="nav-{$currencyCode|strtolower}-tab" data-toggle="tab" href="#nav-{$currencyCode|strtolower}" role="tab" aria-controls="nav-{$currencyCode|strtolower}" aria-selected="true">{$currencyCode}</a>
+            <a class="nav-item nav-link{if $paymentMethod@first} active{/if}" id="nav-{$currencyCode|strtolower}-tab" data-toggle="tab" href="#nav-{$currencyCode|strtolower}" role="tab" aria-controls="nav-{$currencyCode|strtolower}" aria-selected="true">
+              <strong>{$currencyCode}</strong>
+            </a>
           {/if}
         {/foreach}
         </div>
