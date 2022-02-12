@@ -29,7 +29,7 @@ class BitcoinPaymentRepository
 	public function createTables(): array
 	{
 		$errors = [];
-		$engine = _MYSQL_ENGINE_;
+		$engine = \_MYSQL_ENGINE_;
 
 		$queries = [
 			"CREATE TABLE IF NOT EXISTS `{$this->prefix}bitcoin_payment`(
@@ -56,7 +56,7 @@ class BitcoinPaymentRepository
 				$this->connection->executeQuery($query);
 			}
 		} catch (Exception $e) {
-			$errors[] = ['key' => json_encode($e->getMessage(), \JSON_THROW_ON_ERROR), 'parameters' => [], 'domain' => 'Admin.Modules.Notification'];
+			$errors[] = ['key' => \json_encode($e->getMessage(), \JSON_THROW_ON_ERROR), 'parameters' => [], 'domain' => 'Admin.Modules.Notification'];
 		}
 
 		return $errors;
@@ -73,7 +73,7 @@ class BitcoinPaymentRepository
 		try {
 			$this->connection->executeQuery($query);
 		} catch (Exception $e) {
-			$errors[] = ['key' => json_encode($e->getMessage(), \JSON_THROW_ON_ERROR), 'parameters' => [], 'domain' => 'Admin.Modules.Notification'];
+			$errors[] = ['key' => \json_encode($e->getMessage(), \JSON_THROW_ON_ERROR), 'parameters' => [], 'domain' => 'Admin.Modules.Notification'];
 		}
 
 		return $errors;

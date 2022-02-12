@@ -38,7 +38,7 @@ class OrderStates
 		// Check and insert "awaiting payment" if needed.
 		if (!$this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_WAITING)
 			|| !\Validate::isLoadedObject(new OrderState($this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_WAITING)))) {
-			if (false === ($this->installAwaiting())) {
+			if (false === $this->installAwaiting()) {
 				$errors[] = [
 					'key'        => 'Could not add new order state: BTCPAY_OS_WAITING',
 					'parameters' => [],
@@ -50,7 +50,7 @@ class OrderStates
 		// Check and insert "confirming payment" if needed.
 		if (!$this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING)
 			|| !\Validate::isLoadedObject(new OrderState($this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING)))) {
-			if (false === ($this->installConfirming())) {
+			if (false === $this->installConfirming()) {
 				$errors[] = [
 					'key'        => 'Could not add new order state: BTCPAY_OS_CONFIRMING',
 					'parameters' => [],
@@ -62,7 +62,7 @@ class OrderStates
 		// Check and insert "failed payment" if needed.
 		if (!$this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED)
 			|| !\Validate::isLoadedObject(new OrderState($this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED)))) {
-			if (false === ($this->installFailed())) {
+			if (false === $this->installFailed()) {
 				$errors[] = [
 					'key'        => 'Could not add new order state: BTCPAY_OS_FAILED',
 					'parameters' => [],
@@ -74,7 +74,7 @@ class OrderStates
 		// Check and insert "payment succeeded" if needed.
 		if (!$this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_PAID)
 			|| !\Validate::isLoadedObject(new OrderState($this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_PAID)))) {
-			if (false === ($this->installPaid())) {
+			if (false === $this->installPaid()) {
 				$errors[] = [
 					'key'        => 'Could not add new order state: BTCPAY_OS_PAID',
 					'parameters' => [],
@@ -232,8 +232,8 @@ class OrderStates
 
 	private function installImage(OrderState $order_state, string $image_name): void
 	{
-		$source      = _PS_MODULE_DIR_ . $this->moduleName . '/views/images/' . $image_name;
-		$destination = _PS_ROOT_DIR_ . '/img/os/' . (int) $order_state->id . '.gif';
-		copy($source, $destination);
+		$source      = \_PS_MODULE_DIR_ . $this->moduleName . '/views/images/' . $image_name;
+		$destination = \_PS_ROOT_DIR_ . '/img/os/' . (int) $order_state->id . '.gif';
+		\copy($source, $destination);
 	}
 }

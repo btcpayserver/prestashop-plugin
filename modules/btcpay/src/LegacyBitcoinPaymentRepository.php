@@ -46,12 +46,12 @@ class LegacyBitcoinPaymentRepository
 		$query = new \DbQuery();
 		$query->select('bp.*')
 			->from('bitcoin_payment', 'bp')
-			->where(sprintf('bp.invoice_id = "%s"', $invoiceId))
+			->where(\sprintf('bp.invoice_id = "%s"', $invoiceId))
 			->limit(1);
 
 		$result = $this->connection->query($query);
 		if (0 !== ($errorCode = (int) $result->errorCode())) {
-			throw new \PrestaShopDatabaseException(json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
+			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
 		}
 
 		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
@@ -70,12 +70,12 @@ class LegacyBitcoinPaymentRepository
 		$query = new \DbQuery();
 		$query->select('bp.*')
 			->from('bitcoin_payment', 'bp')
-			->where(sprintf('bp.invoice_reference = "%s"', $invoiceReference))
+			->where(\sprintf('bp.invoice_reference = "%s"', $invoiceReference))
 			->limit(1);
 
 		$result = $this->connection->query($query);
 		if (0 !== ($errorCode = (int) $result->errorCode())) {
-			throw new \PrestaShopDatabaseException(json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
+			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
 		}
 
 		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
@@ -94,12 +94,12 @@ class LegacyBitcoinPaymentRepository
 		$query = new \DbQuery();
 		$query->select('bp.*')
 			->from('bitcoin_payment', 'bp')
-			->where(sprintf('bp.cart_id = "%s"', $cartID))
+			->where(\sprintf('bp.cart_id = "%s"', $cartID))
 			->limit(1);
 
 		$result = $this->connection->query($query);
 		if (0 !== ($errorCode = (int) $result->errorCode())) {
-			throw new \PrestaShopDatabaseException(json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
+			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
 		}
 
 		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
@@ -118,15 +118,15 @@ class LegacyBitcoinPaymentRepository
 		$query = new \DbQuery();
 		$query->select('bp.*')
 			->from('bitcoin_payment', 'bp')
-			->where(sprintf('bp.order_id = "%s"', $orderID))
+			->where(\sprintf('bp.order_id = "%s"', $orderID))
 			->limit(1);
 
 		$result = $this->connection->query($query);
 		if (0 !== ($errorCode = (int) $result->errorCode())) {
-			throw new \PrestaShopDatabaseException(json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
+			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
 		}
 
-		if (false === ($object = \Db::getInstance()->query($query)->fetchObject(BitcoinPayment::class))) {
+		if (false === ($object = $this->connection->query($query)->fetchObject(BitcoinPayment::class))) {
 			return null;
 		}
 

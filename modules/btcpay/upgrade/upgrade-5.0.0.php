@@ -84,16 +84,19 @@ function updateConfig(): bool
 			if (false === Configuration::updateValue($speedMode, InvoiceCheckoutOptions::SPEED_LOW)) {
 				throw new \LogicException(sprintf('Could not change %s to %s', $speedMode, InvoiceCheckoutOptions::SPEED_LOW));
 			}
+
 			break;
 		case 'medium':
 			if (false === Configuration::updateValue($speedMode, InvoiceCheckoutOptions::SPEED_MEDIUM)) {
 				throw new \LogicException(sprintf('Could not change %s to %s', $speedMode, InvoiceCheckoutOptions::SPEED_MEDIUM));
 			}
+
 			break;
 		case 'high':
 			if (false === Configuration::updateValue($speedMode, InvoiceCheckoutOptions::SPEED_HIGH)) {
 				throw new \LogicException(sprintf('Could not change %s to %s', $speedMode, InvoiceCheckoutOptions::SPEED_HIGH));
 			}
+
 			break;
 		default:
 			throw new \LogicException(sprintf('Could not find proper value for config %s, current value is %s', $speedMode, $current));

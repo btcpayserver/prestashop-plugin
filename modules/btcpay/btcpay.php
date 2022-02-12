@@ -26,6 +26,15 @@ require_once __DIR__ . '/vendor/autoload.php';
 /** @noinspection AutoloadingIssuesInspection */
 class BTCPay extends PaymentModule
 {
+	public $tabs = [
+		[
+			'name'              => 'BTCPay',
+			'visible'           => true,
+			'class_name'        => 'AdminConfigureBTCPay',
+			'parent_class_name' => 'AdminParentPayment',
+		],
+	];
+
 	/**
 	 * @var Client
 	 */
@@ -40,15 +49,6 @@ class BTCPay extends PaymentModule
 	 * @var Configuration
 	 */
 	private $configuration;
-
-	public $tabs = [
-		[
-			'name'              => 'BTCPay',
-			'visible'           => true,
-			'class_name'        => 'AdminConfigureBTCPay',
-			'parent_class_name' => 'AdminParentPayment',
-		],
-	];
 
 	public function __construct()
 	{
@@ -429,8 +429,10 @@ class BTCPay extends PaymentModule
 
 		// Try to remove the order
 		if (false === $bitcoinPayment->delete()) {
-			PrestaShopLogger::addLog('[ERROR] Expected to remove the order, but failed to do so', 3);
-			throw new \PrestaShopDatabaseException('Expected to remove the order, but failed to do so');
+			$error = \sprintf('[ERROR] Expected to remove the order %s, but failed to do so', $bitcoinPayment->order_id);
+			PrestaShopLogger::addLog($error, 3);
+
+			throw new \PrestaShopDatabaseException($error);
 		}
 	}
 

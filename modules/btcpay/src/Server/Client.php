@@ -71,6 +71,7 @@ class Client extends AbstractClient
 		$httpClient = new CurlAdapter();
 
 		parent::__construct($baseUrl, $apiKey, $httpClient);
+
 		$this->apiKey   = new ApiKeyClient($baseUrl, $apiKey, $httpClient);
 		$this->invoice  = new InvoiceClient($baseUrl, $apiKey, $httpClient);
 		$this->server   = new ServerClient($baseUrl, $apiKey, $httpClient);
@@ -82,6 +83,14 @@ class Client extends AbstractClient
 
 		$this->configuration = new Configuration();
 		$this->repository    = new LegacyBitcoinPaymentRepository();
+	}
+
+	public static function createFromConfiguration(Configuration $configuration): self
+	{
+		return new self(
+			$configuration->get(Constants::CONFIGURATION_BTCPAY_HOST),
+			$configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY)
+		);
 	}
 
 	public function invoice(): InvoiceClient
@@ -153,13 +162,5 @@ class Client extends AbstractClient
 		}
 
 		return $redirect;
-	}
-
-	public static function createFromConfiguration(Configuration $configuration): self
-	{
-		return new self(
-			$configuration->get(Constants::CONFIGURATION_BTCPAY_HOST),
-			$configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY)
-		);
 	}
 }

@@ -62,7 +62,8 @@ class Factory
 		try {
 			$client = Client::createFromConfiguration($this->configuration);
 		} catch (\Throwable $e) {
-			\PrestaShopLogger::addLog(sprintf('[ERROR] %s', $e->getMessage()), 4, $e->getCode());
+			\PrestaShopLogger::addLog(\sprintf('[ERROR] %s', $e->getMessage()), 4, $e->getCode());
+
 			throw new BTCPayException($e->getMessage(), $e->getCode(), $e);
 		}
 
@@ -139,7 +140,7 @@ class Factory
 			$invoiceId       = $invoiceResponse['id'];
 			$invoiceUrl      = $invoiceResponse['checkoutLink'];
 
-			\PrestaShopLogger::addLog(sprintf('[INFO] Invoice %s created, see %s', $invoiceId, $invoiceUrl));
+			\PrestaShopLogger::addLog(\sprintf('[INFO] Invoice %s created, see %s', $invoiceId, $invoiceUrl));
 
 			// Register invoice into bitcoin_payment table, if we didn't have one before.
 			if (null === ($bitcoinPayment = $this->repository->getOneByCartID($cart->id))) {
@@ -152,16 +153,18 @@ class Factory
 			$bitcoinPayment->setRedirect($invoiceUrl);
 
 			if (false === $bitcoinPayment->save(true)) {
-				\PrestaShopLogger::addLog('[ERROR] Could not store bitcoin_payment', 3);
+				$error = \sprintf('[ERROR] Could not store bitcoin_payment: %s', \Db::getInstance()->getMsgError());
+				\PrestaShopLogger::addLog($error, 3);
 
-				throw new \RuntimeException('[ERROR] Could not store bitcoin_payment');
+				throw new \RuntimeException($error);
 			}
 
 			\PrestaShopLogger::addLog(sprintf('[INFO] Invoice %s has been updated', $invoiceId));
 
 			return $bitcoinPayment->getRedirect();
 		} catch (\Throwable $e) {
-			\PrestaShopLogger::addLog(sprintf('[ERROR] %s', $e->getMessage()), 3);
+			\PrestaShopLogger::addLog(\sprintf('[ERROR] %s', $e->getMessage()), 3);
+
 			throw new BTCPayException($e->getMessage(), $e->getCode(), $e);
 		}
 	}
