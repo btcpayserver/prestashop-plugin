@@ -33,8 +33,8 @@ class Webhook extends \BTCPayServer\Client\Webhook
 	 */
 	public function getCurrent(string $storeId): ?\BTCPayServer\Result\Webhook
 	{
-		foreach ($this->getWebhooks($storeId) as $webhook) {
-			if ($webhook->offsetGet('id') !== $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID)) {
+		foreach ($this->getStoreWebhooks($storeId)->all() as $webhook) {
+			if ($webhook->getId() !== $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID)) {
 				continue;
 			}
 
@@ -51,10 +51,8 @@ class Webhook extends \BTCPayServer\Client\Webhook
 	public function ensureWebhook(string $storeId): void
 	{
 		// Check if we have an existing webhook, if so, just cancel now
-		foreach ($this->getWebhooks($storeId) as $webhook) {
-			if ($webhook->offsetGet('id') === $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID)) {
-				return;
-			}
+		if (null !== $this->getCurrent($storeId)) {
+			return;
 		}
 
 		// Generate new webhook secret
@@ -67,19 +65,19 @@ class Webhook extends \BTCPayServer\Client\Webhook
 		$webhook = $this->createWebhook($storeId, $webhookURL, null, $secret);
 
 		// Ensure we actually made a proper webhook
-		if (!$webhook->offsetExists('id') || !$webhook->offsetExists('secret')) {
-			throw new BTCPayException('Webhook wasn\'t created correctly.', Response::HTTP_INTERNAL_SERVER_ERROR);
+		if (!$webhook->getId() || !$webhook->offsetExists('secret')) {
+			throw new BTCPayException("Webhook wasn't created correctly.", Response::HTTP_INTERNAL_SERVER_ERROR);
 		}
 
 		// Ensure the webhook was created with the secret we provided
 		if ($webhook->offsetGet('secret') !== $secret) {
-			throw new BTCPayException('Webhook secret doesn\'t match our secret.', Response::HTTP_INTERNAL_SERVER_ERROR);
+			throw new BTCPayException("Webhook secret doesn't match our secret.", Response::HTTP_INTERNAL_SERVER_ERROR);
 		}
 
 		// Store the webhook secret we made, so we can check that the webhook is actually made by us
 		$this->configuration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET, $secret);
 
 		// Store the ID, so we can check if we already have a valid webhook
-		$this->configuration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID, $webhook->offsetGet('id'));
+		$this->configuration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID, $webhook->getId());
 	}
 }
