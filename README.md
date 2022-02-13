@@ -27,10 +27,6 @@ Please ensure that you meet the following requirements before installing this pl
 - Prestashop version 1.7.7.x
 - BTCPay server version 1.3.4
 
-## Internals
-
-This plugin support creating orders before or after payment. That said the `before`-mode still requires a callback from the BTCPay server itself so that all relevant data is available during order creation.
-
 ## Documentation
 
 Please check out our [official website](https://btcpayserver.org/), our [complete documentation](https://docs.btcpayserver.org/) and [FAQ](https://docs.btcpayserver.org/FAQ/) for more details.
