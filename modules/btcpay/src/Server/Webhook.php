@@ -65,12 +65,12 @@ class Webhook extends \BTCPayServer\Client\Webhook
 		$webhook = $this->createWebhook($storeId, $webhookURL, null, $secret);
 
 		// Ensure we actually made a proper webhook
-		if (!$webhook->getId() || !$webhook->offsetExists('secret')) {
+		if (empty($webhook->getId()) || empty($webhook->getSecret())) {
 			throw new BTCPayException("Webhook wasn't created correctly.", Response::HTTP_INTERNAL_SERVER_ERROR);
 		}
 
 		// Ensure the webhook was created with the secret we provided
-		if ($webhook->offsetGet('secret') !== $secret) {
+		if ($webhook->getSecret() !== $secret) {
 			throw new BTCPayException("Webhook secret doesn't match our secret.", Response::HTTP_INTERNAL_SERVER_ERROR);
 		}
 
