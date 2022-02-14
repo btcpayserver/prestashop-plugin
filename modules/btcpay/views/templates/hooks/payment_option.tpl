@@ -3,10 +3,10 @@
   <hr class="mb-1"/>
   <p class="mb-1"><strong>{l s='Supported payment methods' d='Modules.Btcpay.Front'}</strong>:</p>
   <dl>
-      {foreach $offchain as $paymentMethod}
+      {foreach $offChain as $paymentMethod}
         <dt>{$paymentMethod.cryptoCode} Lightning ⚡</dt>
       {/foreach}
-      {foreach $onchain as $paymentMethod}
+      {foreach $onChain as $paymentMethod}
         <dt>{$paymentMethod.cryptoCode} (On-Chain)</dt>
       {/foreach}
   </dl>

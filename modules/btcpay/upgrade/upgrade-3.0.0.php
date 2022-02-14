@@ -9,6 +9,8 @@ if (!defined('_PS_VERSION_')) {
 
 /**
  * @param BTCpay $module
+ *
+ * @throws JsonException
  */
 function upgrade_module_3_0_0(ModuleInterface $module): bool
 {
@@ -32,7 +34,7 @@ function updateDatabase(): bool
 	/** @var PDO $connection */
 	$connection = Db::getInstance()->connect();
 
-	// Start a transaction so we don't fuck up the database if shit goes wrong
+	// Start a transaction, so we don't mess up the database if something goes wrong
 	$connection->beginTransaction();
 
 	$queries = [
@@ -50,7 +52,7 @@ function updateDatabase(): bool
 	];
 
 	foreach ($queries as $query) {
-		// Execute query
+		// Execute the query
 		if (false === $connection->query($query)) {
 			// Cancel the transaction
 			if (false === $connection->rollBack()) {

@@ -44,12 +44,12 @@ class Client extends AbstractClient
 	/**
 	 * @var StorePaymentMethodOnChain
 	 */
-	private $onchain;
+	private $onChain;
 
 	/**
 	 * @var StorePaymentMethodLightningNetwork
 	 */
-	private $offchain;
+	private $offChain;
 
 	/**
 	 * @var Webhook
@@ -77,8 +77,8 @@ class Client extends AbstractClient
 		$this->server   = new ServerClient($baseUrl, $apiKey, $httpClient);
 		$this->store    = new StoreClient($baseUrl, $apiKey, $httpClient);
 		$this->payment  = new StorePaymentMethod($baseUrl, $apiKey, $httpClient);
-		$this->onchain  = new StorePaymentMethodOnChain($baseUrl, $apiKey, $httpClient);
-		$this->offchain = new StorePaymentMethodLightningNetwork($baseUrl, $apiKey, $httpClient);
+		$this->onChain  = new StorePaymentMethodOnChain($baseUrl, $apiKey, $httpClient);
+		$this->offChain = new StorePaymentMethodLightningNetwork($baseUrl, $apiKey, $httpClient);
 		$this->webhook  = new Webhook($baseUrl, $apiKey, $httpClient);
 
 		$this->configuration = new Configuration();
@@ -118,14 +118,14 @@ class Client extends AbstractClient
 		return $this->payment;
 	}
 
-	public function onchain(): StorePaymentMethodOnChain
+	public function onChain(): StorePaymentMethodOnChain
 	{
-		return $this->onchain;
+		return $this->onChain;
 	}
 
-	public function offchain(): StorePaymentMethodLightningNetwork
+	public function offChain(): StorePaymentMethodLightningNetwork
 	{
-		return $this->offchain;
+		return $this->offChain;
 	}
 
 	public function webhook(): Webhook

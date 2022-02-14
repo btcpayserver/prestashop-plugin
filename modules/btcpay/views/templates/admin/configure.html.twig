@@ -106,10 +106,10 @@
                 <dt><span class="text-muted mb-0"><strong>Payment methods</strong></span></dt>
                 <dd>
                   <ul class="list-unstyled px-1">
-                  {% for paymentMethod in client.offchain().getPaymentMethods(storeId) %}
+                  {% for paymentMethod in client.offChain().getPaymentMethods(storeId) %}
                     <li>{{ paymentMethod.cryptoCode }} Lightning ⚡</li>
                   {% endfor %}
-                  {% for paymentMethod in client.onchain().getPaymentMethods(storeId) %}
+                  {% for paymentMethod in client.onChain().getPaymentMethods(storeId) %}
                     <li>{{ paymentMethod.cryptoCode }} On-Chain</li>
                   {% endfor %}
                   </ul>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+  <name>btcpay</name>
+  <displayName><![CDATA[BTCPay]]></displayName>
+  <version><![CDATA[5.1.1]]></version>
+  <description><![CDATA[Accept crypto payments via BTCPay Server.]]></description>
+  <author><![CDATA[BTCPayServer]]></author>
+  <tab><![CDATA[payments_gateways]]></tab>
+  <is_configurable>1</is_configurable>
+  <need_instance>1</need_instance>
+  <limited_countries/>
+</module>

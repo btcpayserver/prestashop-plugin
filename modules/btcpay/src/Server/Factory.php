@@ -32,9 +32,9 @@ class Factory
 	private $context;
 
 	/**
-	 * @var string
+	 * @var \BTCPay
 	 */
-	private $moduleName;
+	private $module;
 
 	public function __construct(\BTCPay $module, \Context $context)
 	{
