@@ -8,7 +8,7 @@
       </a>
     </div>
     <img src="{{ asset('../modules/btcpay/views/images/btcpay-plugin.png') }}" alt="BTCPay Server logo" style="float:left; margin-right:15px;"/>
-    <p><strong>{{ 'This module allows you to accept payments via BTCPay Server.'|trans({}, 'Modules.Btcpay.Admin') }}</strong></p>
+    <p><strong>{{ 'This module (v%version%) allows you to accept payments via BTCPay Server.'|trans({'%version%': moduleVersion}, 'Modules.Btcpay.Admin') }}</strong></p>
     <p>{{ 'To be able to use this payment module you need to have a BTCPay Server instance, either <a href="https://docs.btcpayserver.org/Deployment/" target="_blank">self-hosted</a> or <a href="https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/." target="_blank">hosted by a third-party</a>.<br/>With <a href="https://docs.btcpayserver.org/RegisterAccount" target="_blank">a registered account on the instance</a>, <a href="https://docs.btcpayserver.org/CreateStore" target="_blank">an actual store on the instance</a> and <a href="https://docs.btcpayserver.org/WalletSetup" target="_blank">a wallet connected to your store</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
   </div>
 
@@ -60,7 +60,7 @@
               <div class="card-block">
                 <div class="card-text">
                   <dl>
-                    <dt><span class="text-muted mb-0"><strong>Name</strong></span></dt>
+                    <dt><span class="text-muted mb-0"><strong>Linked Store Name</strong></span></dt>
                     <dd><span class="px-1">{% if storeInfo.website is not empty %}<a href="{{ storeInfo.website }}" target="_blank">{{ storeInfo.name }}</a>{% else %}{{ storeInfo.name }}{% endif %}</span></dd>
 
                     <dt><span class="text-muted mb-0"><strong>Default speed policy</strong></span></dt>

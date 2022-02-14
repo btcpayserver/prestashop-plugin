@@ -22,14 +22,20 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class ConfigureController extends FrameworkBundleAdminController
 {
 	/**
+	 * @var \BTCPay
+	 */
+	private $module;
+
+	/**
 	 * @var ValidatorInterface
 	 */
 	private $validator;
 
-	public function __construct(ValidatorInterface $validator)
+	public function __construct(\BTCPay $module, ValidatorInterface $validator)
 	{
 		parent::__construct();
 
+		$this->module = $module;
 		$this->validator = $validator;
 	}
 
@@ -44,6 +50,7 @@ class ConfigureController extends FrameworkBundleAdminController
 			return $this->render('@Modules/btcpay/views/templates/admin/configure.html.twig', [
 				'form'          => $this->get('prestashop.module.btcpay.form_handler')->getForm()->createView(),
 				'help_link'     => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
+				'moduleVersion' => $this->module->version,
 				'invalidApiKey' => true,
 				'enableSidebar' => true,
 			]);
@@ -54,6 +61,7 @@ class ConfigureController extends FrameworkBundleAdminController
 			'help_link'     => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
 			'storeId'       => $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID),
 			'client'        => Client::createFromConfiguration($this->configuration),
+			'moduleVersion' => $this->module->version,
 			'enableSidebar' => true,
 		]);
 	}
@@ -79,6 +87,7 @@ class ConfigureController extends FrameworkBundleAdminController
 				'form'          => $form->createView(),
 				'help_link'     => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
 				'invalidApiKey' => $this->isInvalidApiKey(),
+				'moduleVersion' => $this->module->version,
 				'enableSidebar' => true,
 			]);
 		}

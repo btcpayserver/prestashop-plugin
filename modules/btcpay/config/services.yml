@@ -14,6 +14,7 @@ services:
   BTCPay\Controller\Admin\Improve\Payment\ConfigureController:
     class: BTCPay\Controller\Admin\Improve\Payment\ConfigureController
     arguments:
+      - '@prestashop.module.btcpay'
       - '@validator'
 
   # BTCPay form data provider
