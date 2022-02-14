@@ -54,7 +54,7 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '5.1.0';
+		$this->version                = '5.1.1';
 		$this->author                 = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
 		$this->controllers            = ['webhook', 'payment', 'validation'];
@@ -257,12 +257,10 @@ class BTCPay extends PaymentModule
 	/**
 	 * Hooks on prestashop order details in frontend
 	 *
-	 * @param $params
-	 *
 	 * @throws JsonException
 	 * @throws PrestaShopDatabaseException
 	 */
-	public function hookDisplayOrderDetail($params): ?string
+	public function hookDisplayOrderDetail(array $params): ?string
 	{
 		// If the module is not active, abort
 		if (!$this->active) {
@@ -390,8 +388,8 @@ class BTCPay extends PaymentModule
 
 		// Prepare smarty
 		$this->context->smarty->assign([
-			'onchain'  => $this->client()->onchain()->getPaymentMethods($storeID),
-			'offchain' => $this->client()->offchain()->getPaymentMethods($storeID),
+			'onChain'  => $this->client()->onChain()->getPaymentMethods($storeID),
+			'offChain' => $this->client()->offChain()->getPaymentMethods($storeID),
 		]);
 
 		return [

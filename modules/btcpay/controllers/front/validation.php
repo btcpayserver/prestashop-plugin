@@ -23,6 +23,10 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 		$this->repository = new LegacyBitcoinPaymentRepository();
 	}
 
+	/**
+	 * @throws PrestaShopDatabaseException
+	 * @throws JsonException
+	 */
 	public function postProcess(): void
 	{
 		// Check if the cart we have is even valid

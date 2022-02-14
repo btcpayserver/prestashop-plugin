@@ -13,6 +13,11 @@ class BTCPayPaymentModuleFrontController extends ModuleFrontController
 	public $ssl = true;
 
 	/**
+	 * @var BTCPay
+	 */
+	public $module;
+
+	/**
 	 * @var Factory
 	 */
 	private $factory;

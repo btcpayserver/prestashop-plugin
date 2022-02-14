@@ -12,6 +12,8 @@ if (!defined('_PS_VERSION_')) {
  * @param BTCpay $module
  *
  * @throws JsonException
+ * @throws PrestaShopDatabaseException
+ * @throws PrestaShopException
  */
 function upgrade_module_5_0_0(ModuleInterface $module): bool
 {
@@ -30,6 +32,9 @@ function upgrade_module_5_0_0(ModuleInterface $module): bool
 	return updateOrderStates();
 }
 
+/**
+ * @throws JsonException
+ */
 function updateDatabase(): bool
 {
 	/** @var PDO $connection */
@@ -55,13 +60,13 @@ function updateDatabase(): bool
 				throw new \RuntimeException('Could not rollback transaction');
 			}
 
-			throw new \RuntimeException(json_encode($connection->errorInfo(), \JSON_THROW_ON_ERROR));
+			throw new \RuntimeException(\json_encode($connection->errorInfo(), \JSON_THROW_ON_ERROR));
 		}
 	}
 
 	// Store the made changes in the database
 	if (false === $connection->commit()) {
-		throw new \RuntimeException(json_encode($connection->errorInfo(), \JSON_THROW_ON_ERROR));
+		throw new \RuntimeException(\json_encode($connection->errorInfo(), \JSON_THROW_ON_ERROR));
 	}
 
 	return true;
@@ -105,6 +110,10 @@ function updateConfig(): bool
 	return true;
 }
 
+/**
+ * @throws PrestaShopException
+ * @throws PrestaShopDatabaseException
+ */
 function updateOrderStates(): bool
 {
 	$waiting      = new OrderState(Configuration::get(Constants::CONFIGURATION_ORDER_STATE_WAITING));

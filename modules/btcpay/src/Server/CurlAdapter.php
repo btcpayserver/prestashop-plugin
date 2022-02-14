@@ -28,9 +28,9 @@ class CurlAdapter extends CurlClient
 	 *
 	 * Four things can happen:
 	 * 1. This call succeeds and we return like normal
-	 * 2. The call fails and we retry 3 times using the default strategy, if any retry succeeds, we return it
-	 * 3. The call fails and we retry 3 times using the default strategy, if all retries fail, it will throw the last error
-	 * 4. The maximum waiting time exceeds and we will just throw the last error
+	 * 2. The call fails, and we retry 3 times using the default strategy, if any retry succeeds, we return it
+	 * 3. The call fails, and we retry 3 times using the default strategy, if all retries fail, it will throw the last error
+	 * 4. The maximum waiting time exceeds, and we will just throw the last error
 	 *
 	 * @throws \Exception
 	 */

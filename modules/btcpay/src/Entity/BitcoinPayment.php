@@ -100,6 +100,10 @@ class BitcoinPayment extends \ObjectModel
 		$this->status = $status;
 	}
 
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \PrestaShopException
+	 */
 	public function getStatusName(): string
 	{
 		$name = $this->getStatus();
