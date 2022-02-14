@@ -1,7 +1,8 @@
 {
   "name": "btcpay/prestashop",
-  "type": "prestashop-module",
   "description": "BTCPay payment plugin for PrestaShop",
+  "license": "MIT",
+  "type": "prestashop-module",
   "keywords": [
     "prestashop",
     "plugin",
@@ -11,7 +12,10 @@
     "BTCPay"
   ],
   "homepage": "https://github.com/btcpayserver/prestashop-plugin",
-  "license": "MIT",
+  "support": {
+    "issues": "https://github.com/btcpayserver/prestashop-plugin/issues",
+    "source": "https://github.com/btcpayserver/prestashop-plugin"
+  },
   "require": {
     "php": ">=7.3.0",
     "ext-PDO": "*",
@@ -29,23 +33,13 @@
     "symfony/debug-bundle": "^4.4",
     "symfony/var-dumper": "^4.4"
   },
-  "config": {
-    "platform": {
-      "php": "7.3"
-    },
-    "preferred-install": "dist",
-    "prepend-autoloader": false,
-    "sort-packages": true,
-    "allow-plugins": {
-      "ergebnis/composer-normalize": true
-    }
-  },
   "replace": {
     "symfony/polyfill-php70": "*",
     "symfony/polyfill-php71": "*",
     "symfony/polyfill-php72": "*",
     "symfony/polyfill-php73": "*"
   },
+  "minimum-stability": "stable",
   "autoload": {
     "psr-4": {
       "BTCPay\\": "src/"
@@ -55,9 +49,15 @@
     ],
     "exclude-from-classmap": []
   },
-  "minimum-stability": "stable",
-  "support": {
-    "issues": "https://github.com/btcpayserver/prestashop-plugin/issues",
-    "source": "https://github.com/btcpayserver/prestashop-plugin"
+  "config": {
+    "allow-plugins": {
+      "ergebnis/composer-normalize": true
+    },
+    "platform": {
+      "php": "7.3"
+    },
+    "preferred-install": "dist",
+    "prepend-autoloader": false,
+    "sort-packages": true
   }
 }

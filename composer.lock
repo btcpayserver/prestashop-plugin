@@ -1246,22 +1246,22 @@
         },
         {
             "name": "doctrine/doctrine-bundle",
-            "version": "2.5.5",
+            "version": "2.5.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/DoctrineBundle.git",
-                "reference": "5c086cbbe5327937dd6f90da075f7d421b0f28bc"
+                "reference": "f1423b2a640b6ac545b6e0c02575427a4dc1e9dc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/DoctrineBundle/zipball/5c086cbbe5327937dd6f90da075f7d421b0f28bc",
-                "reference": "5c086cbbe5327937dd6f90da075f7d421b0f28bc",
+                "url": "https://api.github.com/repos/doctrine/DoctrineBundle/zipball/f1423b2a640b6ac545b6e0c02575427a4dc1e9dc",
+                "reference": "f1423b2a640b6ac545b6e0c02575427a4dc1e9dc",
                 "shasum": ""
             },
             "require": {
                 "doctrine/annotations": "^1",
                 "doctrine/cache": "^1.11 || ^2.0",
-                "doctrine/dbal": "^2.13.1|^3.1",
+                "doctrine/dbal": "^2.13.1|^3.3.2",
                 "doctrine/persistence": "^2.2",
                 "doctrine/sql-formatter": "^1.0.1",
                 "php": "^7.1 || ^8.0",
@@ -1275,7 +1275,7 @@
                 "symfony/service-contracts": "^1.1.1|^2.0|^3"
             },
             "conflict": {
-                "doctrine/orm": "<2.9",
+                "doctrine/orm": "<2.9|>=3.0",
                 "twig/twig": "<1.34|>=2.0,<2.4"
             },
             "require-dev": {
@@ -1339,7 +1339,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/DoctrineBundle/issues",
-                "source": "https://github.com/doctrine/DoctrineBundle/tree/2.5.5"
+                "source": "https://github.com/doctrine/DoctrineBundle/tree/2.5.6"
             },
             "funding": [
                 {
@@ -1355,7 +1355,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-01-06T08:56:31+00:00"
+            "time": "2022-02-13T20:17:53+00:00"
         },
         {
             "name": "doctrine/event-manager",
@@ -2553,16 +2553,16 @@
         },
         {
             "name": "greenlion/php-sql-parser",
-            "version": "v4.4.0",
+            "version": "v4.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/greenlion/PHP-SQL-Parser.git",
-                "reference": "e38d6f0f500d4d86bee7722e2e89262eeaab7e59"
+                "reference": "a5d5c292d97271c95140192e6f0e962916e39b50"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/greenlion/PHP-SQL-Parser/zipball/e38d6f0f500d4d86bee7722e2e89262eeaab7e59",
-                "reference": "e38d6f0f500d4d86bee7722e2e89262eeaab7e59",
+                "url": "https://api.github.com/repos/greenlion/PHP-SQL-Parser/zipball/a5d5c292d97271c95140192e6f0e962916e39b50",
+                "reference": "a5d5c292d97271c95140192e6f0e962916e39b50",
                 "shasum": ""
             },
             "require": {
@@ -2570,7 +2570,7 @@
             },
             "require-dev": {
                 "analog/analog": "^1.0.6",
-                "phpunit/phpunit": "^4.0.14",
+                "phpunit/phpunit": "^9.5.13",
                 "squizlabs/php_codesniffer": "^1.5.1"
             },
             "type": "library",
@@ -2609,7 +2609,7 @@
                 "issues": "https://github.com/greenlion/PHP-SQL-Parser/issues",
                 "source": "https://github.com/greenlion/PHP-SQL-Parser"
             },
-            "time": "2021-03-28T23:13:55+00:00"
+            "time": "2022-02-01T09:26:56+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -2655,12 +2655,12 @@
                 }
             },
             "autoload": {
-                "psr-4": {
-                    "GuzzleHttp\\": "src/"
-                },
                 "files": [
                     "src/functions_include.php"
-                ]
+                ],
+                "psr-4": {
+                    "GuzzleHttp\\": "src/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -4343,16 +4343,16 @@
         },
         {
             "name": "mobiledetect/mobiledetectlib",
-            "version": "2.8.37",
+            "version": "2.8.38",
             "source": {
                 "type": "git",
                 "url": "https://github.com/serbanghita/Mobile-Detect.git",
-                "reference": "9841e3c46f5bd0739b53aed8ac677fa712943df7"
+                "reference": "b6c4ac9686d204c49a432f527f137cf24ac0b90e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/serbanghita/Mobile-Detect/zipball/9841e3c46f5bd0739b53aed8ac677fa712943df7",
-                "reference": "9841e3c46f5bd0739b53aed8ac677fa712943df7",
+                "url": "https://api.github.com/repos/serbanghita/Mobile-Detect/zipball/b6c4ac9686d204c49a432f527f137cf24ac0b90e",
+                "reference": "b6c4ac9686d204c49a432f527f137cf24ac0b90e",
                 "shasum": ""
             },
             "require": {
@@ -4393,15 +4393,9 @@
             ],
             "support": {
                 "issues": "https://github.com/serbanghita/Mobile-Detect/issues",
-                "source": "https://github.com/serbanghita/Mobile-Detect/tree/2.8.37"
+                "source": "https://github.com/serbanghita/Mobile-Detect/tree/2.8.38"
             },
-            "funding": [
-                {
-                    "url": "https://github.com/serbanghita",
-                    "type": "github"
-                }
-            ],
-            "time": "2021-02-19T21:22:57+00:00"
+            "time": "2022-02-14T12:38:04+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -5672,12 +5666,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/PrestaShop/PrestaShop.git",
-                "reference": "7aabf1874574aa565e6a3e8dd619701178cbb8c5"
+                "reference": "a5956e072c27341da9a4ab722e5eaa02c4b1f6a7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PrestaShop/PrestaShop/zipball/7aabf1874574aa565e6a3e8dd619701178cbb8c5",
-                "reference": "7aabf1874574aa565e6a3e8dd619701178cbb8c5",
+                "url": "https://api.github.com/repos/PrestaShop/PrestaShop/zipball/a5956e072c27341da9a4ab722e5eaa02c4b1f6a7",
+                "reference": "a5956e072c27341da9a4ab722e5eaa02c4b1f6a7",
                 "shasum": ""
             },
             "require": {
@@ -5852,7 +5846,7 @@
                 "issues": "https://github.com/PrestaShop/PrestaShop/issues",
                 "source": "https://github.com/PrestaShop/PrestaShop/tree/develop"
             },
-            "time": "2022-02-10T15:36:11+00:00"
+            "time": "2022-02-14T15:52:18+00:00"
         },
         {
             "name": "prestashop/translationtools-bundle",
