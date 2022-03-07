@@ -6,7 +6,6 @@ use BTCPay\Constants;
 use Language;
 use OrderState;
 use PrestaShop\PrestaShop\Adapter\Configuration;
-use PrestaShopCollection;
 
 class OrderStates
 {
@@ -77,34 +76,6 @@ class OrderStates
 			if (false === $this->installPaid()) {
 				$errors[] = [
 					'key'        => 'Could not add new order state: BTCPAY_OS_PAID',
-					'parameters' => [],
-					'domain'     => 'Admin.Modules.Notification',
-				];
-			}
-		}
-
-		return $errors;
-	}
-
-	/**
-	 * @throws \PrestaShopException
-	 */
-	public function uninstall(): array
-	{
-		$collection = new PrestaShopCollection('OrderState');
-		$collection->where('module_name', '=', $this->moduleName);
-
-		if (empty($orderStates = $collection->getResults())) {
-			return [];
-		}
-
-		$errors = [];
-
-		/** @var OrderState $orderState */
-		foreach ($orderStates as $orderState) {
-			if (false === $orderState->delete()) {
-				$errors[] = [
-					'key'        => 'Could not delete order state ' . $orderState->name,
 					'parameters' => [],
 					'domain'     => 'Admin.Modules.Notification',
 				];
