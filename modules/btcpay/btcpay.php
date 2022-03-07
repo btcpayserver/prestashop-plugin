@@ -154,12 +154,6 @@ class BTCPay extends PaymentModule
 			return false;
 		}
 
-		if (!empty($errors = (new OrderStates($this->name))->uninstall())) {
-			$this->addModuleErrors($errors);
-
-			return false;
-		}
-
 		return parent::uninstall();
 	}
 
