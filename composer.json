@@ -40,7 +40,7 @@
     "prestashop/php-dev-tools": "^4.2",
     "prestashop/prestashop": "dev-develop",
     "roave/security-advisories": "dev-latest",
-    "slevomat/coding-standard": "^6.3",
+    "slevomat/coding-standard": "^7.0",
     "squizlabs/php_codesniffer": "^3.5"
   },
   "replace": {
