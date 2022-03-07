@@ -8,6 +8,7 @@ use BTCPay\Installer\Tables;
 use BTCPay\LegacyBitcoinPaymentRepository;
 use BTCPay\Repository\BitcoinPaymentRepository;
 use BTCPay\Server\Client;
+use BTCPayServer\Exception\RequestException;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 use PrestaShop\PrestaShop\Adapter\Presenter\Order\OrderPresenter;
 use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
@@ -234,24 +235,37 @@ class BTCPay extends PaymentModule
 		// Get the store ID
 		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
 
-		// Invoice payments
-		$paymentMethods = $this->client()->invoice()->getPaymentMethods($storeID, $invoiceId);
-
-		// Has any payment been received
-		$paymentReceived = array_reduce($paymentMethods, static function ($carry, $method) {
-			return empty($method->getPayments()) ? $carry : true;
-		}, false);
-
 		// Prepare smarty
 		$this->context->smarty->assign([
-			'server_url'      => $serverUrl,
-			'storeCurrency'   => Currency::getCurrencyInstance($cart->id_currency)->getSymbol(),
-			'invoice'         => $this->client()->invoice()->getInvoice($storeID, $invoiceId),
-			'paymentMethods'  => $paymentMethods,
-			'paymentReceived' => $paymentReceived,
+			'server_url'    => $serverUrl,
+			'storeCurrency' => Currency::getCurrencyInstance($cart->id_currency)->getSymbol(),
 		]);
 
-		return $this->display(__FILE__, 'views/templates/admin/invoice_block.tpl');
+		try {
+			// Get the invoice and its payments
+			$invoice = $this->client()->invoice()->getInvoice($storeID, $invoiceId);
+			$paymentMethods = $this->client()->invoice()->getPaymentMethods($storeID, $invoiceId);
+
+			// Has any payment been received
+			$paymentReceived = array_reduce($paymentMethods, static function ($carry, $method) {
+				return empty($method->getPayments()) ? $carry : true;
+			}, false);
+
+			// Add more information to smarty
+			$this->context->smarty->assign([
+				'invoice'         => $invoice,
+				'paymentMethods'  => $paymentMethods,
+				'paymentReceived' => $paymentReceived,
+			]);
+
+			return $this->display(__FILE__, 'views/templates/admin/invoice_block.tpl');
+		} catch (RequestException $exception) {
+			// Log the exception
+			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay invoice in hookDisplayAdminOrderMainBottom: %s', $exception->getMessage()), 2, $exception->getCode(), 'Order', $bitcoinPayment->getOrderId());
+
+			// Show that the invoice was not found
+			return $this->display(__FILE__, 'views/templates/admin/invoice_missing_block.tpl');
+		}
 	}
 
 	/**
@@ -305,15 +319,23 @@ class BTCPay extends PaymentModule
 		// Get the store ID
 		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
 
-		// Prepare smarty
-		$this->context->smarty->assign([
-			'serverURL'      => $serverUrl,
-			'storeCurrency'  => Currency::getCurrencyInstance($cart->id_currency)->getSymbol(),
-			'invoice'        => $this->client()->invoice()->getInvoice($storeID, $invoiceId),
-			'paymentMethods' => $this->client()->invoice()->getPaymentMethods($storeID, $invoiceId),
-		]);
+		try {
+			// Prepare smarty
+			$this->context->smarty->assign([
+				'serverURL'      => $serverUrl,
+				'storeCurrency'  => Currency::getCurrencyInstance($cart->id_currency)->getSymbol(),
+				'invoice'        => $this->client()->invoice()->getInvoice($storeID, $invoiceId),
+				'paymentMethods' => $this->client()->invoice()->getPaymentMethods($storeID, $invoiceId),
+			]);
 
-		return $this->display(__FILE__, 'views/templates/hooks/order_detail.tpl');
+			return $this->display(__FILE__, 'views/templates/hooks/order_detail.tpl');
+		} catch (RequestException $exception) {
+			// Log the exception
+			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay invoice in hookDisplayOrderDetail: %s', $exception->getMessage()), 2, $exception->getCode(), 'Order', $order->id);
+
+			// If the invoice is gone just return null
+			return null;
+		}
 	}
 
 	public function hookDisplayPaymentEU(): array
