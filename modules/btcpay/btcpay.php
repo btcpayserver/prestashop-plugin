@@ -55,7 +55,7 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '5.1.2';
+		$this->version                = '5.1.3';
 		$this->author                 = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
 		$this->controllers            = ['webhook', 'payment', 'validation'];
@@ -69,6 +69,7 @@ class BTCPay extends PaymentModule
 
 		$this->displayName = $this->trans('BTCPay', [], 'Modules.Btcpay.Admin');
 		$this->description = $this->trans('Accept crypto payments via BTCPay Server.', [], 'Modules.Btcpay.Front');
+		$this->confirmUninstall = $this->trans('Are you sure that you want to uninstall this module? Past purchases and order states will be kept, but your configuration will be removed.', [], 'Modules.Btcpay.Front');
 
 		$this->configuration = new Configuration();
 	}
@@ -103,7 +104,9 @@ class BTCPay extends PaymentModule
 			return false;
 		}
 
-		if (null === ($repository = $this->getRepository())) {
+		if (!empty($errors = (new Hooks($this))->install())) {
+			$this->addModuleErrors($errors);
+
 			return false;
 		}
 
@@ -113,8 +116,8 @@ class BTCPay extends PaymentModule
 			return false;
 		}
 
-		if (!empty($errors = (new Hooks($this))->install())) {
-			$this->addModuleErrors($errors);
+		if (null === ($repository = $this->getRepository())) {
+			$this->addModuleErrors(['Expected a BitcoinPaymentRepository repository, but received NULL']);
 
 			return false;
 		}
@@ -136,19 +139,12 @@ class BTCPay extends PaymentModule
 		return true;
 	}
 
+	/**
+	 * When uninstalling, only remove the configuration. This way, order states and payment links are not lost.
+	 */
 	public function uninstall(): bool
 	{
-		if (null === ($repository = $this->getRepository())) {
-			return false;
-		}
-
 		if (!empty($errors = (new Config())->uninstall())) {
-			$this->addModuleErrors($errors);
-
-			return false;
-		}
-
-		if (!empty($errors = (new Tables($repository))->uninstall())) {
 			$this->addModuleErrors($errors);
 
 			return false;
@@ -157,6 +153,9 @@ class BTCPay extends PaymentModule
 		return parent::uninstall();
 	}
 
+	/**
+	 * When resetting, only deal with the configuration. This way, order states and payment links are not lost.
+	 */
 	public function reset(): bool
 	{
 		$config = new Config();
