@@ -1,8 +1,7 @@
 version: "3"
 services:
   btcpayserver:
-    restart: unless-stopped
-    image: btcpayserver/btcpayserver:1.4.4
+    image: btcpayserver/btcpayserver:1.4.7
     expose:
       - "49392"
     environment:
@@ -23,7 +22,6 @@ services:
       - "8888:49392"
 
   bitcoind:
-    restart: unless-stopped
     container_name: btcpayserver_bitcoind
     image: btcpayserver/bitcoin:22.0-1
     environment:
@@ -47,7 +45,6 @@ services:
       - "bitcoin_wallet_datadir:/walletdata"
 
   nbxplorer:
-    restart: unless-stopped
     image: nicolasdorier/nbxplorer:2.2.29
     expose:
       - "32838"
@@ -64,7 +61,6 @@ services:
       - "bitcoin_datadir:/root/.bitcoin"
 
   postgres:
-    restart: unless-stopped
     image: btcpayserver/postgres:13.4-4
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust
