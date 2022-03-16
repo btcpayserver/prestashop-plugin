@@ -27,7 +27,7 @@ class LegacyBitcoinPaymentRepository
 		$bitcoinPayment->setInvoiceId($invoiceId);
 
 		if (false === $bitcoinPayment->save(true)) {
-			\PrestaShopLogger::addLog('[ERROR] Could not store bitcoin_payment', 3);
+			\PrestaShopLogger::addLog('[ERROR] Could not store bitcoin_payment', \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 			throw new \RuntimeException('[ERROR] Could not store bitcoin_payment');
 		}
