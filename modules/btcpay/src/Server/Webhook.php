@@ -28,20 +28,16 @@ class Webhook extends \BTCPayServer\Client\Webhook
 		$this->link          = new \Link();
 	}
 
-	/**
-	 * @throws \JsonException
-	 */
-	public function getCurrent(string $storeId): ?\BTCPayServer\Result\Webhook
+	public function getCurrent(string $storeId, string $webhookId): ?\BTCPayServer\Result\Webhook
 	{
-		foreach ($this->getStoreWebhooks($storeId)->all() as $webhook) {
-			if ($webhook->getId() !== $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID)) {
-				continue;
-			}
+		try {
+			return $this->getWebhook($storeId, $webhookId);
+		} catch (\Throwable $e) {
+			$warning = \sprintf("[Warning] expected webhook '%s' for store '%s' to exist, but it didn't. Exception received: %s", $webhookId, $storeId, $e->getMessage());
+			\PrestaShopLogger::addLog($warning, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $e->getCode());
 
-			return $webhook;
+			return null;
 		}
-
-		return null;
 	}
 
 	/**
@@ -51,7 +47,7 @@ class Webhook extends \BTCPayServer\Client\Webhook
 	public function ensureWebhook(string $storeId): void
 	{
 		// Check if we have an existing webhook, if so, just cancel now
-		if (null !== $this->getCurrent($storeId)) {
+		if (null !== $this->getCurrent($storeId, $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID))) {
 			return;
 		}
 

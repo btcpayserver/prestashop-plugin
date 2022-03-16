@@ -102,7 +102,7 @@ class WebhookHandler
 		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceID($invoiceId))) {
 			$error = \sprintf('[ERROR] Could not load order with invoice ID %s', $invoiceId);
 			\PrestaShopLogger::addLog(\sprintf('[ERROR] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-			\PrestaShopLogger::addLog($error, 4);
+			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR);
 
 			// Don't bother retrying, Prestashop should have sent email
 			return;
@@ -116,19 +116,19 @@ class WebhookHandler
 
 		// If nothing changed, return
 		if ((string) $order->current_state === $orderStatus) {
-			\PrestaShopLogger::addLog('[INFO] The state is the same as the one received', 1, null, 'Order', $order->id);
+			\PrestaShopLogger::addLog('[INFO] The state is the same as the one received', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
 
 			return;
 		}
 
 		// Add a message if the user paid too late
 		if (\array_key_exists('afterExpiration', $data) && true === (bool) $data['afterExpiration']) {
-			\PrestaShopLogger::addLog('[INFO] User paid after expiration for this invoice', 1, null, 'Order', $order->id);
+			\PrestaShopLogger::addLog('[INFO] User paid after expiration for this invoice', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
 		}
 
 		// Add a message if the user paid too late
 		if (\array_key_exists('overPaid', $data) && true === (bool) $data['overPaid']) {
-			\PrestaShopLogger::addLog('[INFO] User overpaid for this order', 1, null, 'Order', $order->id);
+			\PrestaShopLogger::addLog('[INFO] User overpaid for this order', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
 		}
 
 		// Update the status
@@ -137,7 +137,7 @@ class WebhookHandler
 		// Update the object
 		if (false === $bitcoinPayment->update(true)) {
 			$error = '[ERROR] Could not update bitcoin_payment: ' . \Db::getInstance()->getMsgError();
-			\PrestaShopLogger::addLog($error, 3);
+			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 			throw new \RuntimeException($error);
 		}
@@ -164,7 +164,7 @@ class WebhookHandler
 		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceID($invoiceId))) {
 			$error = \sprintf('[ERROR] Could not load order with invoice ID %s', $invoiceId);
 			\PrestaShopLogger::addLog(\sprintf('[ERROR] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-			\PrestaShopLogger::addLog($error, 4);
+			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR);
 
 			// Don't bother retrying, Prestashop should have sent email
 			return;
@@ -195,7 +195,7 @@ class WebhookHandler
 
 		// If nothing changed, return
 		if ((string) $order->current_state === $orderStatus) {
-			\PrestaShopLogger::addLog('[INFO] The state is the same as the one received', 1, null, 'Order', $order->id);
+			\PrestaShopLogger::addLog('[INFO] The state is the same as the one received', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
 
 			return;
 		}
@@ -206,7 +206,7 @@ class WebhookHandler
 		// Update the object
 		if (false === $bitcoinPayment->update(true)) {
 			$error = \sprintf('[ERROR] Could not update bitcoin_payment: %s', \Db::getInstance()->getMsgError());
-			\PrestaShopLogger::addLog($error, 3);
+			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 			throw new \RuntimeException($error);
 		}
@@ -233,7 +233,7 @@ class WebhookHandler
 		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceID($invoiceId))) {
 			$error = \sprintf('[ERROR] Could not load order with invoice ID %s', $invoiceId);
 			\PrestaShopLogger::addLog(\sprintf('[ERROR] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-			\PrestaShopLogger::addLog($error, 4);
+			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR);
 
 			// Don't bother retrying, Prestashop should have sent email
 			return;
@@ -265,12 +265,12 @@ class WebhookHandler
 
 		// Add a message if the user paid too late
 		if (\array_key_exists('afterExpiration', $data) && true === (bool) $data['afterExpiration']) {
-			\PrestaShopLogger::addLog('[INFO] User paid after expiration for this invoice', 1, null, 'Order', $order->id);
+			\PrestaShopLogger::addLog('[INFO] User paid after expiration for this invoice', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
 		}
 
 		// Add a message if the overpaid
 		if (\array_key_exists('overPaid', $data) && true === (bool) $data['overPaid']) {
-			\PrestaShopLogger::addLog('[INFO] User overpaid for this order', 1, null, 'Order', $order->id);
+			\PrestaShopLogger::addLog('[INFO] User overpaid for this order', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
 		}
 
 		if ($invoice->isMarked()) {
@@ -280,7 +280,7 @@ class WebhookHandler
 
 		// If nothing changed, return
 		if ((string) $order->current_state === $orderStatus) {
-			\PrestaShopLogger::addLog('[INFO] The state is the same as the one received', 1, null, 'Order', $order->id);
+			\PrestaShopLogger::addLog('[INFO] The state is the same as the one received', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
 
 			return;
 		}
@@ -291,7 +291,7 @@ class WebhookHandler
 		// Update the object
 		if (false === $bitcoinPayment->update(true)) {
 			$error = \sprintf('[ERROR] Could not update bitcoin_payment: %s', \Db::getInstance()->getMsgError());
-			\PrestaShopLogger::addLog($error, 3);
+			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 			throw new \RuntimeException($error);
 		}

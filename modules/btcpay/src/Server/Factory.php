@@ -53,7 +53,7 @@ class Factory
 	{
 		// Check if we have a cart ID we can use
 		if (empty($cart->id)) {
-			\PrestaShopLogger::addLog('[ERROR] The BTCPay payment plugin was called to process a payment but the cart ID was missing.', 3);
+			\PrestaShopLogger::addLog('[ERROR] The BTCPay payment plugin was called to process a payment but the cart ID was missing.', \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 			return null;
 		}
@@ -62,7 +62,7 @@ class Factory
 		try {
 			$client = Client::createFromConfiguration($this->configuration);
 		} catch (\Throwable $e) {
-			\PrestaShopLogger::addLog(\sprintf('[ERROR] %s', $e->getMessage()), 4, $e->getCode());
+			\PrestaShopLogger::addLog(\sprintf('[ERROR] %s', $e->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR, $e->getCode());
 
 			throw new BTCPayException($e->getMessage(), $e->getCode(), $e);
 		}
@@ -72,7 +72,7 @@ class Factory
 
 		// If another BTCPay invoice was created before, returns the original one
 		if (null !== ($redirect = $client->getBTCPayRedirect($cart))) {
-			\PrestaShopLogger::addLog(\sprintf('[WARNING] Existing BTCPay invoice has already been created for cart ID %s, redirecting...', $cart->id), 2);
+			\PrestaShopLogger::addLog(\sprintf('[WARNING] Existing BTCPay invoice has already been created for cart ID %s, redirecting...', $cart->id), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
 
 			return $redirect;
 		}
@@ -131,7 +131,7 @@ class Factory
 
 			if (false === $bitcoinPayment->save(true)) {
 				$error = \sprintf('[ERROR] Could not store bitcoin_payment: %s', \Db::getInstance()->getMsgError());
-				\PrestaShopLogger::addLog($error, 3);
+				\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				throw new \RuntimeException($error);
 			}
@@ -159,7 +159,7 @@ class Factory
 			// Update the object
 			if (false === $bitcoinPayment->update(true)) {
 				$error = \sprintf('[ERROR] Could not update bitcoin_payment: %s', \Db::getInstance()->getMsgError());
-				\PrestaShopLogger::addLog($error, 3);
+				\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				throw new \RuntimeException($error);
 			}
@@ -167,7 +167,7 @@ class Factory
 			// Redirect user to payment
 			return $bitcoinPayment->getRedirect();
 		} catch (\Throwable $e) {
-			\PrestaShopLogger::addLog(\sprintf('[ERROR] %s', $e->getMessage()), 3);
+			\PrestaShopLogger::addLog(\sprintf('[ERROR] %s', $e->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 			throw new BTCPayException($e->getMessage(), $e->getCode(), $e);
 		}
