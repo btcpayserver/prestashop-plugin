@@ -45,6 +45,7 @@
   },
   "replace": {
     "prestashop/blockwishlist": "^2.0",
+    "prestashop/classic": "dev-develop",
     "prestashop/contactform": "^v4.3.0",
     "prestashop/dashactivity": "^2",
     "prestashop/dashgoals": "^2",
@@ -55,7 +56,7 @@
     "prestashop/gridhtml": "^2",
     "prestashop/gsitemap": "^4",
     "prestashop/pagesnotfound": "^2",
-    "prestashop/productcomments": "^v4.2.2",
+    "prestashop/productcomments": "^5.0",
     "prestashop/ps_banner": "^2",
     "prestashop/ps_bestsellers": "^1.0",
     "prestashop/ps_brandlist": "^1.0",
@@ -107,7 +108,8 @@
     "prestashop/statssearch": "^2",
     "prestashop/statsstock": "^2"
   },
-  "minimum-stability": "stable",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
   "autoload": {
     "psr-4": {
       "BTCPay\\": "modules/btcpay/src"
