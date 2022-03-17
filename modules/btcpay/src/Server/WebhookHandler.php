@@ -3,12 +3,18 @@
 namespace BTCPay\Server;
 
 use BTCPay\Constants;
+use BTCPay\Invoice\Processor;
 use BTCPay\LegacyBitcoinPaymentRepository;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 use Symfony\Component\HttpFoundation\Request;
 
 class WebhookHandler
 {
+	/**
+	 * @var \BTCPay
+	 */
+	private $module;
+
 	/**
 	 * @var Client
 	 */
@@ -24,11 +30,18 @@ class WebhookHandler
 	 */
 	private $configuration;
 
-	public function __construct(Client $client, LegacyBitcoinPaymentRepository $repository)
+	/**
+	 * @var Processor
+	 */
+	private $processor;
+
+	public function __construct(\BTCPay $module, Client $client, LegacyBitcoinPaymentRepository $repository)
 	{
-		$this->client        = $client;
-		$this->repository    = $repository;
+		$this->module = $module;
+		$this->client = $client;
+		$this->repository = $repository;
 		$this->configuration = new Configuration();
+		$this->processor = new Processor($this->module, $this->configuration, $this->client);
 	}
 
 	/**
@@ -58,9 +71,19 @@ class WebhookHandler
 		// Get the data type
 		$dataType = (string) $data['type'];
 
-		// Payment has been received
-		if (\in_array($dataType, ['InvoiceProcessing', 'InvoicePaidInFull', 'InvoiceReceivedPayment'], true)) {
+		// Get order mode
+		$orderMode = $this->configuration->get(Constants::CONFIGURATION_ORDER_MODE);
+
+		// Payment has been received (order already exists)
+		if (Constants::ORDER_MODE_BEFORE === $orderMode && \in_array($dataType, ['InvoiceProcessing', 'InvoicePaidInFull', 'InvoiceReceivedPayment'], true)) {
 			$this->paymentReceived($data);
+
+			return;
+		}
+
+		// Payment has been received (order needs to be made)
+		if (Constants::ORDER_MODE_AFTER === $orderMode && \in_array($dataType, ['InvoiceProcessing', 'InvoicePaidInFull', 'InvoiceReceivedPayment'], true)) {
+			$this->paymentReceivedDelayedOrder($data);
 
 			return;
 		}
@@ -100,55 +123,38 @@ class WebhookHandler
 		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment received for invoice %s', $invoiceId));
 
 		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceID($invoiceId))) {
-			$error = \sprintf('[ERROR] Could not load order with invoice ID %s', $invoiceId);
-			\PrestaShopLogger::addLog(\sprintf('[ERROR] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+			$error = \sprintf('[MAJOR] Could not load order with invoice ID %s', $invoiceId);
+			\PrestaShopLogger::addLog(\sprintf('[MAJOR] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
 			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR);
 
 			// Don't bother retrying, Prestashop should have sent email
 			return;
 		}
 
-		// Get the order
-		$order = new \Order($bitcoinPayment->getOrderId());
+		$this->processor->paymentReceived($bitcoinPayment);
+	}
 
-		// waiting confirmation
-		$orderStatus = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING);
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \PrestaShopException
+	 * @throws \JsonException
+	 */
+	private function paymentReceivedDelayedOrder(array $data): void
+	{
+		$invoiceId = (string) $data['invoiceId'];
+		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment received for invoice %s', $invoiceId));
 
-		// If nothing changed, return
-		if ((string) $order->current_state === $orderStatus) {
-			\PrestaShopLogger::addLog('[INFO] The state is the same as the one received', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
+		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceID($invoiceId))) {
+			$error = \sprintf('[MAJOR] Could not load order with invoice ID %s', $invoiceId);
+			\PrestaShopLogger::addLog(\sprintf('[MAJOR] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR);
 
+			// Don't bother retrying, Prestashop should have sent email
 			return;
 		}
 
-		// Add a message if the user paid too late
-		if (\array_key_exists('afterExpiration', $data) && true === (bool) $data['afterExpiration']) {
-			\PrestaShopLogger::addLog('[INFO] User paid after expiration for this invoice', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
-		}
-
-		// Add a message if the user paid too late
-		if (\array_key_exists('overPaid', $data) && true === (bool) $data['overPaid']) {
-			\PrestaShopLogger::addLog('[INFO] User overpaid for this order', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
-		}
-
-		// Update the status
-		$bitcoinPayment->setStatus($orderStatus);
-
-		// Update the object
-		if (false === $bitcoinPayment->update(true)) {
-			$error = '[ERROR] Could not update bitcoin_payment: ' . \Db::getInstance()->getMsgError();
-			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
-
-			throw new \RuntimeException($error);
-		}
-
-		// Add the order change to the order history table
-		$orderHistory           = new \OrderHistory();
-		$orderHistory->id_order = $bitcoinPayment->getOrderId();
-
-		// Store the change
-		$orderHistory->changeIdOrderState($orderStatus, $bitcoinPayment->getOrderId(), true);
-		$orderHistory->add(true);
+		// Deal with the actual invoice now
+		$this->processor->paymentReceivedCreateAfter($bitcoinPayment, $invoiceId);
 	}
 
 	/**
@@ -162,62 +168,15 @@ class WebhookHandler
 		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment failed for invoice %s', $invoiceId));
 
 		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceID($invoiceId))) {
-			$error = \sprintf('[ERROR] Could not load order with invoice ID %s', $invoiceId);
-			\PrestaShopLogger::addLog(\sprintf('[ERROR] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+			$error = \sprintf('[MAJOR] Could not load order with invoice ID %s', $invoiceId);
+			\PrestaShopLogger::addLog(\sprintf('[MAJOR] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
 			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR);
 
 			// Don't bother retrying, Prestashop should have sent email
 			return;
 		}
 
-		// Get the order
-		$order = new \Order($bitcoinPayment->getOrderId());
-
-		// Set the default status to be the current status
-		$orderStatus = $order->current_state;
-
-		// Get the store ID
-		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
-
-		// Grab the invoice from the server
-		$invoice = $this->client->invoice()->getInvoice($storeID, $invoiceId);
-
-		// Change the order status if needed
-		if ($invoice->isInvalid() || $invoice->isExpired()) {
-			// Expiration for the invoice has passed, so mark it failed
-			$orderStatus = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED);
-		}
-
-		if ($invoice->isMarked()) {
-			// Transaction was marked invalid via BTCPay Server
-			$orderStatus = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED);
-		}
-
-		// If nothing changed, return
-		if ((string) $order->current_state === $orderStatus) {
-			\PrestaShopLogger::addLog('[INFO] The state is the same as the one received', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
-
-			return;
-		}
-
-		// Update the status
-		$bitcoinPayment->setStatus((string) $orderStatus);
-
-		// Update the object
-		if (false === $bitcoinPayment->update(true)) {
-			$error = \sprintf('[ERROR] Could not update bitcoin_payment: %s', \Db::getInstance()->getMsgError());
-			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
-
-			throw new \RuntimeException($error);
-		}
-
-		// Add the order change to the order history table
-		$orderHistory           = new \OrderHistory();
-		$orderHistory->id_order = $bitcoinPayment->getOrderId();
-
-		// Store the change
-		$orderHistory->changeIdOrderState($orderStatus, $bitcoinPayment->getOrderId(), true);
-		$orderHistory->add(true);
+		$this->processor->paymentFailed($bitcoinPayment);
 	}
 
 	/**
@@ -231,77 +190,14 @@ class WebhookHandler
 		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment confirmed for invoice %s', $invoiceId));
 
 		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceID($invoiceId))) {
-			$error = \sprintf('[ERROR] Could not load order with invoice ID %s', $invoiceId);
-			\PrestaShopLogger::addLog(\sprintf('[ERROR] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+			$error = \sprintf('[MAJOR] Could not load order with invoice ID %s', $invoiceId);
+			\PrestaShopLogger::addLog(\sprintf('[MAJOR] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
 			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR);
 
 			// Don't bother retrying, Prestashop should have sent email
 			return;
 		}
 
-		// Get the order
-		$order = new \Order($bitcoinPayment->getOrderId());
-
-		// Set the default status to be the current status
-		$orderStatus = $order->current_state;
-
-		// Get the store ID
-		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
-
-		// Grab the invoice from the server
-		$invoice = $this->client->invoice()->getInvoice($storeID, $invoiceId);
-
-		// Change state if it's paid/processing
-		if ($invoice->isPaid() || $invoice->isProcessing()) {
-			// Transaction received but we have to wait some confirmation
-			$orderStatus = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING);
-		}
-
-		// Change state if it's fully paid
-		if ($invoice->isFullyPaid()) {
-			// Transaction confirmed on the network
-			$orderStatus = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_PAID);
-		}
-
-		// Add a message if the user paid too late
-		if (\array_key_exists('afterExpiration', $data) && true === (bool) $data['afterExpiration']) {
-			\PrestaShopLogger::addLog('[INFO] User paid after expiration for this invoice', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
-		}
-
-		// Add a message if the overpaid
-		if (\array_key_exists('overPaid', $data) && true === (bool) $data['overPaid']) {
-			\PrestaShopLogger::addLog('[INFO] User overpaid for this order', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
-		}
-
-		if ($invoice->isMarked()) {
-			// Transaction was marked completed via BTCPay Server
-			$orderStatus = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_PAID);
-		}
-
-		// If nothing changed, return
-		if ((string) $order->current_state === $orderStatus) {
-			\PrestaShopLogger::addLog('[INFO] The state is the same as the one received', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
-
-			return;
-		}
-
-		// Set the status
-		$bitcoinPayment->setStatus((string) $orderStatus);
-
-		// Update the object
-		if (false === $bitcoinPayment->update(true)) {
-			$error = \sprintf('[ERROR] Could not update bitcoin_payment: %s', \Db::getInstance()->getMsgError());
-			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
-
-			throw new \RuntimeException($error);
-		}
-
-		// Add the order change to the order history table
-		$orderHistory           = new \OrderHistory();
-		$orderHistory->id_order = $bitcoinPayment->getOrderId();
-
-		// Store the change
-		$orderHistory->changeIdOrderState($orderStatus, $bitcoinPayment->getOrderId(), true);
-		$orderHistory->add(true);
+		$this->processor->paymentConfirmed($bitcoinPayment);
 	}
 }

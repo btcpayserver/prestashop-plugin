@@ -33,7 +33,7 @@ class Webhook extends \BTCPayServer\Client\Webhook
 		try {
 			return $this->getWebhook($storeId, $webhookId);
 		} catch (\Throwable $e) {
-			$warning = \sprintf("[Warning] expected webhook '%s' for store '%s' to exist, but it didn't. Exception received: %s", $webhookId, $storeId, $e->getMessage());
+			$warning = \sprintf("[WARNING] expected webhook '%s' for store '%s' to exist, but it didn't. Exception received: %s", $webhookId, $storeId, $e->getMessage());
 			\PrestaShopLogger::addLog($warning, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $e->getCode());
 
 			return null;

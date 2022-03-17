@@ -60,6 +60,7 @@ class ConfigureController extends FrameworkBundleAdminController
 			'form'          => $this->get('prestashop.module.btcpay.form_handler')->getForm()->createView(),
 			'help_link'     => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
 			'storeId'       => $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID),
+			'webhookId'     => $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID),
 			'client'        => Client::createFromConfiguration($this->configuration),
 			'moduleVersion' => $this->module->version,
 			'enableSidebar' => true,

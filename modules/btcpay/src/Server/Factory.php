@@ -62,7 +62,7 @@ class Factory
 		try {
 			$client = Client::createFromConfiguration($this->configuration);
 		} catch (\Throwable $e) {
-			\PrestaShopLogger::addLog(\sprintf('[ERROR] %s', $e->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR, $e->getCode());
+			\PrestaShopLogger::addLog(\sprintf('[MAJOR] %s', $e->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR, $e->getCode());
 
 			throw new BTCPayException($e->getMessage(), $e->getCode(), $e);
 		}
@@ -72,7 +72,7 @@ class Factory
 
 		// If another BTCPay invoice was created before, returns the original one
 		if (null !== ($redirect = $client->getBTCPayRedirect($cart))) {
-			\PrestaShopLogger::addLog(\sprintf('[WARNING] Existing BTCPay invoice has already been created for cart ID %s, redirecting...', $cart->id), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
+			\PrestaShopLogger::addLog('[WARNING] Existing BTCPay invoice has already been created for this cart, redirecting...', \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Cart', $cart->id);
 
 			return $redirect;
 		}
@@ -131,12 +131,28 @@ class Factory
 
 			if (false === $bitcoinPayment->save(true)) {
 				$error = \sprintf('[ERROR] Could not store bitcoin_payment: %s', \Db::getInstance()->getMsgError());
-				\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
+				\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
 
 				throw new \RuntimeException($error);
 			}
 
-			\PrestaShopLogger::addLog(\sprintf('[INFO] Invoice %s has been updated, creating actual order', $invoiceId));
+			// If we create the order after payment, do not make the order yet
+			if (Constants::ORDER_MODE_AFTER === $this->configuration->get(Constants::CONFIGURATION_ORDER_MODE)) {
+				// Update the object, so we can always validate it afterwards
+				if (false === $bitcoinPayment->update(true)) {
+					$error = \sprintf('[ERROR] Could not update bitcoin_payment: %s', \Db::getInstance()->getMsgError());
+					\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
+
+					throw new \RuntimeException($error);
+				}
+
+				\PrestaShopLogger::addLog(\sprintf('[INFO] Invoice %s has been updated', $invoiceId), \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'BitcoinPayment', $bitcoinPayment->getId());
+
+				// Redirect user to payment
+				return $bitcoinPayment->getRedirect();
+			}
+
+			\PrestaShopLogger::addLog(\sprintf('[INFO] Invoice %s has been updated, creating actual order', $invoiceId), \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'BitcoinPayment', $bitcoinPayment->getId());
 
 			$this->module->validateOrder(
 				$bitcoinPayment->getCartId(),
@@ -159,7 +175,7 @@ class Factory
 			// Update the object
 			if (false === $bitcoinPayment->update(true)) {
 				$error = \sprintf('[ERROR] Could not update bitcoin_payment: %s', \Db::getInstance()->getMsgError());
-				\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
+				\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
 
 				throw new \RuntimeException($error);
 			}

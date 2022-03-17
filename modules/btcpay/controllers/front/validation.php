@@ -1,6 +1,9 @@
 <?php
 
+use BTCPay\Constants;
 use BTCPay\LegacyBitcoinPaymentRepository;
+use BTCPay\Server\Client;
+use PrestaShop\PrestaShop\Adapter\Configuration;
 
 class BTCPayValidationModuleFrontController extends ModuleFrontController
 {
@@ -12,20 +15,44 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 	public $ssl = true;
 
 	/**
+	 * @var \BTCPay
+	 */
+	public $module;
+
+	/**
+	 * @var Configuration
+	 */
+	private $configuration;
+
+	/**
+	 * @var Client
+	 */
+	private $client;
+
+	/**
 	 * @var LegacyBitcoinPaymentRepository
 	 */
 	private $repository;
+
+	/**
+	 * @var \BTCPay\Invoice\Processor
+	 */
+	private $processor;
 
 	public function __construct()
 	{
 		parent::__construct();
 
+		$this->configuration = new Configuration();
+		$this->client = Client::createFromConfiguration($this->configuration);
 		$this->repository = new LegacyBitcoinPaymentRepository();
+		$this->processor = new \BTCPay\Invoice\Processor($this->module, $this->configuration, $this->client);
 	}
 
 	/**
-	 * @throws PrestaShopDatabaseException
 	 * @throws JsonException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
 	 */
 	public function postProcess(): void
 	{
@@ -43,17 +70,17 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 		}
 
 		// Check if our payment option is still valid
-		$authorized = false;
+		$paymentAvailable = false;
 		foreach (Module::getPaymentModules() as $module) {
 			if ($module['name'] === $this->module->name) {
-				$authorized = true;
+				$paymentAvailable = true;
 
 				break;
 			}
 		}
 
 		// If it's no longer valid, redirect the customer.
-		if (!$authorized) {
+		if (!$paymentAvailable) {
 			$this->warning[] = $translator->trans('This payment method is not available.', [], 'Modules.Btcpay.Front');
 			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
 
@@ -63,19 +90,31 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 		// Get the passed invoice reference, which we can then use to get the actual order
 		$invoiceReference = Tools::getValue('invoice_reference', 0);
 		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceReference($invoiceReference))) {
-			$this->warning[] = $translator->trans('There is no order that we can validate.', [], 'Modules.Btcpay.Front');
+			$this->warning[] = $translator->trans('The passed invoice reference is not valid.', [], 'Modules.Btcpay.Front');
 			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
 
 			return;
 		}
 
+		// Grab the current order mode
+		$orderMode = $this->configuration->get(Constants::CONFIGURATION_ORDER_MODE);
+
 		// Get the order and validate it
 		$order = Order::getByCartId($bitcoinPayment->getCartId());
 		if (null === $order || 0 === $order->id || (int) $order->id_customer !== (int) $this->context->customer->id) {
-			$this->warning[] = $translator->trans('There is no order that we can process.', [], 'Modules.Btcpay.Front');
-			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
+			// The order must exist when using the `before` order mode
+			if (Constants::ORDER_MODE_BEFORE === $orderMode) {
+				$this->warning[] = $translator->trans('There is no order that we can process.', [], 'Modules.Btcpay.Front');
+				$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
 
-			return;
+				return;
+			}
+
+			// User was quicker than the callback, deal with the actual invoice now
+			$this->processor->paymentReceivedCreateAfter($bitcoinPayment);
+
+			// Grab the (now existing) order
+			$order = Order::getByCartId($bitcoinPayment->getCartId());
 		}
 
 		// Get the customer so we can do a fancy redirect

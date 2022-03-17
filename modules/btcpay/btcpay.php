@@ -55,7 +55,7 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '5.1.3';
+		$this->version                = '5.1.4';
 		$this->author                 = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
 		$this->controllers            = ['webhook', 'payment', 'validation'];
@@ -254,7 +254,7 @@ class BTCPay extends PaymentModule
 			return $this->display(__FILE__, 'views/templates/admin/invoice_block.tpl');
 		} catch (RequestException $exception) {
 			// Log the exception
-			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay invoice in hookDisplayAdminOrderMainBottom: %s', $exception->getMessage()), 2, $exception->getCode(), 'Order', $bitcoinPayment->getOrderId());
+			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay invoice in hookDisplayAdminOrderMainBottom: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode(), 'Order', $bitcoinPayment->getOrderId());
 
 			// Show that the invoice was not found
 			return $this->display(__FILE__, 'views/templates/admin/invoice_missing_block.tpl');
@@ -324,7 +324,7 @@ class BTCPay extends PaymentModule
 			return $this->display(__FILE__, 'views/templates/hooks/order_detail.tpl');
 		} catch (RequestException $exception) {
 			// Log the exception
-			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay invoice in hookDisplayOrderDetail: %s', $exception->getMessage()), 2, $exception->getCode(), 'Order', $order->id);
+			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay invoice in hookDisplayOrderDetail: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode(), 'Order', $order->id);
 
 			// If the invoice is gone just return null
 			return null;
@@ -451,12 +451,12 @@ class BTCPay extends PaymentModule
 			return;
 		}
 
-		PrestaShopLogger::addLog('[WARNING] Order has changed for cart: ' . $cart->id . '. Cancelling....', 2);
+		PrestaShopLogger::addLog('[INFO] Order has changed for cart. Cancelling....', \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Cart', $cart->id);
 
 		// Try to remove the order
 		if (false === $bitcoinPayment->delete()) {
-			$error = \sprintf('[ERROR] Expected to remove the order %s, but failed to do so', $bitcoinPayment->order_id);
-			PrestaShopLogger::addLog($error, 3);
+			$error = \sprintf('[ERROR] Expected to remove the order %s, but failed to do so', $bitcoinPayment->getOrderId());
+			PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
 
 			throw new \PrestaShopDatabaseException($error);
 		}

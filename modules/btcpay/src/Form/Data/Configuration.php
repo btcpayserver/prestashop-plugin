@@ -23,14 +23,23 @@ class Configuration
 	private $speed;
 
 	/**
+	 * @Assert\NotBlank()
+	 * @Assert\Choice(choices=\BTCPay\Constants::ORDER_MODES, message="Invalid order mode")
+	 *
+	 * @var string
+	 */
+	private $orderMode;
+
+	/**
 	 * @Assert\Choice(choices={true, false})
 	 */
 	private $shareMetadata;
 
-	public function __construct(string $url, string $speed, bool $shareMetadata)
+	public function __construct(string $url, string $speed, string $orderMode, bool $shareMetadata)
 	{
 		$this->url           = $url;
 		$this->speed         = $speed;
+		$this->orderMode     = $orderMode;
 		$this->shareMetadata = $shareMetadata;
 	}
 
@@ -54,6 +63,16 @@ class Configuration
 		$this->speed = $speed;
 	}
 
+	public function getOrderMode(): string
+	{
+		return $this->orderMode;
+	}
+
+	public function setOrderMode(string $order_mode): void
+	{
+		$this->orderMode = $order_mode;
+	}
+
 	public function shareMetadata(): bool
 	{
 		return $this->shareMetadata;
@@ -69,6 +88,7 @@ class Configuration
 		return [
 			'url'           => $this->url,
 			'speed'         => $this->speed,
+			'orderMode'     => $this->orderMode,
 			'shareMetadata' => $this->shareMetadata,
 		];
 	}

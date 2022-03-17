@@ -5,7 +5,7 @@ BUILD_FOLDER := "./build"
 ZIP_NAME := "${MODULE}.zip"
 MODULE_OUT := "${BUILD_FOLDER}/${ZIP_NAME}"
 
-.PHONY: all build install clean lint lint-fix
+.PHONY: all build install upgrade clean lint lint-fix
 
 all: build
 
@@ -43,7 +43,7 @@ install: ## Install everything for development
 	@cd "$(MODULE_FOLDER)/$(MODULE)" \
 		&& composer install
 
-upgrade: ## Upgrade all depedencies (including development)
+upgrade: ## Upgrade all dependencies (including development)
 	# Upgrading all root dependencies
 	composer upgrade
 

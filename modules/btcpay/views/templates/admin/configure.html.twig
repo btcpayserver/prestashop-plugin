@@ -25,6 +25,7 @@
           <div class="card-text">
             {{ form_row(form.btcpay.url) }}
             {{ form_row(form.btcpay.speed) }}
+            {{ form_row(form.btcpay.order_mode) }}
             {{ form_row(form.btcpay.share_metadata) }}
             {{ form_rest(form) }}
           </div>
@@ -96,7 +97,7 @@
                 <dt><span class="text-muted mb-0"><strong>API Key</strong></span></dt>
                 <dd><span class="px-1">{{ client.apiKey().getCurrent().apiKey }}</span></dd>
 
-                {% set webhook = client.webhook().getCurrent(storeId) %}
+                {% set webhook = client.webhook().getCurrent(storeId, webhookId) %}
                 <dt><span class="text-muted mb-0"><strong>Webhook ID</strong></span></dt>
                 <dd><span class="{% if webhook.enabled %}text-success{% else %}text-warning{% endif %} px-1">{{ webhook.id }}</span></dd>
 
