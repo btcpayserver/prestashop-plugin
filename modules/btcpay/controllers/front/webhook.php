@@ -42,7 +42,7 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 
 		$this->configuration = new Configuration();
 		$this->client        = Client::createFromConfiguration($this->configuration);
-		$this->handler       = new WebhookHandler($this->client, new LegacyBitcoinPaymentRepository());
+		$this->handler       = new WebhookHandler($this->module, $this->client, new LegacyBitcoinPaymentRepository());
 	}
 
 	/**

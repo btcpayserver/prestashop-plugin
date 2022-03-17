@@ -35,6 +35,9 @@ class Constants
 	public const CONFIGURATION_DEFAULT_HOST = 'https://testnet.demo.btcpayserver.org';
 
 	// Order (creation) related configuration
+	public const CONFIGURATION_ORDER_MODE             = 'BTCPAY_ORDERMODE';
+
+	// Order states
 	public const CONFIGURATION_ORDER_STATE_WAITING    = 'BTCPAY_OS_WAITING';
 	public const CONFIGURATION_ORDER_STATE_CONFIRMING = 'BTCPAY_OS_CONFIRMING';
 	public const CONFIGURATION_ORDER_STATE_FAILED     = 'BTCPAY_OS_FAILED';
@@ -46,4 +49,9 @@ class Constants
 	// All possible transaction speeds as defined by BTCPay server
 	public const CONFIGURATION_SPEED_MODE = 'BTCPAY_TXSPEED';
 	public const TRANSACTION_SPEEDS       = [InvoiceCheckoutOptions::SPEED_HIGH, InvoiceCheckoutOptions::SPEED_MEDIUM, InvoiceCheckoutOptions::SPEED_LOW];
+
+	// All possible options for order creation (before or after payment)
+	public const ORDER_MODES       = [self::ORDER_MODE_BEFORE, self::ORDER_MODE_AFTER];
+	public const ORDER_MODE_BEFORE = 'before_payment';
+	public const ORDER_MODE_AFTER  = 'after_payment';
 }

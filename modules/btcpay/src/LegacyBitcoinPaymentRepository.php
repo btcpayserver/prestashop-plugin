@@ -32,7 +32,7 @@ class LegacyBitcoinPaymentRepository
 			throw new \RuntimeException('[ERROR] Could not store bitcoin_payment');
 		}
 
-		\PrestaShopLogger::addLog('[INFO] Created bitcoin_payment for invoice ' . $invoiceId);
+		\PrestaShopLogger::addLog('[INFO] Created bitcoin_payment for invoice ' . $invoiceId, \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'BitcoinPayment', $bitcoinPayment->getId());
 
 		return $bitcoinPayment;
 	}
