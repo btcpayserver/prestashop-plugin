@@ -27,6 +27,10 @@ Please ensure that you meet the following requirements before installing this pl
 - Prestashop version 1.7.7.x
 - BTCPay server version 1.3.4
 
+## Multistore
+
+As of right now the module is **not** compatible with Prestashop's multistore feature. 
+
 ## Documentation
 
 Please check out our [official website](https://btcpayserver.org/), our [complete documentation](https://docs.btcpayserver.org/) and [FAQ](https://docs.btcpayserver.org/FAQ/) for more details.
