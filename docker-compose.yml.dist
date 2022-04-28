@@ -1,7 +1,7 @@
 version: "3"
 services:
   btcpayserver:
-    image: btcpayserver/btcpayserver:1.4.7
+    image: btcpayserver/btcpayserver:1.5.0
     expose:
       - "49392"
     environment:
@@ -45,7 +45,7 @@ services:
       - "bitcoin_wallet_datadir:/walletdata"
 
   nbxplorer:
-    image: nicolasdorier/nbxplorer:2.2.29
+    image: nicolasdorier/nbxplorer:2.3.20
     expose:
       - "32838"
     environment:
@@ -54,21 +54,24 @@ services:
       NBXPLORER_TRIMEVENTS: 10000
       NBXPLORER_SIGNALFILESDIR: /datadir
       NBXPLORER_CHAINS: "btc"
+      NBXPLORER_POSTGRES: User ID=postgres;Include Error Detail=true;Host=postgres;Port=5432
       NBXPLORER_BTCRPCURL: http://bitcoind:43782/
       NBXPLORER_BTCNODEENDPOINT: bitcoind:39388
     volumes:
       - "nbxplorer_datadir:/datadir"
       - "bitcoin_datadir:/root/.bitcoin"
+    depends_on:
+      - postgres
 
   postgres:
-    image: btcpayserver/postgres:13.4-4
+    image: btcpayserver/postgres:13.6
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - "postgres_datadir:/var/lib/postgresql/data"
 
   mariadb:
-    image: docker.io/bitnami/mariadb:10.4
+    image: bitnami/mariadb:10.7
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
       - MARIADB_SKIP_TEST_DB=yes
@@ -81,7 +84,7 @@ services:
       - "3305:3306"
 
   prestashop:
-    image: docker.io/bitnami/prestashop:1.7
+    image: bitnami/prestashop:1.7
     ports:
       - "80:8080"
       - "443:8443"
@@ -92,6 +95,8 @@ services:
       - PRESTASHOP_DATABASE_USER=prestashop
       - PRESTASHOP_DATABASE_PASSWORD=bitnami
       - PRESTASHOP_DATABASE_NAME=prestashop
+      - PRESTASHOP_EMAIL=user@example.com
+      - PRESTASHOP_PASSWORD=bitnami1
     volumes:
       - "prestashop_data:/bitnami/prestashop"
     depends_on:
