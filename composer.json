@@ -44,6 +44,7 @@
     "squizlabs/php_codesniffer": "^3.5"
   },
   "replace": {
+    "prestashop/blockreassurance": "^5.0",
     "prestashop/blockwishlist": "^2.0",
     "prestashop/classic": "dev-develop",
     "prestashop/contactform": "^v4.3.0",
@@ -71,10 +72,12 @@
     "prestashop/ps_customersignin": "^2",
     "prestashop/ps_customtext": "^4",
     "prestashop/ps_dataprivacy": "^2.0",
+    "prestashop/ps_emailalerts": "^v2.0",
     "prestashop/ps_emailsubscription": "^v2.7.0",
     "prestashop/ps_facetedsearch": "^v3.7.1",
     "prestashop/ps_faviconnotificationbo": "^2",
     "prestashop/ps_featuredproducts": "^2",
+    "prestashop/ps_googleanalytics": "^v4.0",
     "prestashop/ps_imageslider": "^3",
     "prestashop/ps_languageselector": "^2",
     "prestashop/ps_linklist": "^5",
@@ -89,6 +92,7 @@
     "prestashop/ps_themecusto": "^1",
     "prestashop/ps_viewedproduct": "^1.2",
     "prestashop/ps_wirepayment": "^2",
+    "prestashop/psgdpr": "^1.0",
     "prestashop/statsbestcategories": "^2",
     "prestashop/statsbestcustomers": "^2",
     "prestashop/statsbestmanufacturers": "^2",
