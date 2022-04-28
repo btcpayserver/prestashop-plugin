@@ -28,10 +28,18 @@ class Webhook extends \BTCPayServer\Client\Webhook
 		$this->link          = new \Link();
 	}
 
-	public function getCurrent(string $storeId, string $webhookId): ?\BTCPayServer\Result\Webhook
+	public function getCurrent(string $storeId, ?string $webhookId): ?\BTCPayServer\Result\Webhook
 	{
 		try {
-			return $this->getWebhook($storeId, $webhookId);
+			if (null === $webhookId) {
+				return null;
+			}
+
+			if (null === ($webhook = $this->getWebhook($storeId, $webhookId))) {
+				return null;
+			}
+
+			return !empty($webhook->getData()) ? $webhook : null;
 		} catch (\Throwable $e) {
 			$warning = \sprintf("[WARNING] expected webhook '%s' for store '%s' to exist, but it didn't. Exception received: %s", $webhookId, $storeId, $e->getMessage());
 			\PrestaShopLogger::addLog($warning, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $e->getCode());
