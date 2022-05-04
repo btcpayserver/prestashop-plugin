@@ -102,7 +102,7 @@
                 <dd><span class="{% if webhook.enabled %}text-success{% else %}text-warning{% endif %} px-1">{{ webhook.id }}</span></dd>
 
                 <dt><span class="text-muted mb-0"><strong>Fully synced</strong></span></dt>
-                <dd>{% if serverInfo.fullySynced %}<span class="text-success px-1">Yes</span>{% else %}<span class="text-warning px-1">No</span>{% endif %}</dd>
+                <dd>{% if serverInfo.fullySynced %}<span class="text-success px-1">Yes</span>{% else %}<span class="text-warning px-1"><span title="The payment option won't be available until the server is synced">No</span></span>{% endif %}</dd>
 
                 <dt><span class="text-muted mb-0"><strong>Payment methods</strong></span></dt>
                 <dd>

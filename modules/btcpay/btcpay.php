@@ -8,6 +8,7 @@ use BTCPay\Installer\Tables;
 use BTCPay\LegacyBitcoinPaymentRepository;
 use BTCPay\Repository\BitcoinPaymentRepository;
 use BTCPay\Server\Client;
+use BTCPayServer\Exception\BTCPayException;
 use BTCPayServer\Exception\RequestException;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 use PrestaShop\PrestaShop\Adapter\Presenter\Order\OrderPresenter;
@@ -333,6 +334,7 @@ class BTCPay extends PaymentModule
 
 	public function hookDisplayPaymentEU(): array
 	{
+		// If the module is not active, abort
 		if (!$this->active) {
 			return [];
 		}
@@ -394,27 +396,45 @@ class BTCPay extends PaymentModule
 	 */
 	public function hookPaymentOptions(): array
 	{
+		// If the module is not active, abort
 		if (!$this->active) {
+			return [];
+		}
+
+		// If the API key is not valid, this module is not ready to be used
+		if ($this->isInvalidApiKey()) {
 			return [];
 		}
 
 		// Get the store ID
 		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
 
-		// Prepare smarty
-		$this->context->smarty->assign([
-			'onChain'  => $this->client()->onChain()->getPaymentMethods($storeID),
-			'offChain' => $this->client()->offChain()->getPaymentMethods($storeID),
-		]);
+		try {
+			// If the server is not fully synced, do not show the option
+			if (!$this->client()->server()->getInfo()->isFullySynced()) {
+				return [];
+			}
 
-		return [
-			(new PaymentOption())
-				->setModuleName($this->name)
-				->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/images/payment.png'))
-				->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
-				->setCallToActionText($this->trans('Pay with BTCPay Server', [], 'Modules.Btcpay.Front'))
-				->setAdditionalInformation($this->context->smarty->fetch('module:btcpay/views/templates/hooks/payment_option.tpl')),
-		];
+			// Prepare smarty
+			$this->context->smarty->assign([
+				'onChain'  => $this->client()->onChain()->getPaymentMethods($storeID),
+				'offChain' => $this->client()->offChain()->getPaymentMethods($storeID),
+			]);
+
+			return [
+				(new PaymentOption())
+					->setModuleName($this->name)
+					->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/images/payment.png'))
+					->setAction($this->context->link->getModuleLink($this->name, 'payment', [], true))
+					->setCallToActionText($this->trans('Pay with BTCPay Server', [], 'Modules.Btcpay.Front'))
+					->setAdditionalInformation($this->context->smarty->fetch('module:btcpay/views/templates/hooks/payment_option.tpl')),
+			];
+		} catch (BTCPayException $exception) {
+			// Log the exception
+			PrestaShopLogger::addLog(\sprintf('[WARNING] Could not load payments options from server: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode());
+
+			return [];
+		}
 	}
 
 	/**
@@ -476,6 +496,17 @@ class BTCPay extends PaymentModule
 		}
 
 		return $this->client;
+	}
+
+	private function isInvalidApiKey(): bool
+	{
+		try {
+			$this->client()->server()->getInfo();
+		} catch (\Throwable $e) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private function getRepository(): ?BitcoinPaymentRepository
