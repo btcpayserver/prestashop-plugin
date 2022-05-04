@@ -154,7 +154,7 @@ class WebhookHandler
 		}
 
 		// Deal with the actual invoice now
-		$this->processor->paymentReceivedCreateAfter($bitcoinPayment, $invoiceId);
+		$this->processor->paymentReceivedCreateAfter($bitcoinPayment);
 	}
 
 	/**
@@ -173,6 +173,11 @@ class WebhookHandler
 			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR);
 
 			// Don't bother retrying, Prestashop should have sent email
+			return;
+		}
+
+		// If there is no order, don't bother updating it
+		if (false === $bitcoinPayment->hasOrder()) {
 			return;
 		}
 
@@ -195,6 +200,11 @@ class WebhookHandler
 			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR);
 
 			// Don't bother retrying, Prestashop should have sent email
+			return;
+		}
+
+		// If there is no order, don't bother updating it
+		if (false === $bitcoinPayment->hasOrder()) {
 			return;
 		}
 

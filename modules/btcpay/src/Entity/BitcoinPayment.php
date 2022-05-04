@@ -90,6 +90,11 @@ class BitcoinPayment extends \ObjectModel
 		$this->order_id = $order_id;
 	}
 
+	public function hasOrder(): bool
+	{
+		return false === empty($this->order_id);
+	}
+
 	public function getStatus(): string
 	{
 		return $this->status;
