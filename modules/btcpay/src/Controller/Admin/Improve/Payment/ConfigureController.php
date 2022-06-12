@@ -104,7 +104,7 @@ class ConfigureController extends FrameworkBundleAdminController
 		}
 
 		// Get the store name and redirect URL
-		$storeName   = $this->getContext()->shop->name;
+		$storeName = $this->getContext()->shop->name;
 		$redirectUrl = $request->getSchemeAndHttpHost() . $this->getAdminLink('btcpay', ['route' => 'admin_btcpay_validate'], true);
 
 		// If there is no apiKey, redirect no matter what
@@ -144,7 +144,14 @@ class ConfigureController extends FrameworkBundleAdminController
 	 */
 	public function validateAction(Request $request): Response
 	{
-		// If we didn't receive an API key (or have any errors), just return
+		// If we received an empty post we probably hit the PrestaShop security check
+		if (empty($request->request->all())) {
+			$this->addFlash('error', 'Did not receive data from BTCPay Server. If you received an <strong>Invalid Token</strong> page, make sure to properly setup PrestaShop and BTCPay Server (publicly accessible and HTTPS enabled). Please try again once done.');
+
+			return $this->redirectToRoute('admin_btcpay_configure');
+		}
+
+		// Validate incoming request and return any errors we encouter
 		$validateRequest = new ValidateApiKey($request->request);
 		if (0 !== \count($errors = $this->validator->validate($validateRequest))) {
 			foreach ($errors as $error) {
