@@ -123,11 +123,11 @@ class WebhookHandler
 		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment received for invoice %s', $invoiceId));
 
 		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceID($invoiceId))) {
-			$error = \sprintf('[MAJOR] Could not load order with invoice ID %s', $invoiceId);
-			\PrestaShopLogger::addLog(\sprintf('[MAJOR] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR);
+			$error = \sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId);
+			\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
 
-			// Don't bother retrying, Prestashop should have sent email
+			// Don't bother retrying
 			return;
 		}
 
@@ -145,11 +145,11 @@ class WebhookHandler
 		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment received for invoice %s', $invoiceId));
 
 		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceID($invoiceId))) {
-			$error = \sprintf('[MAJOR] Could not load order with invoice ID %s', $invoiceId);
-			\PrestaShopLogger::addLog(\sprintf('[MAJOR] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR);
+			$error = \sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId);
+			\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
 
-			// Don't bother retrying, Prestashop should have sent email
+			// Don't bother retrying
 			return;
 		}
 
@@ -168,11 +168,11 @@ class WebhookHandler
 		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment failed for invoice %s', $invoiceId));
 
 		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceID($invoiceId))) {
-			$error = \sprintf('[MAJOR] Could not load order with invoice ID %s', $invoiceId);
-			\PrestaShopLogger::addLog(\sprintf('[MAJOR] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR);
+			$error = \sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId);
+			\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
 
-			// Don't bother retrying, Prestashop should have sent email
+			// Don't bother retrying
 			return;
 		}
 
@@ -195,11 +195,11 @@ class WebhookHandler
 		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment confirmed for invoice %s', $invoiceId));
 
 		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceID($invoiceId))) {
-			$error = \sprintf('[MAJOR] Could not load order with invoice ID %s', $invoiceId);
-			\PrestaShopLogger::addLog(\sprintf('[MAJOR] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR);
+			$error = \sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId);
+			\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
 
-			// Don't bother retrying, Prestashop should have sent email
+			// Don't bother retrying
 			return;
 		}
 
