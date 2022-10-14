@@ -20,7 +20,7 @@ class CurlAdapter extends CurlClient
 
 	public function __construct()
 	{
-		$this->backoff = new Backoff(self::$defaultMaxAttempts, Backoff::$defaultStrategy, self::$defaultMaxAttempts * 10 * 1000, true);
+		$this->backoff = new Backoff(self::$defaultMaxAttempts, Backoff::$defaultStrategy, self::$defaultMaxAttempts * 5 * 1000, true);
 	}
 
 	/**

@@ -4,7 +4,6 @@ namespace BTCPay\Form;
 
 use BTCPay\Constants;
 use BTCPay\Form\Data\Configuration;
-use BTCPayServer\Client\InvoiceCheckoutOptions;
 use PrestaShop\PrestaShop\Adapter\Configuration as PrestaShopConfiguration;
 use PrestaShop\PrestaShop\Core\Form\FormDataProviderInterface;
 
@@ -25,14 +24,7 @@ class ConfigureFormDataProvider implements FormDataProviderInterface
 	 */
 	public function getData(): array
 	{
-		$configuration = new Configuration(
-			$this->configuration->get(Constants::CONFIGURATION_BTCPAY_HOST, Constants::CONFIGURATION_DEFAULT_HOST),
-			$this->configuration->get(Constants::CONFIGURATION_SPEED_MODE, InvoiceCheckoutOptions::SPEED_MEDIUM),
-			$this->configuration->get(Constants::CONFIGURATION_ORDER_MODE, Constants::ORDER_MODE_BEFORE),
-			$this->configuration->get(Constants::CONFIGURATION_SHARE_METADATA, false),
-		);
-
-		return ['btcpay' => $configuration];
+		return ['btcpay' => Configuration::create($this->configuration)];
 	}
 
 	/**
@@ -43,10 +35,25 @@ class ConfigureFormDataProvider implements FormDataProviderInterface
 		/** @var Configuration $configuration */
 		$configuration = $data['btcpay'];
 
-		$this->configuration->set(Constants::CONFIGURATION_BTCPAY_HOST, \rtrim(\trim($configuration->getUrl()), '/\\'));
-		$this->configuration->set(Constants::CONFIGURATION_SPEED_MODE, $configuration->getSpeed());
-		$this->configuration->set(Constants::CONFIGURATION_ORDER_MODE, $configuration->getOrderMode());
-		$this->configuration->set(Constants::CONFIGURATION_SHARE_METADATA, $configuration->shareMetadata());
+		if ($this->configuration->get(Constants::CONFIGURATION_BTCPAY_HOST) !== \rtrim(\trim(($host = $configuration->getHost())), '/\\') && !empty($host)) {
+			$this->configuration->set(Constants::CONFIGURATION_BTCPAY_HOST, \rtrim(\trim($host), '/\\'));
+		}
+
+		if ($this->configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY) !== \rtrim(\trim(($apiKey = $configuration->getApiKey())), '/\\') && !empty($apiKey)) {
+			$this->configuration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, \rtrim(\trim($apiKey), '/\\'));
+		}
+
+		if ($this->configuration->get(Constants::CONFIGURATION_SPEED_MODE) !== ($speedMode = $configuration->getSpeed()) && !empty($speedMode)) {
+			$this->configuration->set(Constants::CONFIGURATION_SPEED_MODE, $speedMode);
+		}
+
+		if ($this->configuration->get(Constants::CONFIGURATION_ORDER_MODE) !== ($orderMode = $configuration->getOrderMode()) && !empty($orderMode)) {
+			$this->configuration->set(Constants::CONFIGURATION_ORDER_MODE, $orderMode);
+		}
+
+		if ($this->configuration->get(Constants::CONFIGURATION_SHARE_METADATA) !== ($shareMetadata = $configuration->shareMetadata())) {
+			$this->configuration->set(Constants::CONFIGURATION_SHARE_METADATA, $shareMetadata);
+		}
 
 		// All is fine
 		return [];

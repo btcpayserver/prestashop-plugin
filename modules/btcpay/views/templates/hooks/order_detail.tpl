@@ -3,7 +3,7 @@
   <div class="row">
     <div class="col-md-4 m-1 my-2">
       <p class="text-muted mb-0"><strong>Invoice</strong></p>
-      <a class="configure-link" href="{$serverURL}/i/{$invoice.id}" target="_blank">{$invoice.id}</a>
+      <a class="configure-link" href="{$serverURL}/i/{$invoice.id}" target="_blank" rel="noopener noreferrer nofollow">{$invoice.id}</a>
     </div>
     <div class="col-md-4 m-1 my-2">
       <p class="text-muted mb-0"><strong>Status</strong></p>
@@ -61,9 +61,9 @@
             <td>{$payment->getReceivedTimestamp()|date_format:"%Y-%m-%d %T"}</td>
             <td>{$payment.value} {$currencyCode}</td>
               {if $currencyCode == 'BTC'}
-                <td><a href="https://mempool.space/tx/{$payment->getTransactionId()}" target="_blank">{$payment->getTransactionId()}</a></td>
+                <td><a href="https://mempool.space/tx/{$payment->getTransactionId()}" target="_blank" rel="noopener noreferrer nofollow">{$payment->getTransactionId()}</a></td>
               {else}
-                <td><a href="https://blockchair.com/search?q={$payment->getTransactionId()}" target="_blank">{$payment->getTransactionId()}</a></td>
+                <td><a href="https://blockchair.com/search?q={$payment->getTransactionId()}" target="_blank" rel="noopener noreferrer nofollow">{$payment->getTransactionId()}</a></td>
               {/if}
           </tr>
         {/foreach}

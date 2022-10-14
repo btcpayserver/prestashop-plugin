@@ -5,6 +5,7 @@ use BTCPay\Installer\Config;
 use BTCPay\Installer\Hooks;
 use BTCPay\Installer\OrderStates;
 use BTCPay\Installer\Tables;
+use BTCPay\Installer\Webhook;
 use BTCPay\LegacyBitcoinPaymentRepository;
 use BTCPay\Repository\BitcoinPaymentRepository;
 use BTCPay\Server\Client;
@@ -30,7 +31,7 @@ class BTCPay extends PaymentModule
 {
 	public $tabs = [
 		[
-			'name'              => 'BTCPay',
+			'name'              => 'BTCPay Server',
 			'visible'           => true,
 			'class_name'        => 'AdminConfigureBTCPay',
 			'parent_class_name' => 'AdminParentPayment',
@@ -56,10 +57,10 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '5.1.7';
+		$this->version                = '5.2.0';
 		$this->author                 = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
-		$this->controllers            = ['webhook', 'payment', 'validation'];
+		$this->controllers            = ['payment', 'validation', 'webhook'];
 		$this->is_eu_compatible       = true;
 		$this->bootstrap              = true;
 
@@ -68,7 +69,7 @@ class BTCPay extends PaymentModule
 
 		parent::__construct();
 
-		$this->displayName = $this->trans('BTCPay', [], 'Modules.Btcpay.Admin');
+		$this->displayName = $this->trans('BTCPay Server', [], 'Modules.Btcpay.Admin');
 		$this->description = $this->trans('Accept crypto payments via BTCPay Server.', [], 'Modules.Btcpay.Front');
 		$this->confirmUninstall = $this->trans('Are you sure that you want to uninstall this module? Past purchases and order states will be kept, but your configuration will be removed.', [], 'Modules.Btcpay.Front');
 
@@ -141,10 +142,14 @@ class BTCPay extends PaymentModule
 	}
 
 	/**
-	 * When uninstalling, only remove the configuration. This way, order states and payment links are not lost.
+	 * When uninstalling, only remove the configuration and webhook. This way, order states and payment links are not lost.
 	 */
 	public function uninstall(): bool
 	{
+		if (!empty($errors = (new Webhook())->uninstall())) {
+			$this->addModuleErrors($errors);
+		}
+
 		if (!empty($errors = (new Config())->uninstall())) {
 			$this->addModuleErrors($errors);
 
@@ -402,7 +407,7 @@ class BTCPay extends PaymentModule
 		}
 
 		// If the API key is not valid, this module is not ready to be used
-		if ($this->isInvalidApiKey()) {
+		if (false === $this->client()->isValid()) {
 			return [];
 		}
 
@@ -496,17 +501,6 @@ class BTCPay extends PaymentModule
 		}
 
 		return $this->client;
-	}
-
-	private function isInvalidApiKey(): bool
-	{
-		try {
-			$this->client()->server()->getInfo();
-		} catch (\Throwable $e) {
-			return true;
-		}
-
-		return false;
 	}
 
 	private function getRepository(): ?BitcoinPaymentRepository
