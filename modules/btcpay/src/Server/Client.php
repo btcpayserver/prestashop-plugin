@@ -133,6 +133,17 @@ class Client extends AbstractClient
 		return $this->webhook;
 	}
 
+	public function isValid(): bool
+	{
+		try {
+			$this->server()->getInfo();
+		} catch (\Throwable $e) {
+			return false;
+		}
+
+		return true;
+	}
+
 	/**
 	 * @throws \PrestaShopDatabaseException
 	 * @throws \JsonException

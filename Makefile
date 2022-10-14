@@ -68,6 +68,9 @@ lint: ## Lints the module
 	# Run PHPCS
 	@./vendor/bin/phpcs --cache -p
 
+	# Run PHP Parallel Lint
+	@./vendor/bin/parallel-lint --exclude ./modules/btcpay/vendor ./modules/btcpay
+
 lint-fix: ## Resolves linter issues
 	# Run PHP CS Fixer
 	@./vendor/bin/php-cs-fixer fix -v

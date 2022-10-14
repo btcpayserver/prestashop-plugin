@@ -9,7 +9,7 @@ admin_btcpay_configure:
 
 admin_btcpay_configure_process:
   path: /btcpay/configure
-  methods: [POST]
+  methods: [GET, POST]
   defaults:
     _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::editProcessAction'
     _legacy_controller: AdminConfigureBTCPay
@@ -22,3 +22,4 @@ admin_btcpay_validate:
     _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::validateAction'
     _legacy_controller: AdminConfigureBTCPay
     _disable_module_prefix: true
+

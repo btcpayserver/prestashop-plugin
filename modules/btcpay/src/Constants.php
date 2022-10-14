@@ -8,7 +8,7 @@ class Constants
 {
 	// Version information
 	public const MINIMUM_BTCPAY_VERSION = '1.3.0';
-	public const MINIMUM_PS_VERSION     = '1.7.7';
+	public const MINIMUM_PS_VERSION     = '1.7.8';
 	public const MINIMUM_PHP_VERSION    = '7.3.0';
 
 	// BTCPay Server webhook header

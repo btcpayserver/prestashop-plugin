@@ -15,17 +15,17 @@ This is a Bitcoin payment plugin for PrestaShop using BTCPay server. [BTCPay Ser
 Please ensure that you meet the following requirements before installing this plugin.
 
 - You are using PHP 7.3.0 or higher
-- Your PrestaShop is version 1.7.7.0 or higher.
+- Your PrestaShop is version 1.7.8.0 or higher.
 - Your BTCPay Server is version 1.3.0 or higher
 - The PDO, curl, gd, intl, json, and mbstring PHP extensions are available
-- You have a BTCPay Server, either [self-hosted](https://docs.btcpayserver.org/Deployment/) or [hosted by a third-party](https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/)
+- You have a BTCPay Server, either [self-hosted](https://docs.btcpayserver.org/Deployment/) or [hosted by a third party](https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/)
 - [You've a registered account on the instance](https://docs.btcpayserver.org/RegisterAccount)
 - [You've a BTCPay store on the instance](https://docs.btcpayserver.org/CreateStore)
 - [You've a wallet connected to your store](https://docs.btcpayserver.org/WalletSetup)
 
 ### Tested successfully
-- Prestashop version 1.7.7.x up to 1.7.8.5
-- BTCPay server version 1.3.4 up to 1.5.0
+- Prestashop version 1.7.8.x up to 1.7.8.7
+- BTCPay server version 1.3.4 up to 1.6.12.0
 
 ## Multistore
 

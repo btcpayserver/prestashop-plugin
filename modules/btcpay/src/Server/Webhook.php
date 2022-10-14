@@ -25,27 +25,7 @@ class Webhook extends \BTCPayServer\Client\Webhook
 		parent::__construct($baseUrl, $apiKey, $client);
 
 		$this->configuration = new Configuration();
-		$this->link          = new \Link();
-	}
-
-	public function getCurrent(string $storeId, ?string $webhookId): ?\BTCPayServer\Result\Webhook
-	{
-		try {
-			if (null === $webhookId) {
-				return null;
-			}
-
-			if (null === ($webhook = $this->getWebhook($storeId, $webhookId))) {
-				return null;
-			}
-
-			return !empty($webhook->getData()) ? $webhook : null;
-		} catch (\Throwable $e) {
-			$warning = \sprintf("[WARNING] expected webhook '%s' for store '%s' to exist, but it didn't. Exception received: %s", $webhookId, $storeId, $e->getMessage());
-			\PrestaShopLogger::addLog($warning, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $e->getCode());
-
-			return null;
-		}
+		$this->link = new \Link();
 	}
 
 	/**
@@ -55,7 +35,7 @@ class Webhook extends \BTCPayServer\Client\Webhook
 	public function ensureWebhook(string $storeId): void
 	{
 		// Check if we have an existing webhook, if so, just cancel now
-		if (null !== $this->getCurrent($storeId, $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID))) {
+		if (false === empty($this->getCurrent($storeId, $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID)))) {
 			return;
 		}
 
@@ -83,5 +63,50 @@ class Webhook extends \BTCPayServer\Client\Webhook
 
 		// Store the ID, so we can check if we already have a valid webhook
 		$this->configuration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID, $webhook->getId());
+	}
+
+	public function getCurrent(string $storeId, ?string $webhookId): ?\BTCPayServer\Result\Webhook
+	{
+		try {
+			if (null === $webhookId) {
+				return null;
+			}
+
+			if (null === ($webhook = $this->getWebhook($storeId, $webhookId))) {
+				return null;
+			}
+
+			return !empty($webhook->getData()) ? $webhook : null;
+		} catch (\Throwable $e) {
+			$warning = \sprintf("[WARNING] expected webhook '%s' for store '%s' to exist, but it didn't. Exception received: %s", $webhookId, $storeId, $e->getMessage());
+			\PrestaShopLogger::addLog($warning, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $e->getCode());
+
+			return null;
+		}
+	}
+
+	public function removeCurrent(): bool
+	{
+		if (empty($storeId = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))) {
+			return false;
+		}
+
+		if (empty($webhookId = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID))) {
+			return false;
+		}
+
+		try {
+			if (null === $this->getWebhook($storeId, $webhookId)) {
+				return false;
+			}
+
+			$this->deleteWebhook($storeId, $webhookId);
+
+			return true;
+		} catch (\Throwable $e) {
+			\PrestaShopLogger::addLog(\sprintf("[WARNING] Could not remove webhook '%s' from the store '%s'. Please double check it is actually gone. Exception received: %s", $webhookId, $storeId, $e->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $e->getCode());
+
+			return false;
+		}
 	}
 }
