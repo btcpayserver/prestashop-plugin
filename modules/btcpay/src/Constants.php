@@ -11,6 +11,10 @@ class Constants
 	public const MINIMUM_PS_VERSION     = '1.7.8';
 	public const MINIMUM_PHP_VERSION    = '7.3.0';
 
+	// Cache configuration
+	public const LASTEST_VERSION_CACHE_KEY        = 'BTCPAY_LATEST_VERSION';
+	public const LASTEST_VERSION_CACHE_EXPIRATION = 60 * 60 * 24 * 7; // 7 days
+
 	// BTCPay Server webhook header
 	public const BTCPAY_HEADER_SIG = 'Btcpay-Sig';
 
@@ -35,7 +39,7 @@ class Constants
 	public const CONFIGURATION_DEFAULT_HOST = 'https://testnet.demo.btcpayserver.org';
 
 	// Order (creation) related configuration
-	public const CONFIGURATION_ORDER_MODE             = 'BTCPAY_ORDERMODE';
+	public const CONFIGURATION_ORDER_MODE = 'BTCPAY_ORDERMODE';
 
 	// Order states
 	public const CONFIGURATION_ORDER_STATE_WAITING    = 'BTCPAY_OS_WAITING';

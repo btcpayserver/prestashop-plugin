@@ -4,6 +4,7 @@ namespace BTCPay\Controller\Admin\Improve\Payment;
 
 use BTCPay\Constants;
 use BTCPay\Form\Data\Configuration;
+use BTCPay\Github\Versioning;
 use BTCPay\Server\Client;
 use BTCPay\Server\Data\ValidateApiKey;
 use BTCPayServer\Client\ApiKey;
@@ -28,22 +29,28 @@ class ConfigureController extends FrameworkBundleAdminController
 	private $module;
 
 	/**
+	 * @var ValidatorInterface
+	 */
+	private $validator;
+
+	/**
 	 * @var FormHandlerInterface
 	 */
 	private $formHandler;
 
 	/**
-	 * @var ValidatorInterface
+	 * @var Versioning
 	 */
-	private $validator;
+	private $versioning;
 
-	public function __construct(\BTCPay $module, FormHandlerInterface $formHandler, ValidatorInterface $validator)
+	public function __construct(\BTCPay $module, ValidatorInterface $validator, FormHandlerInterface $formHandler)
 	{
 		parent::__construct();
 
 		$this->module = $module;
-		$this->formHandler = $formHandler;
 		$this->validator = $validator;
+		$this->formHandler = $formHandler;
+		$this->versioning = new Versioning();
 	}
 
 	/**
@@ -63,6 +70,7 @@ class ConfigureController extends FrameworkBundleAdminController
 			return $this->render('@Modules/btcpay/views/templates/admin/configure.html.twig', [
 				'form'          => $this->get('prestashop.module.btcpay.form_handler')->getForm()->createView(),
 				'help_link'     => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
+				'latestVersion' => $this->versioning->latest(),
 				'moduleVersion' => $this->module->version,
 				'authorizeUrl'  => $authorizeUrl,
 				'invalidApiKey' => true,
@@ -78,6 +86,7 @@ class ConfigureController extends FrameworkBundleAdminController
 			'help_link'     => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
 			'storeId'       => $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID),
 			'webhookId'     => $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID),
+			'latestVersion' => $this->versioning->latest(),
 			'moduleVersion' => $this->module->version,
 			'authorizeUrl'  => $authorizeUrl,
 			'client'        => $client,
@@ -109,6 +118,7 @@ class ConfigureController extends FrameworkBundleAdminController
 				'form'          => $form->createView(),
 				'help_link'     => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
 				'invalidApiKey' => false === Client::createFromConfiguration($this->configuration)->isValid(),
+				'latestVersion' => $this->versioning->latest(),
 				'moduleVersion' => $this->module->version,
 				'authorizeUrl'  => $authorizeUrl,
 				'enableSidebar' => true,
