@@ -1,6 +1,7 @@
 <?php
 
 use BTCPay\Constants;
+use BTCPay\Github\Versioning;
 use BTCPay\Installer\Config;
 use BTCPay\Installer\Hooks;
 use BTCPay\Installer\OrderStates;
@@ -53,11 +54,16 @@ class BTCPay extends PaymentModule
 	 */
 	private $configuration;
 
+	/**
+	 * @var Versioning
+	 */
+	private $versioning;
+
 	public function __construct()
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '5.2.0';
+		$this->version                = '5.2.1';
 		$this->author                 = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
 		$this->controllers            = ['payment', 'validation', 'webhook'];
@@ -74,6 +80,10 @@ class BTCPay extends PaymentModule
 		$this->confirmUninstall = $this->trans('Are you sure that you want to uninstall this module? Past purchases and order states will be kept, but your configuration will be removed.', [], 'Modules.Btcpay.Front');
 
 		$this->configuration = new Configuration();
+		$this->versioning = new Versioning();
+
+		// Process any and all warnings
+		$this->warnings();
 	}
 
 	public function install(): bool
@@ -516,5 +526,25 @@ class BTCPay extends PaymentModule
 		}
 
 		return $this->repository;
+	}
+
+	private function warnings(): void
+	{
+		$warnings = [];
+
+		// Show alert if API key is missing
+		if (empty($this->configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY))) {
+			$warnings[] = $this->trans('No API key has been set yet', [], 'Modules.Btcpay.Admin');
+		}
+
+		// Show alert for version upgrade
+		if (null !== ($latest = $this->versioning->latest()) && $latest->newer($this->version)) {
+			$warnings[] = $this->trans(\sprintf('There is a new version available for %s (%s).', $this->displayName, $latest->getTagName()), [], 'Modules.Btcpay.Admin');
+		}
+
+		$this->warning = \implode(' - ', $warnings);
+		foreach ($warnings as $warning) {
+			$this->adminDisplayWarning($warning);
+		}
 	}
 }

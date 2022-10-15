@@ -1,6 +1,15 @@
 {% extends '@PrestaShop/Admin/layout.html.twig' %}
 
 {% block content %}
+  {% if latestVersion is defined and latestVersion != null and latestVersion.newer(moduleVersion) %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+      <p>{{ 'A new version of this module (%version%) has been released on GitHub. <a href="%url%" class="alert-link" target="_blank" rel="noopener noreferrer nofollow">Click here to check it out.</a>'|trans({'%version%': latestVersion.tagName, '%url%': latestVersion.url}, 'Modules.Btcpay.Admin')|raw }}</p>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+  {% endif %}
+
   <div class="row ps17">
     <div class="col-12 col-spx-12 col-lg-10 col-md-10 offset-md-1 offset-lg-1">
       <div class="card">
