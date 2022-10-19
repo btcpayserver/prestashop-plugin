@@ -2426,16 +2426,16 @@
         },
         {
             "name": "friendsofphp/proxy-manager-lts",
-            "version": "v1.0.12",
+            "version": "v1.0.13",
             "source": {
                 "type": "git",
                 "url": "https://github.com/FriendsOfPHP/proxy-manager-lts.git",
-                "reference": "8419f0158715b30d4b99a5bd37c6a39671994ad7"
+                "reference": "88354616f4cf4f6620910fd035e282173ba453e8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/FriendsOfPHP/proxy-manager-lts/zipball/8419f0158715b30d4b99a5bd37c6a39671994ad7",
-                "reference": "8419f0158715b30d4b99a5bd37c6a39671994ad7",
+                "url": "https://api.github.com/repos/FriendsOfPHP/proxy-manager-lts/zipball/88354616f4cf4f6620910fd035e282173ba453e8",
+                "reference": "88354616f4cf4f6620910fd035e282173ba453e8",
                 "shasum": ""
             },
             "require": {
@@ -2492,7 +2492,7 @@
             ],
             "support": {
                 "issues": "https://github.com/FriendsOfPHP/proxy-manager-lts/issues",
-                "source": "https://github.com/FriendsOfPHP/proxy-manager-lts/tree/v1.0.12"
+                "source": "https://github.com/FriendsOfPHP/proxy-manager-lts/tree/v1.0.13"
             },
             "funding": [
                 {
@@ -2504,7 +2504,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-05-05T09:31:05+00:00"
+            "time": "2022-10-17T19:48:16+00:00"
         },
         {
             "name": "friendsofsymfony/jsrouting-bundle",
@@ -5723,16 +5723,16 @@
         },
         {
             "name": "prestashop/php-dev-tools",
-            "version": "v4.2.1",
+            "version": "v4.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PrestaShop/php-dev-tools.git",
-                "reference": "359a2896c5115014b01155af1af2bea18ea28451"
+                "reference": "843275b19729ba810d8ba2b9c97b568e5bbabe03"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PrestaShop/php-dev-tools/zipball/359a2896c5115014b01155af1af2bea18ea28451",
-                "reference": "359a2896c5115014b01155af1af2bea18ea28451",
+                "url": "https://api.github.com/repos/PrestaShop/php-dev-tools/zipball/843275b19729ba810d8ba2b9c97b568e5bbabe03",
+                "reference": "843275b19729ba810d8ba2b9c97b568e5bbabe03",
                 "shasum": ""
             },
             "require": {
@@ -5741,8 +5741,8 @@
                 "prestashop/autoindex": "^2.0",
                 "prestashop/header-stamp": "^2.0",
                 "squizlabs/php_codesniffer": "^3.4",
-                "symfony/console": "~3.2 || ~4.0 || ~5.0",
-                "symfony/filesystem": "~3.2 || ~4.0 || ~5.0"
+                "symfony/console": "~3.2 || ~4.0 || ~5.0 || ~6.0",
+                "symfony/filesystem": "~3.2 || ~4.0 || ~5.0 || ~6.0"
             },
             "bin": [
                 "bin/prestashop-coding-standards"
@@ -5760,9 +5760,9 @@
             "description": "PrestaShop coding standards",
             "support": {
                 "issues": "https://github.com/PrestaShop/php-dev-tools/issues",
-                "source": "https://github.com/PrestaShop/php-dev-tools/tree/v4.2.1"
+                "source": "https://github.com/PrestaShop/php-dev-tools/tree/v4.3.0"
             },
-            "time": "2021-12-01T11:02:58+00:00"
+            "time": "2022-10-18T14:19:51+00:00"
         },
         {
             "name": "prestashop/prestashop",
