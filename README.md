@@ -1,8 +1,8 @@
 # Prestashop Plugin
 
-[![Maintained](https://img.shields.io/maintenance/yes/2022?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/pulse)
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/btcpayserver/prestashop-plugin/Validate/master?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/actions)
-[![GitHub License](https://img.shields.io/github/license/btcpayserver/prestashop-plugin?color=brightgreen&style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/blob/master/LICENSE)
+[![Maintained](https://img.shields.io/maintenance/yes/2023?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/pulse)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/btcpayserver/prestashop-plugin/validate.yml?branch=5.x&style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/actions)
+[![GitHub License](https://img.shields.io/github/license/btcpayserver/prestashop-plugin?color=brightgreen&style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/blob/5.x/LICENSE)
 [![GitHub contributors](https://img.shields.io/github/contributors-anon/btcpayserver/prestashop-plugin?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/graphs/contributors)
 
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/btcpayserver/prestashop-plugin?sort=semver&style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/releases)
@@ -16,6 +16,7 @@ Please ensure that you meet the following requirements before installing this pl
 
 - You are using PHP 7.3.0 or higher
 - Your PrestaShop is version 1.7.8.0 or higher.
+  - PrestaShop 8.0 support has not yet been added/tested.
 - Your BTCPay Server is version 1.3.0 or higher
 - The PDO, curl, gd, intl, json, and mbstring PHP extensions are available
 - You have a BTCPay Server, either [self-hosted](https://docs.btcpayserver.org/Deployment/) or [hosted by a third party](https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/)
