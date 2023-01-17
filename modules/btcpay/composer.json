@@ -55,7 +55,8 @@
   },
   "config": {
     "allow-plugins": {
-      "ergebnis/composer-normalize": true
+      "ergebnis/composer-normalize": true,
+      "php-http/discovery": true
     },
     "platform": {
       "php": "7.3"
