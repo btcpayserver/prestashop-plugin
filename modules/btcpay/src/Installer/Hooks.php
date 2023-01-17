@@ -21,7 +21,6 @@ class Hooks
 		if (!$this->module->registerHook('displayAdminOrderMainBottom')
 			|| !$this->module->registerHook('displayOrderDetail')
 			|| !$this->module->registerHook('displayPaymentEU')
-			|| !$this->module->registerHook('payment')
 			|| !$this->module->registerHook('paymentReturn')
 			|| !$this->module->registerHook('paymentOptions')
 			|| !$this->module->registerHook('actionCartSave')) {

@@ -63,7 +63,7 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '5.2.1';
+		$this->version                = '6.0.0';
 		$this->author                 = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
 		$this->controllers            = ['payment', 'validation', 'webhook'];
@@ -534,7 +534,7 @@ class BTCPay extends PaymentModule
 
 		// Show alert if API key is missing
 		if (empty($this->configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY))) {
-			$warnings[] = $this->trans('No API key has been set yet', [], 'Modules.Btcpay.Admin');
+			$warnings[] = $this->trans('No BTCPay Server store has been linked yet', [], 'Modules.Btcpay.Admin');
 		}
 
 		// Show alert for version upgrade
