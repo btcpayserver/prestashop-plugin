@@ -7,4 +7,4 @@ Prestashop modules come with an auto-upgrade feature which will be used to upgra
 The module requirements have been changed to:
 - You are using PHP 8.0 or higher
 - Your PrestaShop is version 8.0 or higher.
-- Your BTCPay Server is version 1.3.0 or higher
+- Your BTCPay Server is version 1.7.0 or higher

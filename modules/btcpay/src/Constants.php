@@ -7,7 +7,7 @@ use BTCPayServer\Client\InvoiceCheckoutOptions;
 class Constants
 {
 	// Version information
-	public const MINIMUM_BTCPAY_VERSION = '1.3.0';
+	public const MINIMUM_BTCPAY_VERSION = '1.7.0';
 	public const MINIMUM_PS_VERSION     = '8.0.0';
 	public const MINIMUM_PHP_VERSION    = '8.0.0';
 
