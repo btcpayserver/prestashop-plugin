@@ -16,7 +16,7 @@ Please ensure that you meet the following requirements before installing this pl
 
 - You are using PHP 8.0 or higher
 - Your PrestaShop is version 8.0 or higher.
-- Your BTCPay Server is version 1.3.0 or higher
+- Your BTCPay Server is version 1.7.0 or higher
 - The PDO, curl, gd, intl, json, and mbstring PHP extensions are available
 - You have a BTCPay Server, either [self-hosted](https://docs.btcpayserver.org/Deployment/) or [hosted by a third party](https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/)
 - [You've a registered account on the instance](https://docs.btcpayserver.org/RegisterAccount)
@@ -25,7 +25,7 @@ Please ensure that you meet the following requirements before installing this pl
 
 ### Tested successfully
 - Prestashop version 8.0 and 8.0.1
-- BTCPay server version 1.3.4 up to 1.7.3.0
+- BTCPay server version 1.7.0 up to 1.7.3.0
 
 ## Multistore
 
