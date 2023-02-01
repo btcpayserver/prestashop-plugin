@@ -7,7 +7,6 @@ jobs:
     name: "Linting (PHP ${{ matrix.php-versions }})"
     runs-on: "ubuntu-latest"
     strategy:
-      fail-fast: true
       matrix:
         php-versions: [ '7.3', '7.4', '8.0', '8.1' ]
     steps:
@@ -18,13 +17,14 @@ jobs:
         with:
           php-version: "${{ matrix.php-versions }}"
           extensions: "mbstring, xml, ctype, iconv, intl, gd"
+          tools: "composer:v2"
       - name: "Get composer cache directory"
-        id: "composercache"
-        run: "echo '::set-output name=dir::$(composer config cache-files-dir)'"
+        id: "composer-cache"
+        run: 'echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT'
       - name: "Cache composer dependencies"
         uses: "actions/cache@v3"
         with:
-          path: "${{ steps.composercache.outputs.dir }}"
+          path: "${{ steps.composer-cache.outputs.dir }}"
           key: "${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}"
           restore-keys: "${{ runner.os }}-composer-"
       - name: "Validate composer"
