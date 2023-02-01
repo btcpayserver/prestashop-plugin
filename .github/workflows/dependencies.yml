@@ -7,7 +7,6 @@ jobs:
     name: "Local PHP Security Checker (PHP ${{ matrix.php-versions }})"
     runs-on: "ubuntu-latest"
     strategy:
-      fail-fast: true
       matrix:
         php-versions: [ '7.3', '7.4', '8.0', '8.1' ]
     steps:
@@ -18,13 +17,14 @@ jobs:
         with:
           php-version: "${{ matrix.php-versions }}"
           extensions: "mbstring, xml, ctype, iconv, intl, gd"
+          tools: "composer:v2"
       - name: "Get composer cache directory"
-        id: "composercache"
-        run: "echo '::set-output name=dir::$(composer config cache-files-dir)'"
+        id: "composer-cache"
+        run: 'echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT'
       - name: "Cache composer dependencies"
         uses: "actions/cache@v3"
         with:
-          path: "${{ steps.composercache.outputs.dir }}"
+          path: "${{ steps.composer-cache.outputs.dir }}"
           key: "${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}"
           restore-keys: "${{ runner.os }}-composer-"
       - name: "Validate composer"
@@ -33,17 +33,7 @@ jobs:
         run: "composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader"
 
       # Ensure our dependencies are fine
-      - name: "Cache vulnerability database"
-        uses: "actions/cache@v3"
-        with:
-          path: "~/.cache/local-php-security-checker"
-          key: "local-php-security-checker-cache"
       - name: "Local PHP Security Checker"
-        id: "local_php_security_checker"
-        uses: "docker://pplotka/local-php-security-checker-github-actions"
-        continue-on-error: true
+        uses: "docker://pplotka/local-php-security-checker-github-actions:v1.0.0"
         with:
           path: "./modules/btcpay/composer.lock"
-          cache_dir: "~/.cache/local-php-security-checker"
-      - name: "Display the output"
-        run: 'echo "${{ steps.local_php_security_checker.outputs.security }}"'
