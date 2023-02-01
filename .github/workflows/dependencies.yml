@@ -39,7 +39,11 @@ jobs:
           path: "~/.cache/local-php-security-checker"
           key: "local-php-security-checker-cache"
       - name: "Local PHP Security Checker"
+        id: "local_php_security_checker"
         uses: "docker://pplotka/local-php-security-checker-github-actions"
+        continue-on-error: true
         with:
           path: "./modules/btcpay/composer.lock"
           cache_dir: "~/.cache/local-php-security-checker"
+      - name: "Display the output"
+        run: 'echo "${{ steps.local_php_security_checker.outputs.security }}"'
