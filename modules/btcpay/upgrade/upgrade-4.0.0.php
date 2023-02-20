@@ -7,9 +7,9 @@ if (!defined('_PS_VERSION_')) {
 }
 
 /**
- * @param BTCpay $module
+ * @param BTCpay|ModuleInterface|mixed $module
  */
-function upgrade_module_4_0_0(ModuleInterface $module): bool
+function upgrade_module_4_0_0(mixed $module): bool
 {
 	if (!$module instanceof BTCPay) {
 		throw new LogicException('Received invalid module');
