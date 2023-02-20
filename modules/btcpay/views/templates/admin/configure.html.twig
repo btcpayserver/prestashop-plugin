@@ -143,7 +143,7 @@
 
                 {% set webhook = client.webhook().getCurrent(storeId, webhookId) %}
                 <dt><span class="text-muted mb-0"><strong>{{ 'Webhook ID'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                {% if webhook is not null %}
+                {% if webhook is not null and webhook.enabled is defined %}
                   <dd><span class="{% if webhook.enabled %}text-success{% else %}text-warning{% endif %} px-1">{{ webhook.id }}</span></dd>
                 {% endif %}
 
