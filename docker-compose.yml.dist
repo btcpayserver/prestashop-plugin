@@ -1,7 +1,7 @@
 version: "3"
 services:
   btcpayserver:
-    image: btcpayserver/btcpayserver:1.6.12
+    image: btcpayserver/btcpayserver:1.9.1
     expose:
       - "49392"
     environment:
@@ -23,7 +23,7 @@ services:
 
   bitcoind:
     container_name: btcpayserver_bitcoind
-    image: btcpayserver/bitcoin:23.0
+    image: btcpayserver/bitcoin:24.0
     environment:
       BITCOIN_NETWORK: regtest
       BITCOIN_WALLETDIR: "/walletdata"
@@ -45,7 +45,7 @@ services:
       - "bitcoin_wallet_datadir:/walletdata"
 
   nbxplorer:
-    image: nicolasdorier/nbxplorer:2.3.39
+    image: nicolasdorier/nbxplorer:2.3.62
     expose:
       - "32838"
     environment:
@@ -64,14 +64,14 @@ services:
       - postgres
 
   postgres:
-    image: btcpayserver/postgres:13.7
+    image: btcpayserver/postgres:13.10
     environment:
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - "postgres_datadir:/var/lib/postgresql/data"
 
   mariadb:
-    image: bitnami/mariadb:10.7
+    image: bitnami/mariadb:10.11
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
       - MARIADB_SKIP_TEST_DB=yes
