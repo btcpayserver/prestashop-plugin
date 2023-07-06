@@ -85,12 +85,18 @@ class Client extends AbstractClient
 		$this->repository    = new LegacyBitcoinPaymentRepository();
 	}
 
-	public static function createFromConfiguration(Configuration $configuration): self
+	public static function createFromConfiguration(Configuration $configuration): ?self
 	{
-		return new self(
-			$configuration->get(Constants::CONFIGURATION_BTCPAY_HOST),
+		if ($configuration->get(Constants::CONFIGURATION_BTCPAY_HOST) &&
 			$configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY)
-		);
+		) {
+			return new self(
+				$configuration->get(Constants::CONFIGURATION_BTCPAY_HOST),
+				$configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY)
+			);
+		}
+
+		return null;
 	}
 
 	public function invoice(): InvoiceClient

@@ -66,7 +66,7 @@ class ConfigureController extends FrameworkBundleAdminController
 		// Create the authorization URL (without redirect)
 		$authorizeUrl = ApiKey::getAuthorizeUrl($this->configuration->get(Constants::CONFIGURATION_BTCPAY_HOST), Constants::BTCPAY_PERMISSIONS, $this->module->name, true, true, null, $this->module->name);
 
-		if (false === $client->isValid()) {
+		if (!$client || false === $client->isValid()) {
 			return $this->render('@Modules/btcpay/views/templates/admin/configure.html.twig', [
 				'form'          => $this->get('prestashop.module.btcpay.form_handler')->getForm()->createView(),
 				'help_link'     => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
