@@ -68,7 +68,8 @@ class Webhook extends \BTCPayServer\Client\Webhook
 	public function getCurrent(string $storeId, ?string $webhookId): ?\BTCPayServer\Result\Webhook
 	{
 		try {
-			if (null === $webhookId) {
+			// We need to check for empty here as twig passes a null variable as "" instead of null in configure.html.twig.
+			if (empty($webhookId)) {
 				return null;
 			}
 

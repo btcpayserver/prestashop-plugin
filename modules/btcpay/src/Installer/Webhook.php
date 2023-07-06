@@ -22,8 +22,9 @@ class Webhook
 	 */
 	public function uninstall(): array
 	{
-		// Remove the current webhook to prevent issues in the future
-		if (false === (Client::createFromConfiguration($this->configuration)->webhook()->removeCurrent())) {
+		// Remove the current webhook to prevent issues in the future.
+		$webhookClient = Client::createFromConfiguration($this->configuration);
+		if ($webhookClient && false === ($webhookClient->webhook()->removeCurrent())) {
 			return [
 				[
 					'key'        => 'Could not remove webhook from the server. Please double check it is actually gone.',
