@@ -79,7 +79,7 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 		// Ensure our webhook is actually valid
 		if (false === $this->client->webhook()->isIncomingWebhookRequestValid($request->getContent(), $signature, $secret)) {
 			$error = 'Invalid BTCPay Server payment notification message received - signature did not match.';
-			\PrestaShopLogger::addLog($error, 3);
+			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 			throw new \Exception($error);
 		}
