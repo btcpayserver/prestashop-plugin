@@ -189,7 +189,7 @@ class ConfigureController extends FrameworkBundleAdminController
 			return $this->redirectToRoute('admin_btcpay_configure');
 		}
 
-		// Validate incoming request and return any errors we encouter
+		// Validate incoming request and return any errors we encounter
 		$validateRequest = new ValidateApiKey($request->request);
 		if (0 !== \count($errors = $this->validator->validate($validateRequest))) {
 			foreach ($errors as $error) {
@@ -211,6 +211,9 @@ class ConfigureController extends FrameworkBundleAdminController
 				$this->addFlash('error', \sprintf('BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()));
 				\PrestaShopLogger::addLog(\sprintf('[ERROR] BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
+				// Make sure to reset the API key
+				$this->configuration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
+
 				return $this->redirectToRoute('admin_btcpay_configure');
 			}
 
@@ -218,6 +221,9 @@ class ConfigureController extends FrameworkBundleAdminController
 			if (empty($client->payment()->getPaymentMethods($storeId))) {
 				$this->addFlash('error', \sprintf("This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')));
 				\PrestaShopLogger::addLog(\sprintf("[ERROR] This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
+
+				// Make sure to reset the API key
+				$this->configuration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
 
 				return $this->redirectToRoute('admin_btcpay_configure');
 			}
@@ -267,6 +273,9 @@ class ConfigureController extends FrameworkBundleAdminController
 				$this->addFlash('error', \sprintf('BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()));
 				\PrestaShopLogger::addLog(\sprintf('[ERROR] BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
+				// Make sure to reset the API key
+				$this->configuration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
+
 				return $this->redirectToRoute('admin_btcpay_configure');
 			}
 
@@ -274,6 +283,9 @@ class ConfigureController extends FrameworkBundleAdminController
 			if (empty($client->payment()->getPaymentMethods($storeId))) {
 				$this->addFlash('error', \sprintf("This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')));
 				\PrestaShopLogger::addLog(\sprintf("[ERROR] This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
+
+				// Make sure to reset the API key
+				$this->configuration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
 
 				return $this->redirectToRoute('admin_btcpay_configure');
 			}
