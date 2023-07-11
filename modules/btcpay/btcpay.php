@@ -223,6 +223,11 @@ class BTCPay extends PaymentModule
 			return null;
 		}
 
+		// Ensure the client is ready for use
+		if (null === ($client = Client::createFromConfiguration($this->configuration)) || false === $client->isValid()) {
+			return null;
+		}
+
 		// Get legacy repository
 		$repository = new LegacyBitcoinPaymentRepository();
 
@@ -252,8 +257,8 @@ class BTCPay extends PaymentModule
 
 		try {
 			// Get the invoice and its payments
-			$invoice = $this->client()->invoice()->getInvoice($storeID, $invoiceId);
-			$paymentMethods = $this->client()->invoice()->getPaymentMethods($storeID, $invoiceId);
+			$invoice        = $client->invoice()->getInvoice($storeID, $invoiceId);
+			$paymentMethods = $client->invoice()->getPaymentMethods($storeID, $invoiceId);
 
 			// Has any payment been received
 			$paymentReceived = array_reduce($paymentMethods, static function ($carry, $method) {
@@ -300,6 +305,11 @@ class BTCPay extends PaymentModule
 			return null;
 		}
 
+		// Ensure the client is ready for use
+		if (null === ($client = Client::createFromConfiguration($this->configuration)) || false === $client->isValid()) {
+			return null;
+		}
+
 		// Check if we actually have an order
 		$order = $params['order'];
 		if (!$order instanceof Order) {
@@ -333,8 +343,8 @@ class BTCPay extends PaymentModule
 			$this->context->smarty->assign([
 				'serverURL'      => $serverUrl,
 				'storeCurrency'  => Currency::getCurrencyInstance($cart->id_currency)->getSymbol(),
-				'invoice'        => $this->client()->invoice()->getInvoice($storeID, $invoiceId),
-				'paymentMethods' => $this->client()->invoice()->getPaymentMethods($storeID, $invoiceId),
+				'invoice'        => $client->invoice()->getInvoice($storeID, $invoiceId),
+				'paymentMethods' => $client->invoice()->getPaymentMethods($storeID, $invoiceId),
 			]);
 
 			return $this->display(__FILE__, 'views/templates/hooks/order_detail.tpl');
@@ -416,8 +426,8 @@ class BTCPay extends PaymentModule
 			return [];
 		}
 
-		// If the API key is not valid, this module is not ready to be used
-		if (false === $this->client()->isValid()) {
+		// Ensure the client is ready for use
+		if (null === ($client = Client::createFromConfiguration($this->configuration)) || false === $client->isValid()) {
 			return [];
 		}
 
@@ -426,14 +436,14 @@ class BTCPay extends PaymentModule
 
 		try {
 			// If the server is not fully synced, do not show the option
-			if (!$this->client()->server()->getInfo()->isFullySynced()) {
+			if (!$client->server()->getInfo()->isFullySynced()) {
 				return [];
 			}
 
 			// Prepare smarty
 			$this->context->smarty->assign([
-				'onChain'  => $this->client()->onChain()->getPaymentMethods($storeID),
-				'offChain' => $this->client()->offChain()->getPaymentMethods($storeID),
+				'onChain'  => $client->onChain()->getPaymentMethods($storeID),
+				'offChain' => $client->offChain()->getPaymentMethods($storeID),
 			]);
 
 			return [
@@ -502,15 +512,6 @@ class BTCPay extends PaymentModule
 		foreach ($errors as $error) {
 			$this->_errors[] = $this->trans($error['key'], $error['parameters'], $error['domain']);
 		}
-	}
-
-	private function client(): Client
-	{
-		if (null === $this->client) {
-			$this->client = Client::createFromConfiguration($this->configuration);
-		}
-
-		return $this->client;
 	}
 
 	private function getRepository(): ?BitcoinPaymentRepository

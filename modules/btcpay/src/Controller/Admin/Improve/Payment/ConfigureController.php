@@ -66,7 +66,8 @@ class ConfigureController extends FrameworkBundleAdminController
 		// Create the authorization URL (without redirect)
 		$authorizeUrl = ApiKey::getAuthorizeUrl($this->configuration->get(Constants::CONFIGURATION_BTCPAY_HOST), Constants::BTCPAY_PERMISSIONS, $this->module->name, true, true, null, $this->module->name);
 
-		if (!$client || false === $client->isValid()) {
+		// Ensure the client is ready for use
+		if (null === $client || false === $client->isValid()) {
 			return $this->render('@Modules/btcpay/views/templates/admin/configure.html.twig', [
 				'form'          => $this->get('prestashop.module.btcpay.form_handler')->getForm()->createView(),
 				'help_link'     => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
@@ -111,13 +112,16 @@ class ConfigureController extends FrameworkBundleAdminController
 
 		// Just show the boring configuration field on no submit/invalid form
 		if (!$form->isSubmitted() || !$form->isValid()) {
+			// Try and create the client
+			$client = Client::createFromConfiguration($this->configuration);
+
 			// Create the authorization URL (without redirect)
 			$authorizeUrl = ApiKey::getAuthorizeUrl($this->configuration->get(Constants::CONFIGURATION_BTCPAY_HOST), Constants::BTCPAY_PERMISSIONS, $this->module->name, true, true, null, $this->module->name);
 
 			return $this->render('@Modules/btcpay/views/templates/admin/configure.html.twig', [
 				'form'          => $form->createView(),
 				'help_link'     => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
-				'invalidApiKey' => false === Client::createFromConfiguration($this->configuration)->isValid(),
+				'invalidApiKey' => null === $client || false === $client->isValid(),
 				'latestVersion' => $this->versioning->latest(),
 				'moduleVersion' => $this->module->version,
 				'authorizeUrl'  => $authorizeUrl,

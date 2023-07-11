@@ -87,16 +87,15 @@ class Client extends AbstractClient
 
 	public static function createFromConfiguration(Configuration $configuration): ?self
 	{
-		if ($configuration->get(Constants::CONFIGURATION_BTCPAY_HOST) &&
-			$configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY)
-		) {
-			return new self(
-				$configuration->get(Constants::CONFIGURATION_BTCPAY_HOST),
-				$configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY)
-			);
+		$host = $configuration->get(Constants::CONFIGURATION_BTCPAY_HOST);
+		$apiKey = $configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY);
+
+		// Cannot create a client, if we do not have valid configuration
+		if (null === $host || null === $apiKey) {
+			return null;
 		}
 
-		return null;
+		return new self($host, $apiKey);
 	}
 
 	public function invoice(): InvoiceClient

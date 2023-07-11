@@ -59,12 +59,13 @@ class Factory
 		}
 
 		// Build the client from our stored configuration
-		try {
-			$client = Client::createFromConfiguration($this->configuration);
-		} catch (\Throwable $e) {
-			\PrestaShopLogger::addLog(\sprintf('[MAJOR] %s', $e->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_MAJOR, $e->getCode());
+		$client = Client::createFromConfiguration($this->configuration);
 
-			throw new BTCPayException($e->getMessage(), $e->getCode(), $e);
+		// Ensure the client is ready for use
+		if (null === $client || false === $client->isValid()) {
+			\PrestaShopLogger::addLog("[ERROR] The BTCPay payment plugin was called to process a payment but the client doesn't exist.", \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
+
+			return null;
 		}
 
 		// Make sure we have a webhook, before we redirect anyone anywhere
@@ -138,7 +139,7 @@ class Factory
 
 			// If we create the order after payment, do not make the order yet
 			if (Constants::ORDER_MODE_AFTER === $this->configuration->get(Constants::CONFIGURATION_ORDER_MODE)) {
-				// Update the object, so we can always validate it afterwards
+				// Update the object, so we can always validate it afterward
 				if (false === $bitcoinPayment->update(true)) {
 					$error = \sprintf('[ERROR] Could not update bitcoin_payment: %s', \Db::getInstance()->getMsgError());
 					\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
