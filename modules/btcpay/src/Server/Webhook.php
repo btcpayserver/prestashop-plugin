@@ -35,7 +35,7 @@ class Webhook extends \BTCPayServer\Client\Webhook
 	public function ensureWebhook(string $storeId): void
 	{
 		// Check if we have an existing webhook, if so, just cancel now
-		if (false === empty($this->getCurrent($storeId, $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID)))) {
+		if (null === $this->getCurrent($storeId, $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID))) {
 			return;
 		}
 
