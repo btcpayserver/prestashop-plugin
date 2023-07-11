@@ -1,8 +1,8 @@
 <?php
 
 use BTCPay\Constants;
+use BTCPay\Invoice\Processor;
 use BTCPay\LegacyBitcoinPaymentRepository;
-use BTCPay\Server\Client;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 
 class BTCPayValidationModuleFrontController extends ModuleFrontController
@@ -25,17 +25,12 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 	private $configuration;
 
 	/**
-	 * @var Client
-	 */
-	private $client;
-
-	/**
 	 * @var LegacyBitcoinPaymentRepository
 	 */
 	private $repository;
 
 	/**
-	 * @var \BTCPay\Invoice\Processor
+	 * @var Processor
 	 */
 	private $processor;
 
@@ -44,9 +39,8 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 		parent::__construct();
 
 		$this->configuration = new Configuration();
-		$this->client = Client::createFromConfiguration($this->configuration);
 		$this->repository = new LegacyBitcoinPaymentRepository();
-		$this->processor = new \BTCPay\Invoice\Processor($this->module, $this->configuration, $this->client);
+		$this->processor = new Processor($this->module, $this->configuration, $this->client);
 	}
 
 	/**
@@ -66,7 +60,7 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 
 		// Get the translator so we can translate our errors
 		if (null === ($translator = $this->getTranslator())) {
-			throw new \RuntimeException('Expected the translator to be available');
+			throw new RuntimeException('Expected the translator to be available');
 		}
 
 		// Check if our payment option is still valid
