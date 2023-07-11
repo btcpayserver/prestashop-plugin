@@ -27,7 +27,7 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 	private $configuration;
 
 	/**
-	 * @var Client
+	 * @var Client|null
 	 */
 	private $client;
 
@@ -68,6 +68,11 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 		if (!$this->module->active
 			|| null === ($signature = $request->headers->get(Constants::BTCPAY_HEADER_SIG))
 			|| false === ($secret = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET))) {
+			return;
+		}
+
+		// Ensure the client is ready for use, if not, just return
+		if (null === $this->client || false === $this->client->isValid()) {
 			return;
 		}
 
