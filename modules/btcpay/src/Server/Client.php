@@ -141,8 +141,12 @@ class Client extends AbstractClient
 	public function isValid(): bool
 	{
 		try {
+			// Test the server connection
 			$this->server()->getInfo();
-		} catch (\Throwable $e) {
+
+			// Test the store connection
+			$this->store()->getStore($this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))->getName();
+		} catch (\Throwable) {
 			return false;
 		}
 
