@@ -143,8 +143,12 @@
 
                 {% set webhook = client.webhook().getCurrent(storeId, webhookId) %}
                 <dt><span class="text-muted mb-0"><strong>{{ 'Webhook ID'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                {% if webhook is not null and webhook.enabled is defined %}
-                  <dd><span class="{% if webhook.enabled %}text-success{% else %}text-warning{% endif %} px-1">{{ webhook.id }}</span></dd>
+                {% if webhook is not null and webhook.enabled is defined and webhook.enabled%}
+                  <dd><span class="text-success px-1">{{ webhook.id }}</span></dd>
+                {% elseif webhook is not null and webhook.enabled is defined and not webhook.enabled%}
+                  <dd><span class="text-warning px-1"><span title="Webhook has been disabled, re-enable it again your store">{{ webhook.id }} ⚠️</span></span></dd>
+                {% else %}
+                  <span class="text-warning px-1">Webhook is missing, retry the setup process</span>
                 {% endif %}
 
                 <dt><span class="text-muted mb-0"><strong>{{ 'Node fully synced'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
@@ -152,7 +156,7 @@
                   {% if serverInfo.fullySynced %}
                     <span class="text-success px-1">Yes</span>
                   {% else %}
-                    <span class="text-warning px-1"><span title="The payment option won't be available until the server is synced">No</span></span>
+                    <span class="text-warning px-1"><span title="The payment option won't be available until the server is synced">No ⚠️</span></span>
                   {% endif %}
                 </dd>
 
