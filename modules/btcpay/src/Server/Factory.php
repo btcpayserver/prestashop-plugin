@@ -183,10 +183,10 @@ class Factory
 
 			// Redirect user to payment
 			return $bitcoinPayment->getRedirect();
-		} catch (\Throwable $e) {
-			\PrestaShopLogger::addLog(\sprintf('[ERROR] %s', $e->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
+		} catch (\Throwable $throwable) {
+			\PrestaShopLogger::addLog(\sprintf('[ERROR] %s', $throwable->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, $throwable->getCode());
 
-			throw new BTCPayException($e->getMessage(), $e->getCode(), $e);
+			throw new BTCPayException($throwable->getMessage(), $throwable->getCode(), $throwable);
 		}
 	}
 

@@ -209,6 +209,7 @@ class ConfigureController extends FrameworkBundleAdminController
 			// Ensure we have a valid BTCPay Server version
 			if (null !== ($info = $client->server()->getInfo()) && \version_compare($info->getVersion(), Constants::MINIMUM_BTCPAY_VERSION, '<')) {
 				$this->addFlash('error', \sprintf('BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()));
+				\PrestaShopLogger::addLog(\sprintf('[ERROR] BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				return $this->redirectToRoute('admin_btcpay_configure');
 			}
@@ -216,15 +217,16 @@ class ConfigureController extends FrameworkBundleAdminController
 			// Ensure we have a payment methods setup
 			if (empty($client->payment()->getPaymentMethods($storeId))) {
 				$this->addFlash('error', \sprintf("This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')));
+				\PrestaShopLogger::addLog(\sprintf("[ERROR] This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				return $this->redirectToRoute('admin_btcpay_configure');
 			}
 
 			// Ensure we have a webhook
 			$client->webhook()->ensureWebhook($storeId);
-		} catch (\Throwable $exception) {
-			$this->addFlash('error', \sprintf('BTCPay Server plugin: %s', $exception->getMessage()));
-			\PrestaShopLogger::addLog('[ERROR] An error occurred during setup ' . \print_r($exception, true));
+		} catch (\Throwable $throwable) {
+			$this->addFlash('error', \sprintf('BTCPay Server plugin: %s', $throwable->getMessage()));
+			\PrestaShopLogger::addLog(\sprintf('[ERROR] An error occurred during configuration validation: %s', $throwable), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, $throwable->getCode());
 
 			return $this->redirectToRoute('admin_btcpay_configure');
 		}
@@ -263,6 +265,7 @@ class ConfigureController extends FrameworkBundleAdminController
 			// Ensure we have a valid BTCPay Server version
 			if (null !== ($info = $client->server()->getInfo()) && \version_compare($info->getVersion(), Constants::MINIMUM_BTCPAY_VERSION, '<')) {
 				$this->addFlash('error', \sprintf('BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()));
+				\PrestaShopLogger::addLog(\sprintf('[ERROR] BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				return $this->redirectToRoute('admin_btcpay_configure');
 			}
@@ -270,6 +273,7 @@ class ConfigureController extends FrameworkBundleAdminController
 			// Ensure we have a payment methods setup
 			if (empty($client->payment()->getPaymentMethods($storeId))) {
 				$this->addFlash('error', \sprintf("This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')));
+				\PrestaShopLogger::addLog(\sprintf("[ERROR] This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				return $this->redirectToRoute('admin_btcpay_configure');
 			}
@@ -279,9 +283,9 @@ class ConfigureController extends FrameworkBundleAdminController
 
 			// Ensure we have a webhook
 			$client->webhook()->ensureWebhook($storeId);
-		} catch (\Throwable $exception) {
-			$this->addFlash('error', \sprintf('BTCPay Server plugin: %s', $exception->getMessage()));
-			\PrestaShopLogger::addLog('[ERROR] An error occurred during setup ' . \print_r($exception, true));
+		} catch (\Throwable $throwable) {
+			$this->addFlash('error', \sprintf('BTCPay Server plugin: %s', $throwable->getMessage()));
+			\PrestaShopLogger::addLog(\sprintf('[ERROR] An error occurred during setup: %s', $throwable), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, $throwable->getCode());
 
 			// Ensure nothing is saved
 			$this->configuration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
@@ -330,7 +334,7 @@ class ConfigureController extends FrameworkBundleAdminController
 
 			// Ensure we have a webhook
 			$client->webhook()->ensureWebhook($storeID);
-		} catch (\Throwable $e) {
+		} catch (\Throwable) {
 			// Reset BTCPay details
 			$this->configuration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
 			$this->configuration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID, null);
