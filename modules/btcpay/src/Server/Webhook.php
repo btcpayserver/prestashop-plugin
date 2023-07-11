@@ -78,9 +78,9 @@ class Webhook extends \BTCPayServer\Client\Webhook
 			}
 
 			return !empty($webhook->getData()) ? $webhook : null;
-		} catch (\Throwable $e) {
-			$warning = \sprintf("[WARNING] expected webhook '%s' for store '%s' to exist, but it didn't. Exception received: %s", $webhookId, $storeId, $e->getMessage());
-			\PrestaShopLogger::addLog($warning, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $e->getCode());
+		} catch (\Throwable $throwable) {
+			$warning = \sprintf("[WARNING] expected webhook '%s' for store '%s' to exist, but it didn't. Exception received: %s", $webhookId, $storeId, $throwable->getMessage());
+			\PrestaShopLogger::addLog($warning, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $throwable->getCode());
 
 			return null;
 		}
@@ -104,8 +104,9 @@ class Webhook extends \BTCPayServer\Client\Webhook
 			$this->deleteWebhook($storeId, $webhookId);
 
 			return true;
-		} catch (\Throwable $e) {
-			\PrestaShopLogger::addLog(\sprintf("[WARNING] Could not remove webhook '%s' from the store '%s'. Please double check it is actually gone. Exception received: %s", $webhookId, $storeId, $e->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $e->getCode());
+		} catch (\Throwable $throwable) {
+			$message = \sprintf("[WARNING] Could not remove webhook '%s' from the store '%s'. Please double check it is actually gone. Exception received: %s", $webhookId, $storeId, $throwable->getMessage());
+			\PrestaShopLogger::addLog($message, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $throwable->getCode());
 
 			return false;
 		}
