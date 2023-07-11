@@ -62,7 +62,7 @@ class WebhookHandler
 		}
 
 		// If it's a test, just accept it
-		if (false !== \strpos($data['invoiceId'], '__test__')) {
+		if (\str_contains($data['invoiceId'], '__test__')) {
 			\PrestaShopLogger::addLog(\sprintf('[INFO] Received test IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
 
 			return;
