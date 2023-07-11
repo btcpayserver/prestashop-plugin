@@ -35,6 +35,14 @@ build: ## Build the bastard binary file
 		&& zip -r $(ZIP_NAME) $(MODULE) \
 		&& mv $(ZIP_NAME) "../$(BUILD_FOLDER)"
 
+bump: ## Bump all package versions
+	# Bump all root dependencies
+	@composer install
+
+	# Bump all module dependencies
+	@cd "$(MODULE_FOLDER)/$(MODULE)" \
+		&& composer install
+
 install: ## Install everything for development
 	# Installing all root dependencies
 	@composer install
