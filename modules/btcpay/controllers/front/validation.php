@@ -3,6 +3,7 @@
 use BTCPay\Constants;
 use BTCPay\Invoice\Processor;
 use BTCPay\LegacyBitcoinPaymentRepository;
+use BTCPay\Server\Client;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 
 class BTCPayValidationModuleFrontController extends ModuleFrontController
@@ -29,18 +30,12 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 	 */
 	private $repository;
 
-	/**
-	 * @var Processor
-	 */
-	private $processor;
-
 	public function __construct()
 	{
 		parent::__construct();
 
 		$this->configuration = new Configuration();
 		$this->repository = new LegacyBitcoinPaymentRepository();
-		$this->processor = new Processor($this->module, $this->configuration, $this->client);
 	}
 
 	/**
@@ -104,8 +99,14 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 				return;
 			}
 
-			// User was quicker than the callback, deal with the actual invoice now
-			$this->processor->paymentReceivedCreateAfter($bitcoinPayment);
+			// Ensure the client is ready for use
+			if (null === ($client = Client::createFromConfiguration($this->configuration)) || false === $client->isValid()) {
+				throw new RuntimeException('Expected the client to be available');
+			}
+
+			// User was quicker than the callback, so we deal with the actual invoice now
+			$processor = new Processor($this->module, $this->configuration, $client);
+			$processor->paymentReceivedCreateAfter($bitcoinPayment);
 
 			// Grab the (now existing) order
 			$order = Order::getByCartId($bitcoinPayment->getCartId());
