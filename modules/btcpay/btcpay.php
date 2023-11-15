@@ -63,7 +63,7 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '6.0.1';
+		$this->version                = '6.0.2';
 		$this->author                 = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
 		$this->controllers            = ['payment', 'validation', 'webhook'];
@@ -355,20 +355,6 @@ class BTCPay extends PaymentModule
 			// If the invoice is gone just return null
 			return null;
 		}
-	}
-
-	public function hookDisplayPaymentEU(): array
-	{
-		// If the module is not active, abort
-		if (!$this->active) {
-			return [];
-		}
-
-		return [
-			'cta_text' => $this->name,
-			'logo'     => Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/images/bitcoin.png'),
-			'action'   => $this->context->link->getModuleLink($this->name, 'payment', [], true),
-		];
 	}
 
 	/**
