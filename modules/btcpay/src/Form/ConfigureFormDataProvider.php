@@ -19,12 +19,9 @@ class ConfigureFormDataProvider implements FormDataProviderInterface
 		$this->configuration = new PrestaShopConfiguration();
 	}
 
-	/**
-	 * @return Configuration[]
-	 */
-	public function getData(): array
+	public function getData(): Configuration
 	{
-		return ['btcpay' => Configuration::create($this->configuration)];
+		return Configuration::create($this->configuration);
 	}
 
 	/**
@@ -32,8 +29,8 @@ class ConfigureFormDataProvider implements FormDataProviderInterface
 	 */
 	public function setData(array $data): array
 	{
-		/** @var Configuration $configuration */
-		$configuration = $data['btcpay'];
+		// Re-create configuration element with form data
+		$configuration = Configuration::fromArray($data);
 
 		if ($this->configuration->get(Constants::CONFIGURATION_BTCPAY_HOST) !== \rtrim(\trim(($host = $configuration->getHost())), '/\\') && !empty($host)) {
 			$this->configuration->set(Constants::CONFIGURATION_BTCPAY_HOST, \rtrim(\trim($host), '/\\'));

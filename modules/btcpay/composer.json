@@ -17,14 +17,14 @@
     "source": "https://github.com/btcpayserver/prestashop-plugin"
   },
   "require": {
-    "php": ">=7.3.0",
+    "php": ">=8.0",
     "ext-PDO": "*",
     "ext-curl": "*",
     "ext-gd": "*",
     "ext-intl": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
-    "btcpayserver/btcpayserver-greenfield-php": "^1.3.6",
+    "btcpayserver/btcpayserver-greenfield-php": "^2.3.0",
     "composer/semver": "^3.3.2",
     "guzzlehttp/guzzle": "^7.7",
     "http-interop/http-factory-guzzle": "^1.2",
@@ -32,7 +32,7 @@
     "stechstudio/backoff": "^1.2"
   },
   "require-dev": {
-    "ergebnis/composer-normalize": "^2.20",
+    "ergebnis/composer-normalize": "^2.42",
     "roave/security-advisories": "dev-latest",
     "symfony/debug-bundle": "^4.4.37",
     "symfony/var-dumper": "^4.4.47"
@@ -59,7 +59,7 @@
       "php-http/discovery": true
     },
     "platform": {
-      "php": "7.3"
+      "php": "8.0"
     },
     "preferred-install": "dist",
     "prepend-autoloader": false,

@@ -9,10 +9,10 @@
       <p class="text-muted mb-0"><strong>Status</strong></p>
         {if $invoice->isInvalid()}
           <span class="tag tag-danger tag-pill">{if $invoice->isMarked()}Marked invalid via BTCPay Server{else}Payment failed{/if}</span>
-        {elseif $invoice->isFullyPaid()}
+        {elseif $invoice->isSettled()}
           <span class="tag tag-success tag-pill">{if $invoice->isMarked()}Marked paid via BTCPay Server{else}Paid (and confirmed){/if}</span>
           {if $invoice->isOverPaid()}<span class="tag tag-info tag-pill">Overpaid</span>{/if}
-        {elseif $invoice->isPaid() or $invoice->isProcessing()}
+        {elseif $invoice->isProcessing()}
           <span class="tag tag-primary tag-pill">Paid (pending confirmations)</span>
           {if $invoice->isOverPaid()}<span class="tag tag-info tag-pill">Overpaid</span>{/if}
         {elseif $invoice->isPartiallyPaid()}
