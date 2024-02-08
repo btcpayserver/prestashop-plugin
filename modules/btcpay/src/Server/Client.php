@@ -13,6 +13,7 @@ use BTCPayServer\Client\StorePaymentMethod;
 use BTCPayServer\Client\StorePaymentMethodLightningNetwork;
 use BTCPayServer\Client\StorePaymentMethodOnChain;
 use PrestaShop\PrestaShop\Adapter\Configuration;
+use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
 
 class Client extends AbstractClient
 {
@@ -85,7 +86,7 @@ class Client extends AbstractClient
 		$this->repository    = new LegacyBitcoinPaymentRepository();
 	}
 
-	public static function createFromConfiguration(Configuration $configuration): ?self
+	public static function createFromConfiguration(ShopConfigurationInterface $configuration): ?self
 	{
 		$host = $configuration->get(Constants::CONFIGURATION_BTCPAY_HOST);
 		$apiKey = $configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY);

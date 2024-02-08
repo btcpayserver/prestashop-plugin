@@ -35,11 +35,10 @@ services:
 
   # Form handler
   prestashop.module.btcpay.form_handler:
-    class: PrestaShop\PrestaShop\Core\Form\FormHandler
+    class: PrestaShop\PrestaShop\Core\Form\Handler
     arguments:
-      $formBuilder: '@=service("form.factory").createBuilder()'
+      $formFactory: '@Symfony\Component\Form\FormFactoryInterface'
       $hookDispatcher: '@prestashop.core.hook.dispatcher'
       $formDataProvider: '@prestashop.module.btcpay.form.configure.provider'
-      $formTypes:
-        'btcpay': 'BTCPay\Form\Type\ConfigureType'
+      $form: 'BTCPay\Form\Type\ConfigureType'
       $hookName: 'AdminConfigureBTCPay'

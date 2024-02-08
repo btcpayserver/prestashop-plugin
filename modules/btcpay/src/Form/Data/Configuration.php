@@ -4,6 +4,7 @@ namespace BTCPay\Form\Data;
 
 use BTCPay\Constants;
 use BTCPayServer\Client\InvoiceCheckoutOptions;
+use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class Configuration
@@ -53,14 +54,25 @@ class Configuration
 		$this->shareMetadata = $shareMetadata;
 	}
 
-	public static function create(\PrestaShop\PrestaShop\Adapter\Configuration $configuration): self
+	public static function create(ShopConfigurationInterface $configuration): self
 	{
 		return new self(
 			$configuration->get(Constants::CONFIGURATION_BTCPAY_HOST, Constants::CONFIGURATION_DEFAULT_HOST),
 			$configuration->get(Constants::CONFIGURATION_SPEED_MODE, InvoiceCheckoutOptions::SPEED_MEDIUM),
 			$configuration->get(Constants::CONFIGURATION_ORDER_MODE, Constants::ORDER_MODE_BEFORE),
-			$configuration->get(Constants::CONFIGURATION_SHARE_METADATA, false),
-			$configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY),
+			(bool) $configuration->get(Constants::CONFIGURATION_SHARE_METADATA, false),
+			$configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY, null),
+		);
+	}
+
+	public static function fromArray(array $data): self
+	{
+		return new self(
+			$data['host'],
+			$data['speed'],
+			$data['orderMode'],
+			$data['shareMetadata'],
+			$data['apiKey'],
 		);
 	}
 
@@ -123,10 +135,10 @@ class Configuration
 	{
 		return [
 			'host'          => $this->host,
-			'apiKey'        => $this->apiKey,
 			'speed'         => $this->speed,
 			'orderMode'     => $this->orderMode,
 			'shareMetadata' => $this->shareMetadata,
+			'apiKey'        => $this->apiKey,
 		];
 	}
 }

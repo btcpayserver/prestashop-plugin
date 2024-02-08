@@ -23,7 +23,7 @@ class Config
 	 */
 	public function install(): array
 	{
-		// Init clear configurations
+		// Ensure sane defaults
 		if (!$this->configuration->set(Constants::CONFIGURATION_BTCPAY_HOST, Constants::CONFIGURATION_DEFAULT_HOST)
 			|| !$this->configuration->set(Constants::CONFIGURATION_SPEED_MODE, InvoiceCheckoutOptions::SPEED_MEDIUM)
 			|| !$this->configuration->set(Constants::CONFIGURATION_ORDER_MODE, Constants::ORDER_MODE_BEFORE)

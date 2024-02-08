@@ -2,6 +2,7 @@
 
 use BTCPay\Constants;
 use BTCPay\Server\Factory;
+use PrestaShop\PrestaShop\Adapter\Configuration;
 
 class BTCPayPaymentModuleFrontController extends ModuleFrontController
 {

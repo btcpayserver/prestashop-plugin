@@ -203,7 +203,7 @@ class Factory
 			'taxIncluded' => $taxAmount,
 		];
 
-		// Only include personal details if enabled, if not, return here
+		// Only include personal details if enabled, if not, return here (force to bool, as the default could be not bool)
 		if (false === (bool) $this->configuration->get(Constants::CONFIGURATION_SHARE_METADATA, false)) {
 			return $metadata;
 		}

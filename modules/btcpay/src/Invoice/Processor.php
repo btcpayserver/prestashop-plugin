@@ -50,14 +50,14 @@ class Processor
 		// Grab the invoice from the server
 		$invoice = $this->client->invoice()->getInvoice($storeID, $bitcoinPayment->getInvoiceId());
 
-		// Change state if it's paid/processing
-		if ($invoice->isPaid() || $invoice->isProcessing()) {
+		// Change state if it's processing
+		if ($invoice->isProcessing()) {
 			// Transaction received but we have to wait some confirmation
 			$orderStatus = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING);
 		}
 
-		// Change state if it's fully paid
-		if ($invoice->isFullyPaid()) {
+		// Change state if it's settled
+		if ($invoice->isSettled()) {
 			// Transaction confirmed on the network
 			$orderStatus = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_PAID);
 		}
