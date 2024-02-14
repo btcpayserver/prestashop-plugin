@@ -11,16 +11,6 @@ use Symfony\Component\HttpFoundation\Request;
 class WebhookHandler
 {
 	/**
-	 * @var \BTCPay
-	 */
-	private $module;
-
-	/**
-	 * @var Client
-	 */
-	private $client;
-
-	/**
 	 * @var LegacyBitcoinPaymentRepository
 	 */
 	private $repository;
@@ -37,11 +27,9 @@ class WebhookHandler
 
 	public function __construct(\BTCPay $module, Client $client, LegacyBitcoinPaymentRepository $repository)
 	{
-		$this->module = $module;
-		$this->client = $client;
-		$this->repository = $repository;
+		$this->repository    = $repository;
 		$this->configuration = new Configuration();
-		$this->processor = new Processor($this->module, $this->configuration, $this->client);
+		$this->processor     = new Processor($module, $this->configuration, $client);
 	}
 
 	/**

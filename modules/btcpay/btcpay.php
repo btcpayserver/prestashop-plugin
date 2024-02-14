@@ -40,11 +40,6 @@ class BTCPay extends PaymentModule
 	];
 
 	/**
-	 * @var Client
-	 */
-	private $client;
-
-	/**
 	 * @var BitcoinPaymentRepository
 	 */
 	private $repository;
