@@ -19,26 +19,46 @@ services:
     arguments:
       - '@prestashop.module.btcpay'
       - '@validator'
-      - '@prestashop.module.btcpay.form_handler'
+      - '@prestashop.module.btcpay.form_handler.server'
+      - '@prestashop.module.btcpay.form_handler.general'
 
   # Form data provider
-  prestashop.module.btcpay.form.configure.provider:
-    class: BTCPay\Form\ConfigureFormDataProvider
+  prestashop.module.btcpay.form.server.provider:
+    class: BTCPay\Form\ServerFormDataProvider
+  prestashop.module.btcpay.form.general.provider:
+    class: BTCPay\Form\GeneralFormDataProvider
 
   # Form type
-  prestashop.module.btcpay.form.type.configure:
-    class: BTCPay\Form\Type\ConfigureType
+  prestashop.module.btcpay.form.type.server:
+    class: BTCPay\Form\Type\ServerType
     parent: 'form.type.translatable.aware'
     public: true
-    tags:
-      - { name: form.type }
+    tags: [{ name: form.type }]
+
+  prestashop.module.btcpay.form.type.general:
+    class: BTCPay\Form\Type\GeneralType
+    parent: 'form.type.translatable.aware'
+    public: true
+    tags: [{ name: form.type }]
 
   # Form handler
-  prestashop.module.btcpay.form_handler:
+  prestashop.module.btcpay.form_handler.server:
     class: PrestaShop\PrestaShop\Core\Form\Handler
     arguments:
       $formFactory: '@Symfony\Component\Form\FormFactoryInterface'
       $hookDispatcher: '@prestashop.core.hook.dispatcher'
-      $formDataProvider: '@prestashop.module.btcpay.form.configure.provider'
-      $form: 'BTCPay\Form\Type\ConfigureType'
-      $hookName: 'AdminConfigureBTCPay'
+      $formDataProvider: '@prestashop.module.btcpay.form.server.provider'
+      $form: 'BTCPay\Form\Type\ServerType'
+      $hookName: 'ServerType'
+      $formName: 'server-form'
+
+  # Form handler
+  prestashop.module.btcpay.form_handler.general:
+    class: PrestaShop\PrestaShop\Core\Form\Handler
+    arguments:
+      $formFactory: '@Symfony\Component\Form\FormFactoryInterface'
+      $hookDispatcher: '@prestashop.core.hook.dispatcher'
+      $formDataProvider: '@prestashop.module.btcpay.form.general.provider'
+      $form: 'BTCPay\Form\Type\GeneralType'
+      $hookName: 'GeneralType'
+      $formName: 'general-form'

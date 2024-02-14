@@ -3,6 +3,7 @@ MODULE_FOLDER := "./modules"
 
 BUILD_FOLDER := "./build"
 ZIP_NAME := "${MODULE}.zip"
+ZIP_DEBUG_NAME := "${MODULE}_debug.zip"
 MODULE_OUT := "${BUILD_FOLDER}/${ZIP_NAME}"
 
 .PHONY: all build install update upgrade clean lint lint-fix
@@ -34,6 +35,32 @@ build: ## Build the bastard binary file
 	@cd $(MODULE_FOLDER) \
 		&& zip -r $(ZIP_NAME) $(MODULE) \
 		&& mv $(ZIP_NAME) "../$(BUILD_FOLDER)"
+
+debug: ## Build the bastard binary file as debug file
+	# Installing all dependencies
+	@cd "$(MODULE_FOLDER)/$(MODULE)" \
+		&& composer install
+
+	# Dump autoloader
+	@cd "$(MODULE_FOLDER)/$(MODULE)" \
+		&& composer dump-autoload -o
+
+	# Removing the old ZIP if present
+	@rm -f $(MODULE_OUT)
+
+	# Make the build folder
+	@mkdir -p $(BUILD_FOLDER)
+
+	# Copy the license to the module
+	@cp ./LICENSE "$(MODULE_FOLDER)/$(MODULE)"
+
+	# Copy the README to the module
+	@cp ./README.md "$(MODULE_FOLDER)/$(MODULE)"
+
+	# Zip the module
+	@cd $(MODULE_FOLDER) \
+		&& zip -r $(ZIP_DEBUG_NAME) $(MODULE) \
+		&& mv $(ZIP_DEBUG_NAME) "../$(BUILD_FOLDER)"
 
 bump: ## Bump all package versions
 	# Bump all root dependencies

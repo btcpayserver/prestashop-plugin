@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
-  <name>btcpay</name>
-  <displayName><![CDATA[BTCPay]]></displayName>
-  <version><![CDATA[5.2.0]]></version>
-  <description><![CDATA[Accept crypto payments via BTCPay Server.]]></description>
-  <author><![CDATA[BTCPayServer]]></author>
-  <tab><![CDATA[payments_gateways]]></tab>
-  <confirmUninstall><![CDATA[Are you sure that you want to uninstall this module? Past purchases and order states will be kept, but your configuration will be removed.]]></confirmUninstall>
-  <is_configurable>1</is_configurable>
-  <need_instance>1</need_instance>
-  <limited_countries/>
+    <name>btcpay</name>
+    <displayName><![CDATA[BTCPay Server]]></displayName>
+    <version><![CDATA[6.0.3]]></version>
+    <description><![CDATA[Accept crypto payments via BTCPay Server.]]></description>
+    <author><![CDATA[BTCPay Server]]></author>
+    <tab><![CDATA[payments_gateways]]></tab>
+	<confirmUninstall><![CDATA[Are you sure that you want to uninstall this module? Past purchases and order states will be kept, but your configuration will be removed.]]></confirmUninstall>
+    <is_configurable>1</is_configurable>
+    <need_instance>1</need_instance>
 </module>
