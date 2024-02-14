@@ -3,11 +3,11 @@
 namespace BTCPay\Form;
 
 use BTCPay\Constants;
-use BTCPay\Form\Data\Configuration;
+use BTCPay\Form\Data\General;
 use PrestaShop\PrestaShop\Adapter\Configuration as PrestaShopConfiguration;
 use PrestaShop\PrestaShop\Core\Form\FormDataProviderInterface;
 
-class ConfigureFormDataProvider implements FormDataProviderInterface
+class GeneralFormDataProvider implements FormDataProviderInterface
 {
 	/**
 	 * @var PrestaShopConfiguration
@@ -19,9 +19,9 @@ class ConfigureFormDataProvider implements FormDataProviderInterface
 		$this->configuration = new PrestaShopConfiguration();
 	}
 
-	public function getData(): Configuration
+	public function getData(): General
 	{
-		return Configuration::create($this->configuration);
+		return General::create($this->configuration);
 	}
 
 	/**
@@ -30,15 +30,7 @@ class ConfigureFormDataProvider implements FormDataProviderInterface
 	public function setData(array $data): array
 	{
 		// Re-create configuration element with form data
-		$configuration = Configuration::fromArray($data);
-
-		if ($this->configuration->get(Constants::CONFIGURATION_BTCPAY_HOST) !== \rtrim(\trim(($host = $configuration->getHost())), '/\\') && !empty($host)) {
-			$this->configuration->set(Constants::CONFIGURATION_BTCPAY_HOST, \rtrim(\trim($host), '/\\'));
-		}
-
-		if ($this->configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY) !== \rtrim(\trim(($apiKey = $configuration->getApiKey())), '/\\') && !empty($apiKey)) {
-			$this->configuration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, \rtrim(\trim($apiKey), '/\\'));
-		}
+		$configuration = General::fromArray($data);
 
 		if ($this->configuration->get(Constants::CONFIGURATION_SPEED_MODE) !== ($speedMode = $configuration->getSpeed()) && !empty($speedMode)) {
 			$this->configuration->set(Constants::CONFIGURATION_SPEED_MODE, $speedMode);

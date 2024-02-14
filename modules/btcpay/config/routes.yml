@@ -2,16 +2,24 @@ admin_btcpay_configure:
   path: /btcpay/configure
   methods: [GET]
   defaults:
-    _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::editAction'
+    _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::viewAction'
     _legacy_controller: AdminConfigureBTCPay
     _legacy_link: AdminConfigureBTCPay
     _disable_module_prefix: true
 
-admin_btcpay_configure_process:
+admin_btcpay_configure_server_process:
   path: /btcpay/configure
   methods: [GET, POST]
   defaults:
-    _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::editProcessAction'
+    _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::editServerSettingsAction'
+    _legacy_controller: AdminConfigureBTCPay
+    _disable_module_prefix: true
+
+admin_btcpay_configure_general_process:
+  path: /btcpay/configure/general
+  methods: [GET, POST]
+  defaults:
+    _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::editGeneralSettingsAction'
     _legacy_controller: AdminConfigureBTCPay
     _disable_module_prefix: true
 
@@ -19,7 +27,6 @@ admin_btcpay_validate:
   path: /btcpay/api-key/validate
   methods: [GET, POST]
   defaults:
-    _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::validateAction'
+    _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::validateAPIKeyAction'
     _legacy_controller: AdminConfigureBTCPay
     _disable_module_prefix: true
-

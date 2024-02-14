@@ -1,7 +1,11 @@
 {% extends '@PrestaShop/Admin/layout.html.twig' %}
 
+{% set invalidApiKey = client is defined and client is null %}
+{% set storeAvailable = storeId is defined and storeId is not null and client is defined and client is not null %}
+{% set hasNewerVersion = latestVersion is defined and latestVersion != null and latestVersion.newer(moduleVersion) %}
+
 {% block content %}
-  {% if latestVersion is defined and latestVersion != null and latestVersion.newer(moduleVersion) %}
+  {% if hasNewerVersion %}
   <div class="row ps17">
     <div class="col-12 col-spx-12 col-lg-10 col-md-10 offset-md-1 offset-lg-1">
       <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -19,7 +23,7 @@
       <div class="card">
         <div class="card-header">
           <i class="material-icons">extension</i>
-          {{ 'BTCPay Server - Prestashop module (v%version%)'|trans({'%version%': moduleVersion}, 'Modules.Btcpay.Admin') }}
+          {{ 'BTCPay Server - Payment module - v%version%'|trans({'%version%': moduleVersion}, 'Modules.Btcpay.Admin') }}
         </div>
         <div class="card-body">
           <div class="row">
@@ -46,35 +50,51 @@
   </div>
 
   <div class="row ps17">
-    <div class="{% if invalidApiKey is defined %}col-5 col-spx-5 col-lg-5 col-md-5 {% else %}col-12 col-spx-12 col-lg-10 col-md-10{% endif %} offset-md-1 offset-lg-1">
+    <div class="{% if invalidApiKey %}col-5 col-spx-5 col-lg-5 col-md-5 {% else %}col-12 col-spx-12 col-lg-10 col-md-10{% endif %} offset-md-1 offset-lg-1">
       <div class="card">
-        {{ form_start(form, {'action': url('admin_btcpay_configure_process'), 'attr': {'class': 'form', 'id': 'btcpay-form'}}) }}
+        {{ form_start(server_form, {'action': url('admin_btcpay_configure_server_process'), 'attr': {'class': 'form', 'id': 'server-form'}}) }}
         <h3 class="card-header">
           <i class="material-icons">mode_edit</i>
-          {{ 'Settings'|trans({}, 'Admin.Global') }}
+          {{ 'Server'|trans({}, 'Admin.Global') }}
         </h3>
 
         <div class="card-block">
           <div class="card-text">
-            {{ form_row(form.host) }}
-            {{ form_row(form.api_key) }}
-            {{ form_row(form.speed) }}
-            {{ form_row(form.order_mode) }}
-            {{ form_row(form.share_metadata) }}
-            {{ form_rest(form) }}
+            {{ form_row(server_form.host) }}
+            {{ form_row(server_form.apiKey) }}
+            {{ form_rest(server_form) }}
           </div>
         </div>
 
-        <div class="card-footer">
-          <div class="d-flex justify-content-between">
-            <a href="{{ getAdminLink('AdminDashboard') }}" class="btn btn-secondary">{{ 'Cancel'|trans({}, 'Admin.Actions') }}</a>
-            <button class="btn btn-primary" type="submit">{{ 'Save'|trans({}, 'Admin.Actions') }}</button>
+        <div class="card-footer text-right">
+          <button class="btn btn-primary" type="submit">{{ 'Save'|trans({}, 'Admin.Actions') }}</button>
+        </div>
+        {{ form_end(server_form) }}
+      </div>
+
+      <div class="card">
+        {{ form_start(general_form, {'action': url('admin_btcpay_configure_general_process'), 'attr': {'class': 'form', 'id': 'general-form'}}) }}
+        <h3 class="card-header">
+          <i class="material-icons">settings</i>
+          {{ 'General'|trans({}, 'Admin.Global') }}
+        </h3>
+
+        <div class="card-block">
+          <div class="card-text">
+            {{ form_row(general_form.speed) }}
+            {{ form_row(general_form.orderMode) }}
+            {{ form_row(general_form.shareMetadata) }}
+            {{ form_rest(general_form) }}
           </div>
         </div>
-        {{ form_end(form) }}
+
+        <div class="card-footer text-right">
+          <button class="btn btn-primary" type="submit">{{ 'Save'|trans({}, 'Admin.Actions') }}</button>
+        </div>
+        {{ form_end(general_form) }}
       </div>
     </div>
-    {% if invalidApiKey is defined %}
+    {% if invalidApiKey %}
       <div class="col-5 col-spx-5 col-lg-5 col-md-5">
         <div class="card">
           <h3 class="card-header">
@@ -93,6 +113,7 @@
                   <li>{{ permission }}</li>
                 {% endfor %}
               </ul>
+              <p>{{ 'For additional information, checkout <a href="https://docs.btcpayserver.org/PrestaShop/" target="_blank" rel="noopener noreferrer nofollow">the documentation</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
             </div>
           </div>
 
@@ -104,11 +125,12 @@
     {% endif %}
   </div>
 
-  <div class="row ps17">
-    <div class="col-12 col-spx-12 col-lg-10 col-md-10 offset-md-1 offset-lg-1">
-      <div class="card-deck">
-        {% if storeId is defined and client is defined %}
-          {% set storeInfo = client.store().getStore(storeId) %}
+  {% if storeAvailable %}
+    {% set storeInfo = client.store().getStore(storeId) %}
+    {% set serverInfo = client.server().getInfo() %}
+    <div class="row ps17">
+      <div class="col-12 col-spx-12 col-lg-10 col-md-10 offset-md-1 offset-lg-1">
+        <div class="card-deck">
           <div class="card">
             <h3 class="card-header">
               <i class="material-icons">store</i>
@@ -118,8 +140,8 @@
             <div class="card-block">
               <div class="card-text">
                 <dl>
-                  <dt><span class="text-muted mb-0"><strong>{{ 'Linked Store Name'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                  <dd><span class="px-1">{% if storeInfo.website is not empty %}<a href="{{ storeInfo.website }}" target="_blank" rel="noopener noreferrer nofollow">{{ storeInfo.name }}</a>{% else %}{{ storeInfo.name }}{% endif %}</span></dd>
+                  <dt><span class="text-muted mb-0"><strong>{{ 'Linked Store'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
+                  <dd><span class="px-1"><a href="{{ client.baseUrl }}" target="_blank" rel="noopener noreferrer nofollow">{{ storeInfo.name }}</a></span></dd>
 
                   <dt><span class="text-muted mb-0"><strong>{{ 'Default speed policy'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
                   <dd><span class="px-1">{{ storeInfo.speedPolicy }}</span></dd>
@@ -131,15 +153,13 @@
                   <dd><span class="px-1">{{ storeInfo.monitoringExpiration }} {{ 'minutes'|trans({}, 'Modules.BtcPay.Global') }}</span></dd>
 
                   <dt><span class="text-muted mb-0"><strong>{{ 'Default currency'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                  <dd><span class="px-1">{% if storeInfo.defaultCurrency is empty %}{{ 'None'|trans({}, 'Modules.BtcPay.Global') }}{% else %}{{ storeInfo.defaultCurrency }}{% endif %}</span></dd>
+                  <dd><span class="px-1">{% if storeInfo.defaultCurrency is empty %}{{ 'None'|trans({}, 'Modules.BtcPay.Global') }}{% else %}{{ storeInfo.defaultCurrency }}{% endif %}</span>
+                  </dd>
                 </dl>
               </div>
             </div>
           </div>
-        {% endif %}
 
-        {% if storeId is defined and client is defined %}
-          {% set serverInfo = client.server().getInfo() %}
           <div class="card">
             <h3 class="card-header">
               <i class="material-icons">info_outline</i>
@@ -149,16 +169,16 @@
             <div class="card-body">
               <dl>
                 <dt><span class="text-muted mb-0"><strong>{{ 'Version'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                <dd><span class="px-1">{{ serverInfo.version }}</span></dd>
+                <dd><span class="px-1"><a href="https://github.com/btcpayserver/btcpayserver/releases" target="_blank" rel="noopener noreferrer nofollow">{{ serverInfo.version }}</a></span></dd>
 
                 {% set webhook = client.webhook().getCurrent(storeId, webhookId) %}
-                <dt><span class="text-muted mb-0"><strong>{{ 'Webhook ID'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                {% if webhook is not null and webhook.enabled is defined and webhook.enabled%}
-                  <dd><span class="text-success px-1">{{ webhook.id }}</span></dd>
-                {% elseif webhook is not null and webhook.enabled is defined and not webhook.enabled%}
-                  <dd><span class="text-warning px-1"><span title="Webhook has been disabled, re-enable it again your store">{{ webhook.id }} ⚠️</span></span></dd>
+                <dt><span class="text-muted mb-0"><strong>{{ 'Webhook'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
+                {% if webhook is not null and webhook.enabled is defined and webhook.enabled %}
+                  <dd><span class="text-success px-1"><i class="material-icons">checkmark</i></span></dd>
+                {% elseif webhook is not null and webhook.enabled is defined and not webhook.enabled %}
+                  <dd><span class="text-warning px-1">Webhook has been disabled, re-enable it again your store</span></dd>
                 {% else %}
-                  <span class="text-warning px-1">Webhook is missing, retry the setup process</span>
+                  <dd><span class="text-warning px-1">Webhook is missing, retry the setup process</span></dd>
                 {% endif %}
 
                 <dt><span class="text-muted mb-0"><strong>{{ 'Node fully synced'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
@@ -184,8 +204,8 @@
               </dl>
             </div>
           </div>
-        {% endif %}
+        </div>
       </div>
     </div>
-  </div>
+  {% endif %}
 {% endblock %}
