@@ -2,12 +2,16 @@
 
 {% block content %}
   {% if latestVersion is defined and latestVersion != null and latestVersion.newer(moduleVersion) %}
-    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-      <p>{{ 'A new version of this module (%version%) has been released on GitHub. <a href="%url%" class="alert-link" target="_blank" rel="noopener noreferrer nofollow">Click here to check it out.</a>'|trans({'%version%': latestVersion.tagName, '%url%': latestVersion.url}, 'Modules.Btcpay.Admin')|raw }}</p>
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
+  <div class="row ps17">
+    <div class="col-12 col-spx-12 col-lg-10 col-md-10 offset-md-1 offset-lg-1">
+      <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <p>{{ 'A new version of this module (%version%) has been released on GitHub. <a href="%url%" class="alert-link" target="_blank" rel="noopener noreferrer nofollow">Click here to check it out.</a>'|trans({'%version%': latestVersion.tagName, '%url%': latestVersion.url}, 'Modules.Btcpay.Admin')|raw }}</p>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
     </div>
+  </div>
   {% endif %}
 
   <div class="row ps17">
@@ -18,18 +22,24 @@
           {{ 'BTCPay Server - Prestashop module (v%version%)'|trans({'%version%': moduleVersion}, 'Modules.Btcpay.Admin') }}
         </div>
         <div class="card-body">
-          <div class="card-text">
-            <a href="https://btcpayserver.org/" target="_blank" rel="noopener noreferrer nofollow">
-              <img src="{{ asset('../modules/btcpay/views/images/btcpay-plugin.png') }}" class="float-left mb-2 mr-3" alt="{{ 'BTCPay Server logo'|trans({}, 'Modules.Btcpay.Admin') }}"/>
-            </a>
+          <div class="row">
+            <div class="col-12 col-sm-12 col-md-4 col-lg-3 col-xl-2">
+              <a href="https://btcpayserver.org/" target="_blank" rel="noopener noreferrer nofollow">
+                <img src="{{ asset('../modules/btcpay/views/images/btcpay-plugin.png') }}" class="img-fluid" alt="{{ 'BTCPay Server logo'|trans({}, 'Modules.Btcpay.Admin') }}"/>
+              </a>
+              <div class="clearfix"></div>
+            </div>
+            <div class="col-12 col-sm-12 col-md-8 col-lg-9 col-xl-10">
+              <div class="card-text">
+                <p>
+                  {{ 'To be able to use this payment module you need to have a BTCPay Server instance, either <a href="https://docs.btcpayserver.org/Deployment/" target="_blank" rel="noopener noreferrer nofollow">self-hosted</a> or <a href="https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/." target="_blank" rel="noopener noreferrer nofollow">hosted by a third-party</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}<br/>
+                  {{ 'Furthermore, you must have <a href="https://docs.btcpayserver.org/RegisterAccount" target="_blank" rel="noopener noreferrer nofollow">a registered account on the instance</a>, <a href="https://docs.btcpayserver.org/CreateStore" target="_blank" rel="noopener noreferrer nofollow">an actual store on the instance</a> and <a href="https://docs.btcpayserver.org/WalletSetup" target="_blank">a wallet connected to your store</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}
+                </p>
+                <hr class="mt-0 mb-3" />
+                <p>{{ 'For additional information, checkout <a href="https://docs.btcpayserver.org/PrestaShop/" target="_blank" rel="noopener noreferrer nofollow">the documentation</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
+              </div>
+            </div>
           </div>
-          <div class="card-text">
-            <p>{{ 'To be able to use this payment module you need to have a BTCPay Server instance, either <a href="https://docs.btcpayserver.org/Deployment/" target="_blank" rel="noopener noreferrer nofollow">self-hosted</a> or <a href="https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/." target="_blank" rel="noopener noreferrer nofollow">hosted by a third-party</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
-          </div>
-          <div class="card-text">
-            <p>{{ 'With <a href="https://docs.btcpayserver.org/RegisterAccount" target="_blank" rel="noopener noreferrer nofollow">a registered account on the instance</a>, <a href="https://docs.btcpayserver.org/CreateStore" target="_blank" rel="noopener noreferrer nofollow">an actual store on the instance</a> and <a href="https://docs.btcpayserver.org/WalletSetup" target="_blank">a wallet connected to your store</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
-          </div>
-          <div class="clearfix"></div>
         </div>
       </div>
     </div>
