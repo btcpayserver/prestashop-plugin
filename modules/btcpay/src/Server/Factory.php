@@ -159,12 +159,13 @@ class Factory
 				$bitcoinPayment->getCartId(),
 				$bitcoinPayment->getStatus(),
 				$bitcoinPayment->getAmount(),
-				$this->module->displayName, // BTCPay
-				null, //message should be new Message
-				[], // extra variables for mail
-				null, //currency special
-				false, // don't touch amount
-				$customer->secure_key
+				$this->module->displayName,
+				null,
+				[],
+				null,
+				false,
+				$customer->secure_key,
+				$this->context->shop
 			);
 
 			// Get the new order ID

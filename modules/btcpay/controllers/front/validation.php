@@ -105,7 +105,7 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 			}
 
 			// User was quicker than the callback, so we deal with the actual invoice now
-			$processor = new Processor($this->module, $this->configuration, $client);
+			$processor = new Processor($this->module, $this->context, $this->configuration, $client);
 			$processor->paymentReceivedCreateAfter($bitcoinPayment);
 
 			// Grab the (now existing) order
