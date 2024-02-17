@@ -515,11 +515,21 @@ class BTCPay extends PaymentModule
 		// Try and create the client
 		$client = Client::createFromConfiguration($this->configuration);
 
-		// Show warning if API key is missing or if the we are not yet fully synced
+		// Show warning if API key is missing or if we're not yet fully synced
 		if (null === $client || empty($this->configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY))) {
 			$this->warning = $this->trans('Your BTCPay Server store has not yet been linked, payment option is unavailable.', [], 'Modules.Btcpay.Admin');
 		} elseif (!$client->server()->getInfo()->isFullySynced()) {
 			$this->warning = $this->trans('One (or more) coins are not yet synced, payment option will be unavailable until the sync has finished.', [], 'Modules.Btcpay.Admin');
+		}
+
+		// API key/sync warnings are more important than a new version, if a warning is set, return now
+		if (!empty($this->warning)) {
+			return;
+		}
+
+		// Otherwise, add a warning on version upgrade
+		if (null !== ($latest = $this->versioning->latest()) && $latest->newer($this->version)) {
+			$this->warning = $this->trans(\sprintf('There is a new version available for this plugin: %s.', $latest->getTagName()), [], 'Modules.Btcpay.Admin');
 		}
 	}
 }
