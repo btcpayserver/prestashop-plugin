@@ -39,7 +39,7 @@ class OrderStates
 			|| !\Validate::isLoadedObject(new OrderState($this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_WAITING)))) {
 			if (false === $this->installAwaiting()) {
 				$errors[] = [
-					'key'        => 'Could not add new order state: BTCPAY_OS_WAITING',
+					'key'        => \sprintf('Could not add new order state: %s', Constants::CONFIGURATION_ORDER_STATE_WAITING),
 					'parameters' => [],
 					'domain'     => 'Admin.Modules.Notification',
 				];
@@ -51,7 +51,7 @@ class OrderStates
 			|| !\Validate::isLoadedObject(new OrderState($this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING)))) {
 			if (false === $this->installConfirming()) {
 				$errors[] = [
-					'key'        => 'Could not add new order state: BTCPAY_OS_CONFIRMING',
+					'key'        => \sprintf('Could not add new order state: %s', Constants::CONFIGURATION_ORDER_STATE_CONFIRMING),
 					'parameters' => [],
 					'domain'     => 'Admin.Modules.Notification',
 				];
@@ -63,7 +63,7 @@ class OrderStates
 			|| !\Validate::isLoadedObject(new OrderState($this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED)))) {
 			if (false === $this->installFailed()) {
 				$errors[] = [
-					'key'        => 'Could not add new order state: BTCPAY_OS_FAILED',
+					'key'        => \sprintf('Could not add new order state: %s', Constants::CONFIGURATION_ORDER_STATE_FAILED),
 					'parameters' => [],
 					'domain'     => 'Admin.Modules.Notification',
 				];
@@ -75,7 +75,7 @@ class OrderStates
 			|| !\Validate::isLoadedObject(new OrderState($this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_PAID)))) {
 			if (false === $this->installPaid()) {
 				$errors[] = [
-					'key'        => 'Could not add new order state: BTCPAY_OS_PAID',
+					'key'        => \sprintf('Could not add new order state: %s', Constants::CONFIGURATION_ORDER_STATE_PAID),
 					'parameters' => [],
 					'domain'     => 'Admin.Modules.Notification',
 				];
@@ -185,6 +185,7 @@ class OrderStates
 		$order_state->color       = '#108510';
 		$order_state->logable     = true;
 		$order_state->unremovable = true;
+		$order_state->invoice     = true;
 		$order_state->module_name = $this->moduleName;
 
 		foreach (Language::getLanguages(true, false, true) as $languageId) {
