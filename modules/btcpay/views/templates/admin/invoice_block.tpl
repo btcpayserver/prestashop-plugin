@@ -9,26 +9,40 @@
         <div class="row">
           <div class="col-sm text-center">
             <p class="text-muted mb-0"><strong>Invoice</strong></p>
-            <a class="configure-link" href="{$server_url}/invoices/{$invoice.id}" target="_blank" rel="noopener noreferrer nofollow">{$invoice.id}</a>
+            <a class="invoice-link font-size-100" href="{$server_url}/invoices/{$invoice.id}" target="_blank" rel="noopener noreferrer nofollow">{$invoice.id}</a>
           </div>
 
           <div class="col-sm text-center">
             <p class="text-muted mb-0"><strong>Status</strong></p>
             <p class="mb-0">
-                {if $invoice.status == constant('\BTCPayServer\Result\Invoice::STATUS_EXPIRED')}
-                  <span class="badge badge-danger">{$invoice.status}</span>
-                {elseif $invoice.status == constant('\BTCPayServer\Result\Invoice::STATUS_PROCESSING') OR $invoice.status == constant('\BTCPayServer\Result\Invoice::ADDITIONAL_STATUS_PAID_PARTIAL') or $invoice.status == constant('\BTCPayServer\Result\Invoice::ADDITIONAL_STATUS_PAID_OVER')}
-                  <span class="badge badge-warning">{$invoice.status}</span>
-                {elseif $invoice.status == constant('\BTCPayServer\Result\Invoice::STATUS_SETTLED')}
-                  <span class="badge badge-success">{$invoice.status}</span>
-                {else}
-                    {$invoice.status}
-                {/if}
+              {if $invoice->isInvalid()}
+                <span class="badge badge-danger rounded font-size-100">{if $invoice->isMarked()}Marked invalid via BTCPay Server{else}Payment failed{/if}</span>
+              {elseif $invoice->isSettled()}
+                <span class="badge badge-success rounded font-size-100">{if $invoice->isMarked()}Marked paid via BTCPay Server{else}Paid (and confirmed){/if}</span>
+                {if $invoice->isOverPaid()}<span class="badge badge-info rounded font-size-100">Overpaid</span>{/if}
+              {elseif $invoice->isProcessing()}
+                <span class="badge badge-primary rounded font-size-100">Paid (pending confirmations)</span>
+                {if $invoice->isOverPaid()}<span class="badge badge-info rounded font-size-100">Overpaid</span>{/if}
+              {elseif $invoice->isPartiallyPaid()}
+                <span class="badge badge-warning rounded font-size-100">Partially paid (awaiting more funds)</span>
+              {elseif $invoice->isNew()}
+                <span class="badge badge-info rounded font-size-100">Awaiting payment</span>
+              {elseif $invoice->isExpired()}
+                <span class="badge badge-danger rounded font-size-100">Invoice expired</span>
+              {/if}
             </p>
           </div>
         </div>
       </div>
     </div>
+
+    {if $invoice->isInvalid() or $invoice->isExpired() or $invoice->isOverPaid()}
+      <div class="col-md-12 mt-2 mb-4">
+        <div class="alert alert-warning mb-0" role="alert">
+          <p class="alert-text"><strong>Warning</strong>: Make sure to double-check the invoice before shipping it</p>
+        </div>
+      </div>
+    {/if}
 
     {if $paymentReceived}
       <nav>

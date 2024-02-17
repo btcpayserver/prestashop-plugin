@@ -3,6 +3,7 @@
 namespace BTCPay\Server;
 
 use BTCPay\Constants;
+use BTCPay\Factory\CustomerMessage;
 use BTCPay\Invoice\Processor;
 use BTCPay\LegacyBitcoinPaymentRepository;
 use PrestaShop\PrestaShop\Adapter\Configuration;
@@ -35,7 +36,7 @@ class WebhookHandler
 		$this->context       = $context;
 		$this->repository    = $repository;
 		$this->configuration = new Configuration();
-		$this->processor     = new Processor($module, $this->configuration, $client);
+		$this->processor     = new Processor($module, $context, $this->configuration, $client);
 	}
 
 	/**
@@ -82,22 +83,29 @@ class WebhookHandler
 			return;
 		}
 
-		// Payment has failed
-		if (\in_array($eventType, ['InvoiceInvalid', 'InvoiceExpired'], true)) {
-			$this->paymentFailed($data);
-
-			return;
-		}
-
 		// Payment has been confirmed
-		if ('InvoiceSettled' === $eventType) {
-			$this->paymentConfirmed($data);
+		if ('InvoicePaymentSettled' === $eventType) {
+			$this->paymentSettled($data);
 
 			return;
 		}
 
-		// We don't really care about these events
-		if (\in_array($eventType, ['InvoiceCreated', 'InvoicePaymentSettled'], true)) {
+		// Invoice has failed or expired
+		if (\in_array($eventType, ['InvoiceInvalid', 'InvoiceExpired'], true)) {
+			$this->invoiceFailed($data);
+
+			return;
+		}
+
+		// Invoice has been confirmed
+		if ('InvoiceSettled' === $eventType) {
+			$this->invoiceSettled($data);
+
+			return;
+		}
+
+		// Invoice was crated, but either order already exists or will be created on first payment, skip
+		if ('InvoiceCreated' === $eventType) {
 			return;
 		}
 
@@ -152,14 +160,37 @@ class WebhookHandler
 	}
 
 	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \PrestaShopException
+	 * @throws \JsonException
+	 */
+	private function paymentSettled(array $data): void
+	{
+		$invoiceId = (string) $data['invoiceId'];
+		\PrestaShopLogger::addLog(\sprintf('[INFO] One of the payments has settled for invoice %s', $invoiceId));
+
+		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByInvoiceID($invoiceId))) {
+			$error = \sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId);
+			\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
+
+			// Don't bother retrying
+			return;
+		}
+
+		// Deal with the actual invoice now
+		$this->processor->paymentSettled($bitcoinPayment);
+	}
+
+	/**
 	 * @throws \JsonException
 	 * @throws \PrestaShopDatabaseException
 	 * @throws \PrestaShopException
 	 */
-	private function paymentFailed(array $data): void
+	private function invoiceFailed(array $data): void
 	{
 		$invoiceId = (string) $data['invoiceId'];
-		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment failed for invoice %s', $invoiceId));
+		\PrestaShopLogger::addLog(\sprintf("[INFO] Invoice '%s' failed, either because it wasn't paid, it expired or it was marked as invalid", $invoiceId));
 
 		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceID($invoiceId))) {
 			$error = \sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId);
@@ -177,7 +208,7 @@ class WebhookHandler
 
 		// Check if protection is disabled, if so, just process the failure
 		if (false === $this->configuration->get(Constants::CONFIGURATION_PROTECT_ORDERS, true)) {
-			$this->processor->paymentFailed($bitcoinPayment);
+			$this->processor->invoiceFailed($bitcoinPayment);
 		}
 
 		// Otherwise, will need to check the order so fetch it
@@ -191,14 +222,14 @@ class WebhookHandler
 
 			// Build a simple note and add it to the order
 			$note = \sprintf("BTCPay Server: Webhook ('%s') received, but the order was already marked as paid.", $data['type']);
-			$this->addMessageToOrder($order, $note);
+			CustomerMessage::addToOrder($this->context->shop, $order, $note);
 
 			// Don't bother with the rest
 			return;
 		}
 
 		// The order has not been set to paid, process the failure
-		$this->processor->paymentFailed($bitcoinPayment);
+		$this->processor->invoiceFailed($bitcoinPayment);
 	}
 
 	/**
@@ -206,10 +237,10 @@ class WebhookHandler
 	 * @throws \PrestaShopException
 	 * @throws \PrestaShopDatabaseException
 	 */
-	private function paymentConfirmed(array $data): void
+	private function invoiceSettled(array $data): void
 	{
 		$invoiceId = (string) $data['invoiceId'];
-		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment confirmed for invoice %s', $invoiceId));
+		\PrestaShopLogger::addLog(\sprintf("[INFO] Invoice '%s' has been settled and thus fully paid", $invoiceId));
 
 		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceID($invoiceId))) {
 			$error = \sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId);
@@ -225,42 +256,6 @@ class WebhookHandler
 			return;
 		}
 
-		$this->processor->paymentConfirmed($bitcoinPayment);
-	}
-
-	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
-	 */
-	private function addMessageToOrder(\Order $order, string $note): void
-	{
-		// Get the customer
-		$customer = $order->getCustomer();
-
-		// Check if we need to create a thread or can fetch one
-		if (false === ($threadId = \CustomerThread::getIdCustomerThreadByEmailAndIdOrder($customer->email, $order->id))) {
-			$ct              = new \CustomerThread();
-			$ct->id_contact  = 0;
-			$ct->id_customer = $order->id_customer;
-			$ct->id_shop     = (int) $this->context->shop->id;
-			$ct->id_order    = (int) $order->id;
-			$ct->id_lang     = $this->context->language->id;
-			$ct->email       = $customer->email;
-			$ct->status      = 'open';
-			$ct->token       = \Tools::passwdGen(12);
-			$ct->add();
-		} else {
-			$ct = new \CustomerThread((int) $threadId);
-			$ct->status = 'open';
-			$ct->update();
-		}
-
-		// Create and save the message
-		$cm                      = new \CustomerMessage();
-		$cm->id_customer_thread = $ct->id;
-		$cm->id_employee        = (int) $this->context->employee->id;
-		$cm->message            = $note;
-		$cm->private            = true;
-		$cm->add();
+		$this->processor->invoiceSettled($bitcoinPayment);
 	}
 }
