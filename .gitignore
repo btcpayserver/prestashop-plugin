@@ -14,7 +14,7 @@ btcpay.zip
 .phpcs-cache
 
 # Ignore developer specific docker-compose
-docker-compose.yml
+docker-compose.override.yml
 
 # Ignore files in the module that are added via `make`
 /modules/btcpay/LICENSE
