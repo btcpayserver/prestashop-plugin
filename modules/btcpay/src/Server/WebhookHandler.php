@@ -11,6 +11,11 @@ use Symfony\Component\HttpFoundation\Request;
 class WebhookHandler
 {
 	/**
+	 * @var \Context
+	 */
+	private $context;
+
+	/**
 	 * @var LegacyBitcoinPaymentRepository
 	 */
 	private $repository;
@@ -25,8 +30,9 @@ class WebhookHandler
 	 */
 	private $processor;
 
-	public function __construct(\BTCPay $module, Client $client, LegacyBitcoinPaymentRepository $repository)
+	public function __construct(\BTCPay $module, \Context $context, Client $client, LegacyBitcoinPaymentRepository $repository)
 	{
+		$this->context       = $context;
 		$this->repository    = $repository;
 		$this->configuration = new Configuration();
 		$this->processor     = new Processor($module, $this->configuration, $client);
@@ -57,41 +63,41 @@ class WebhookHandler
 		}
 
 		// Get the data type
-		$dataType = (string) $data['type'];
+		$eventType = (string) $data['type'];
 
 		// Get order mode
 		$orderMode = $this->configuration->get(Constants::CONFIGURATION_ORDER_MODE);
 
 		// Payment has been received (order already exists)
-		if (Constants::ORDER_MODE_BEFORE === $orderMode && \in_array($dataType, ['InvoiceProcessing', 'InvoicePaidInFull', 'InvoiceReceivedPayment'], true)) {
+		if (Constants::ORDER_MODE_BEFORE === $orderMode && \in_array($eventType, ['InvoiceProcessing', 'InvoicePaidInFull', 'InvoiceReceivedPayment'], true)) {
 			$this->paymentReceived($data);
 
 			return;
 		}
 
 		// Payment has been received (order needs to be made)
-		if (Constants::ORDER_MODE_AFTER === $orderMode && \in_array($dataType, ['InvoiceProcessing', 'InvoicePaidInFull', 'InvoiceReceivedPayment'], true)) {
+		if (Constants::ORDER_MODE_AFTER === $orderMode && \in_array($eventType, ['InvoiceProcessing', 'InvoicePaidInFull', 'InvoiceReceivedPayment'], true)) {
 			$this->paymentReceivedDelayedOrder($data);
 
 			return;
 		}
 
 		// Payment has failed
-		if (\in_array($dataType, ['InvoiceInvalid', 'InvoiceExpired'], true)) {
+		if (\in_array($eventType, ['InvoiceInvalid', 'InvoiceExpired'], true)) {
 			$this->paymentFailed($data);
 
 			return;
 		}
 
 		// Payment has been confirmed
-		if ('InvoiceSettled' === $dataType) {
+		if ('InvoiceSettled' === $eventType) {
 			$this->paymentConfirmed($data);
 
 			return;
 		}
 
 		// We don't really care about these events
-		if (\in_array($dataType, ['InvoiceCreated', 'InvoicePaymentSettled'], true)) {
+		if (\in_array($eventType, ['InvoiceCreated', 'InvoicePaymentSettled'], true)) {
 			return;
 		}
 
@@ -169,6 +175,29 @@ class WebhookHandler
 			return;
 		}
 
+		// Check if protection is disabled, if so, just process the failure
+		if (false === $this->configuration->get(Constants::CONFIGURATION_PROTECT_ORDERS, true)) {
+			$this->processor->paymentFailed($bitcoinPayment);
+		}
+
+		// Otherwise, will need to check the order so fetch it
+		$order = new \Order($bitcoinPayment->getOrderId());
+
+		// Check if the order has been paid, if so, add a note and abort
+		if (\Validate::isLoadedObject($orderState = $order->getCurrentOrderState()) && $orderState->paid) {
+			// Ensure we log this IPN
+			\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+			\PrestaShopLogger::addLog(\sprintf("[WARN] Webhook ('%s') received from BTCPay Server, but the order was already marked as paid.", $data['type']), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', $order->id);
+
+			// Build a simple note and add it to the order
+			$note = \sprintf("BTCPay Server: Webhook ('%s') received, but the order was already marked as paid.", $data['type']);
+			$this->addMessageToOrder($order, $note);
+
+			// Don't bother with the rest
+			return;
+		}
+
+		// The order has not been set to paid, process the failure
 		$this->processor->paymentFailed($bitcoinPayment);
 	}
 
@@ -197,5 +226,41 @@ class WebhookHandler
 		}
 
 		$this->processor->paymentConfirmed($bitcoinPayment);
+	}
+
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \PrestaShopException
+	 */
+	private function addMessageToOrder(\Order $order, string $note): void
+	{
+		// Get the customer
+		$customer = $order->getCustomer();
+
+		// Check if we need to create a thread or can fetch one
+		if (false === ($threadId = \CustomerThread::getIdCustomerThreadByEmailAndIdOrder($customer->email, $order->id))) {
+			$ct              = new \CustomerThread();
+			$ct->id_contact  = 0;
+			$ct->id_customer = $order->id_customer;
+			$ct->id_shop     = (int) $this->context->shop->id;
+			$ct->id_order    = (int) $order->id;
+			$ct->id_lang     = $this->context->language->id;
+			$ct->email       = $customer->email;
+			$ct->status      = 'open';
+			$ct->token       = \Tools::passwdGen(12);
+			$ct->add();
+		} else {
+			$ct = new \CustomerThread((int) $threadId);
+			$ct->status = 'open';
+			$ct->update();
+		}
+
+		// Create and save the message
+		$cm                      = new \CustomerMessage();
+		$cm->id_customer_thread = $ct->id;
+		$cm->id_employee        = (int) $this->context->employee->id;
+		$cm->message            = $note;
+		$cm->private            = true;
+		$cm->add();
 	}
 }

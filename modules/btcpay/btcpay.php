@@ -58,7 +58,7 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '6.0.3';
+		$this->version                = '6.1.0';
 		$this->author                 = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
 		$this->controllers            = ['payment', 'validation', 'webhook'];
@@ -270,7 +270,7 @@ class BTCPay extends PaymentModule
 			return $this->display(__FILE__, 'views/templates/admin/invoice_block.tpl');
 		} catch (RequestException $exception) {
 			// Log the exception
-			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay invoice in hookDisplayAdminOrderMainBottom: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode(), 'Order', $bitcoinPayment->getOrderId());
+			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay Server invoice in hookDisplayAdminOrderMainBottom: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode(), 'Order', $bitcoinPayment->getOrderId());
 
 			// Show that the invoice was not found
 			return $this->display(__FILE__, 'views/templates/admin/invoice_missing_block.tpl');
@@ -345,7 +345,7 @@ class BTCPay extends PaymentModule
 			return $this->display(__FILE__, 'views/templates/hooks/order_detail.tpl');
 		} catch (RequestException $exception) {
 			// Log the exception
-			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay invoice in hookDisplayOrderDetail: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode(), 'Order', $order->id);
+			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay Server invoice in hookDisplayOrderDetail: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode(), 'Order', $order->id);
 
 			// If the invoice is gone just return null
 			return null;

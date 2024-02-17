@@ -1323,16 +1323,16 @@
         },
         {
             "name": "doctrine/dbal",
-            "version": "3.8.1",
+            "version": "3.8.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/dbal.git",
-                "reference": "c9ea252cdce4da324ede3d6c5913dd89f769afd2"
+                "reference": "a19a1d05ca211f41089dffcc387733a6875196cb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/dbal/zipball/c9ea252cdce4da324ede3d6c5913dd89f769afd2",
-                "reference": "c9ea252cdce4da324ede3d6c5913dd89f769afd2",
+                "url": "https://api.github.com/repos/doctrine/dbal/zipball/a19a1d05ca211f41089dffcc387733a6875196cb",
+                "reference": "a19a1d05ca211f41089dffcc387733a6875196cb",
                 "shasum": ""
             },
             "require": {
@@ -1416,7 +1416,7 @@
             ],
             "support": {
                 "issues": "https://github.com/doctrine/dbal/issues",
-                "source": "https://github.com/doctrine/dbal/tree/3.8.1"
+                "source": "https://github.com/doctrine/dbal/tree/3.8.2"
             },
             "funding": [
                 {
@@ -1432,7 +1432,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-02-03T17:33:49+00:00"
+            "time": "2024-02-12T18:36:36+00:00"
         },
         {
             "name": "doctrine/deprecations",
@@ -6673,12 +6673,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/PrestaShop/PrestaShop.git",
-                "reference": "5ee5d553af27ae95f2173711ea8cf3cd66475e3e"
+                "reference": "900bb460c0219a270717198bea9ff2d128accf30"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PrestaShop/PrestaShop/zipball/5ee5d553af27ae95f2173711ea8cf3cd66475e3e",
-                "reference": "5ee5d553af27ae95f2173711ea8cf3cd66475e3e",
+                "url": "https://api.github.com/repos/PrestaShop/PrestaShop/zipball/900bb460c0219a270717198bea9ff2d128accf30",
+                "reference": "900bb460c0219a270717198bea9ff2d128accf30",
                 "shasum": ""
             },
             "require": {
@@ -6868,7 +6868,7 @@
                 "issues": "https://github.com/PrestaShop/PrestaShop/issues",
                 "source": "https://github.com/PrestaShop/PrestaShop/tree/8.1.x"
             },
-            "time": "2024-01-30T15:34:07+00:00"
+            "time": "2024-02-14T09:11:46+00:00"
         },
         {
             "name": "prestashop/translationtools-bundle",
@@ -7393,12 +7393,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Roave/SecurityAdvisories.git",
-                "reference": "3e513f303c13a625befa037a23b5d1ac9bde2a52"
+                "reference": "683c8e7acb9c333990683edd7faed421c87d3954"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/3e513f303c13a625befa037a23b5d1ac9bde2a52",
-                "reference": "3e513f303c13a625befa037a23b5d1ac9bde2a52",
+                "url": "https://api.github.com/repos/Roave/SecurityAdvisories/zipball/683c8e7acb9c333990683edd7faed421c87d3954",
+                "reference": "683c8e7acb9c333990683edd7faed421c87d3954",
                 "shasum": ""
             },
             "conflict": {
@@ -8122,7 +8122,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2024-02-16T21:04:04+00:00"
+            "time": "2024-02-14T16:04:39+00:00"
         },
         {
             "name": "sensio/framework-extra-bundle",
