@@ -295,6 +295,23 @@ class BTCPay extends PaymentModule
 			return null;
 		}
 
+		// Check if we actually have an order
+		$order = $params['order'];
+		if (!$order instanceof Order) {
+			return null;
+		}
+
+		// If created by another module, return
+		if ($order->module !== $this->name) {
+			return false;
+		}
+
+		// Check if we actually have an cart
+		$cart = $params['cart'];
+		if (!$cart instanceof Cart) {
+			return null;
+		}
+
 		// Get BTCPay URL or abort
 		if (empty($serverUrl = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_HOST))) {
 			return null;
@@ -302,18 +319,6 @@ class BTCPay extends PaymentModule
 
 		// Ensure the client is ready for use
 		if (null === ($client = Client::createFromConfiguration($this->configuration)) || false === $client->isValid()) {
-			return null;
-		}
-
-		// Check if we actually have an order
-		$order = $params['order'];
-		if (!$order instanceof Order) {
-			return null;
-		}
-
-		// Check if we actually have an order
-		$cart = $params['cart'];
-		if (!$cart instanceof Cart) {
 			return null;
 		}
 
