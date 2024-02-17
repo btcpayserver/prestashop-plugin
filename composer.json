@@ -22,6 +22,7 @@
   "require": {
     "php": ">=8.0",
     "ext-PDO": "*",
+    "ext-bcmath": "*",
     "ext-curl": "*",
     "ext-dom": "*",
     "ext-fileinfo": "*",

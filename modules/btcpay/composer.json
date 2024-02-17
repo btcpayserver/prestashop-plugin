@@ -18,6 +18,7 @@
   },
   "require": {
     "php": ">=8.0",
+    "ext-bcmath": "*",
     "ext-PDO": "*",
     "ext-curl": "*",
     "ext-gd": "*",
