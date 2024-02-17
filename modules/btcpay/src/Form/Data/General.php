@@ -28,12 +28,18 @@ class General
 	/**
 	 * @Assert\Choice(choices={true, false})
 	 */
+	private $protectOrders;
+
+	/**
+	 * @Assert\Choice(choices={true, false})
+	 */
 	private $shareMetadata;
 
-	public function __construct(string $speed, string $orderMode, bool $shareMetadata)
+	public function __construct(string $speed, string $orderMode, bool $protectOrders, bool $shareMetadata)
 	{
-		$this->speed = $speed;
-		$this->orderMode = $orderMode;
+		$this->speed         = $speed;
+		$this->orderMode     = $orderMode;
+		$this->protectOrders = $protectOrders;
 		$this->shareMetadata = $shareMetadata;
 	}
 
@@ -42,6 +48,7 @@ class General
 		return new self(
 			$configuration->get(Constants::CONFIGURATION_SPEED_MODE, InvoiceCheckoutOptions::SPEED_MEDIUM),
 			$configuration->get(Constants::CONFIGURATION_ORDER_MODE, Constants::ORDER_MODE_BEFORE),
+			(bool) $configuration->get(Constants::CONFIGURATION_PROTECT_ORDERS, true),
 			(bool) $configuration->get(Constants::CONFIGURATION_SHARE_METADATA, false),
 		);
 	}
@@ -51,6 +58,7 @@ class General
 		return new self(
 			$data['speed'],
 			$data['orderMode'],
+			$data['protectOrders'],
 			$data['shareMetadata'],
 		);
 	}
@@ -75,6 +83,16 @@ class General
 		$this->orderMode = $order_mode;
 	}
 
+	public function getProtectOrders(): bool
+	{
+		return $this->protectOrders;
+	}
+
+	public function setProtectOrders(bool $protectOrders): void
+	{
+		$this->protectOrders = $protectOrders;
+	}
+
 	public function shareMetadata(): bool
 	{
 		return $this->shareMetadata;
@@ -95,6 +113,7 @@ class General
 		return [
 			'speed'         => $this->speed,
 			'orderMode'     => $this->orderMode,
+			'protectOrders' => $this->protectOrders,
 			'shareMetadata' => $this->shareMetadata,
 		];
 	}

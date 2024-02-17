@@ -47,6 +47,9 @@ class Constants
 	public const CONFIGURATION_ORDER_STATE_FAILED     = 'BTCPAY_OS_FAILED';
 	public const CONFIGURATION_ORDER_STATE_PAID       = 'BTCPAY_OS_PAID';
 
+	// Do we want to protect order states from getting changed by webhook
+	public const CONFIGURATION_PROTECT_ORDERS = 'BTCPAY_PROTECT_ORDERS';
+
 	// Do we want to share personal details with BTCPay Server
 	public const CONFIGURATION_SHARE_METADATA = 'BTCPAY_SHARE_METADATA';
 
