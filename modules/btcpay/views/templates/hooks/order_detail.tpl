@@ -3,7 +3,7 @@
   <div class="row">
     <div class="col-md-4 m-1 my-2">
       <p class="text-muted mb-0"><strong>Invoice</strong></p>
-      <a class="configure-link" href="{$serverURL}/i/{$invoice.id}" target="_blank" rel="noopener noreferrer nofollow">{$invoice.id}</a>
+      <a class="configure-link" href="{$serverURL|escape:'htmlall':'UTF-8'}/i/{$invoice.id|escape:'htmlall':'UTF-8'}" target="_blank" rel="noopener noreferrer nofollow">{$invoice.id|escape:'htmlall':'UTF-8'}</a>
     </div>
     <div class="col-md-4 m-1 my-2">
       <p class="text-muted mb-0"><strong>Status</strong></p>
@@ -28,26 +28,26 @@
   {foreach $paymentMethods as $paymentMethod}
     {if not empty($paymentMethod->getPayments())}
       {assign currencyCode "_"|explode:$paymentMethod.paymentMethod|current}
-      <h5 class="mt-2 mb-0">{$currencyCode}</h5>
+      <h5 class="mt-2 mb-0">{$currencyCode|escape:'htmlall':'UTF-8'}</h5>
 
-      <table id="{$currencyCode}-details" class="table table-bordered my-2">
+      <table id="{$currencyCode|escape:'htmlall':'UTF-8'}-details" class="table table-bordered my-2">
         <thead>
         <tr>
           <th class="table-head-rate">{l s='Rate' d='Modules.Btcpay.Global'}</th>
           <th class="table-head-cart-amount">{l s='Invoice amount' d='Modules.Btcpay.Global'}</th>
-          <th class="table-head-paid-amount">{l s='Total amount paid in %s' sprintf=[$currencyCode] d='Modules.Btcpay.Global'}</th>
+          <th class="table-head-paid-amount">{l s='Total amount paid in %s' sprintf=[$currencyCode|escape:'htmlall':'UTF-8'] d='Modules.Btcpay.Global'}</th>
         </tr>
         </thead>
         <tbody>
         <tr>
-          <td>{$storeCurrency} {$paymentMethod.rate}</td>
-          <td>{$paymentMethod.amount} {$paymentMethod.paymentMethod}</td>
-          <td>{$paymentMethod.paymentMethodPaid} {$paymentMethod.paymentMethod}</td>
+          <td>{$storeCurrency|escape:'htmlall':'UTF-8'} {$paymentMethod.rate|escape:'htmlall':'UTF-8'}</td>
+          <td>{$paymentMethod.amount|escape:'htmlall':'UTF-8'} {$paymentMethod.paymentMethod|escape:'htmlall':'UTF-8'}</td>
+          <td>{$paymentMethod.paymentMethodPaid|escape:'htmlall':'UTF-8'} {$paymentMethod.paymentMethod|escape:'htmlall':'UTF-8'}</td>
         </tr>
         </tbody>
       </table>
 
-      <table id="{$currencyCode}-payments" class="table table-bordered my-2">
+      <table id="{$currencyCode|escape:'htmlall':'UTF-8'}-payments" class="table table-bordered my-2">
         <thead>
         <tr>
           <th class="table-head-date">{l s='Date' d='Modules.Btcpay.Global'}</th>
@@ -59,11 +59,11 @@
         {foreach $paymentMethod->getPayments() as $payment}
           <tr>
             <td>{$payment->getReceivedTimestamp()|date_format:"%Y-%m-%d %T"}</td>
-            <td>{$payment.value} {$currencyCode}</td>
+            <td>{$payment.value|escape:'htmlall':'UTF-8'} {$currencyCode|escape:'htmlall':'UTF-8'}</td>
               {if $currencyCode == 'BTC'}
-                <td><a href="https://mempool.space/tx/{$payment->getTransactionId()}" target="_blank" rel="noopener noreferrer nofollow">{$payment->getTransactionId()}</a></td>
+                <td><a href="https://mempool.space/tx/{$payment->getTransactionId()|escape:'htmlall':'UTF-8'}" target="_blank" rel="noopener noreferrer nofollow">{$payment->getTransactionId()|escape:'htmlall':'UTF-8'}</a></td>
               {else}
-                <td><a href="https://blockchair.com/search?q={$payment->getTransactionId()}" target="_blank" rel="noopener noreferrer nofollow">{$payment->getTransactionId()}</a></td>
+                <td><a href="https://blockchair.com/search?q={$payment->getTransactionId()|escape:'htmlall':'UTF-8'}" target="_blank" rel="noopener noreferrer nofollow">{$payment->getTransactionId()|escape:'htmlall':'UTF-8'}</a></td>
               {/if}
           </tr>
         {/foreach}

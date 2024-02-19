@@ -4,10 +4,10 @@
   <p class="mb-1"><strong>{l s='Supported payment methods' d='Modules.Btcpay.Front'}</strong>:</p>
   <dl>
       {foreach $offChain as $paymentMethod}
-        <dt>{$paymentMethod.cryptoCode} Lightning ⚡</dt>
+        <dt>{$paymentMethod.cryptoCode|escape:'htmlall':'UTF-8'} Lightning ⚡</dt>
       {/foreach}
       {foreach $onChain as $paymentMethod}
-        <dt>{$paymentMethod.cryptoCode} (On-Chain)</dt>
+        <dt>{$paymentMethod.cryptoCode|escape:'htmlall':'UTF-8'} (On-Chain)</dt>
       {/foreach}
   </dl>
 </section>
