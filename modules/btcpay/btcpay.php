@@ -58,18 +58,19 @@ class BTCPay extends PaymentModule
 		$this->controllers            = ['payment', 'validation', 'webhook'];
 		$this->is_eu_compatible       = true;
 		$this->bootstrap              = true;
+		$this->module_key             = 'aec3ab8084e8e626bdcbda75d2ab39ee';
 
 		$this->currencies      = true;
 		$this->currencies_mode = 'radio';
 
 		parent::__construct();
 
-		$this->displayName = $this->trans('BTCPay Server', [], 'Modules.Btcpay.Admin');
-		$this->description = $this->trans('Accept crypto payments via BTCPay Server.', [], 'Modules.Btcpay.Front');
+		$this->displayName      = $this->trans('BTCPay Server', [], 'Modules.Btcpay.Admin');
+		$this->description      = $this->trans('Accept crypto payments via BTCPay Server.', [], 'Modules.Btcpay.Front');
 		$this->confirmUninstall = $this->trans('Are you sure that you want to uninstall this module? Past purchases and order states will be kept, but your configuration will be removed.', [], 'Modules.Btcpay.Front');
 
 		$this->configuration = new Configuration();
-		$this->versioning = new Versioning();
+		$this->versioning    = new Versioning();
 
 		// Process any and all alerts/warnings
 		$this->displayModuleWarnings();
