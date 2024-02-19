@@ -4,6 +4,10 @@ namespace BTCPay\Installer;
 
 use BTCPay;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class Hooks
 {
 	/**

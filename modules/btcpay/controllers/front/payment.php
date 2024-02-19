@@ -4,6 +4,10 @@ use BTCPay\Constants;
 use BTCPay\Server\Factory;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 
+if (!defined('_PS_VERSION_')) {
+	exit;
+}
+
 class BTCPayPaymentModuleFrontController extends ModuleFrontController
 {
 	/**

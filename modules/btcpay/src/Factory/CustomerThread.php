@@ -2,6 +2,10 @@
 
 namespace BTCPay\Factory;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class CustomerThread
 {
 	/**

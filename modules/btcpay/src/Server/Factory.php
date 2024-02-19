@@ -9,6 +9,10 @@ use BTCPayServer\Client\InvoiceCheckoutOptions;
 use BTCPayServer\Util\PreciseNumber;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class Factory
 {
 	/**

@@ -6,6 +6,10 @@ use BTCPay\Constants;
 use BTCPayServer\Client\InvoiceCheckoutOptions;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class Config
 {
 	/**

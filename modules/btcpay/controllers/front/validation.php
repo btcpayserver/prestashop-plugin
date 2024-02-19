@@ -6,6 +6,10 @@ use BTCPay\Repository\BitcoinPaymentRepository;
 use BTCPay\Server\Client;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 
+if (!defined('_PS_VERSION_')) {
+	exit;
+}
+
 class BTCPayValidationModuleFrontController extends ModuleFrontController
 {
 	/**

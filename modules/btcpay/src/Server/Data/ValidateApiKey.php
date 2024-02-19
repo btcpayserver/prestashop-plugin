@@ -6,6 +6,10 @@ use BTCPay\Constants;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Validator\Constraints as Assert;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class ValidateApiKey
 {
 	/**

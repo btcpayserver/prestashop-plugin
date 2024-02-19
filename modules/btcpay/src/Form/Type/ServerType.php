@@ -11,6 +11,10 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class ServerType extends TranslatorAwareType
 {
 	public function __construct(TranslatorInterface $translator, array $locales)

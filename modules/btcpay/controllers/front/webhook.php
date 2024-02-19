@@ -6,6 +6,10 @@ use BTCPay\Server\WebhookHandler;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 use Symfony\Component\HttpFoundation\Request;
 
+if (!defined('_PS_VERSION_')) {
+	exit;
+}
+
 class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 {
 	/**

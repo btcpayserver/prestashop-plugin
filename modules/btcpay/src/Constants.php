@@ -4,6 +4,10 @@ namespace BTCPay;
 
 use BTCPayServer\Client\InvoiceCheckoutOptions;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class Constants
 {
 	// Version information

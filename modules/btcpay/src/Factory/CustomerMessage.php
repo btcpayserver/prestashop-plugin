@@ -4,6 +4,10 @@ namespace BTCPay\Factory;
 
 use BTCPay\Repository\CustomerThreadRepository;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class CustomerMessage
 {
 	/**

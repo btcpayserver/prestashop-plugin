@@ -5,6 +5,10 @@ namespace BTCPay\Repository;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class TableRepository
 {
 	/**
