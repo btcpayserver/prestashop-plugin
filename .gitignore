@@ -19,6 +19,7 @@ docker-compose.override.yml
 # Ignore files in the module that are added via `make`
 /modules/btcpay/LICENSE
 /modules/btcpay/README.md
+/modules/btcpay/docs/README.md
 
 # We dont care about the lib/vendor folder
 /modules/btcpay/lib/
