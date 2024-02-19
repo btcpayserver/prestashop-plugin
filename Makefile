@@ -28,8 +28,9 @@ build: ## Build the bastard binary file
 	# Copy the license to the module
 	@cp ./LICENSE "$(MODULE_FOLDER)/$(MODULE)"
 
-	# Copy the README to the module
+	# Copy the README to the module root and docs
 	@cp ./README.md "$(MODULE_FOLDER)/$(MODULE)"
+	@cp ./README.md "$(MODULE_FOLDER)/$(MODULE)/docs"
 
 	# Zip the module
 	@cd $(MODULE_FOLDER) \
