@@ -2,6 +2,10 @@
 
 namespace BTCPay\Entity;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 /**
  * phpcs:disable Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps
  */

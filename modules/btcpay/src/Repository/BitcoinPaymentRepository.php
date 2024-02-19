@@ -4,6 +4,10 @@ namespace BTCPay\Repository;
 
 use BTCPay\Entity\BitcoinPayment;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class BitcoinPaymentRepository
 {
 	/**

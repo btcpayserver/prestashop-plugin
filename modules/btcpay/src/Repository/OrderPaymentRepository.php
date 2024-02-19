@@ -5,6 +5,10 @@ namespace BTCPay\Repository;
 use BTCPayServer\Result\InvoicePayment;
 use PrestaShopCollection;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class OrderPaymentRepository
 {
 	/**

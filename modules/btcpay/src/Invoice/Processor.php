@@ -9,6 +9,10 @@ use BTCPay\Server\Client;
 use BTCPayServer\Result\Invoice;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class Processor
 {
 	/**

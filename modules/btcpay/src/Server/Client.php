@@ -15,6 +15,10 @@ use BTCPayServer\Client\StorePaymentMethodOnChain;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class Client extends AbstractClient
 {
 	/**

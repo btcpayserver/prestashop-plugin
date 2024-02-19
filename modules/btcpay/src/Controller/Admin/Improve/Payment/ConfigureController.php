@@ -24,6 +24,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Throwable;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 /**
  * @ModuleActivated(moduleName="btcpay", redirectRoute="admin_module_manage")
  */

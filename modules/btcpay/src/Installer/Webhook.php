@@ -5,6 +5,10 @@ namespace BTCPay\Installer;
 use BTCPay\Server\Client;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class Webhook
 {
 	/**

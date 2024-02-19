@@ -6,6 +6,10 @@ use BTCPay\Constants;
 use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class Server
 {
 	/**

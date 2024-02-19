@@ -9,6 +9,10 @@ use BTCPay\Repository\BitcoinPaymentRepository;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 use Symfony\Component\HttpFoundation\Request;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class WebhookHandler
 {
 	/**

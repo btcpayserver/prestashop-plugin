@@ -7,6 +7,10 @@ use Language;
 use OrderState;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class OrderStates
 {
 	/**

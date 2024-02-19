@@ -7,6 +7,10 @@ use BTCPay\Form\Data\Server;
 use PrestaShop\PrestaShop\Adapter\Configuration as PrestaShopConfiguration;
 use PrestaShop\PrestaShop\Core\Form\FormDataProviderInterface;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class ServerFormDataProvider implements FormDataProviderInterface
 {
 	/**

@@ -8,6 +8,10 @@ use BTCPayServer\Http\ClientInterface;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 use Symfony\Component\HttpFoundation\Response;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class Webhook extends \BTCPayServer\Client\Webhook
 {
 	/**

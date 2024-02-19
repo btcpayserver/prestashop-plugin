@@ -6,6 +6,10 @@ use BTCPayServer\Http\CurlClient;
 use BTCPayServer\Http\ResponseInterface;
 use STS\Backoff\Backoff;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class CurlAdapter extends CurlClient
 {
 	/**

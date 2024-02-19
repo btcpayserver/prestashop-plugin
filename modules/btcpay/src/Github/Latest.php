@@ -4,6 +4,10 @@ namespace BTCPay\Github;
 
 use Composer\Semver\Comparator;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class Latest
 {
 	/**

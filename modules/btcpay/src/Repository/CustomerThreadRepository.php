@@ -4,6 +4,10 @@ namespace BTCPay\Repository;
 
 use BTCPay\Factory\CustomerThread;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class CustomerThreadRepository
 {
 	/**

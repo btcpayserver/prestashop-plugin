@@ -8,6 +8,10 @@ use Github\Client;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 
+if (!\defined('_PS_VERSION_')) {
+	exit;
+}
+
 class Versioning
 {
 	/**
