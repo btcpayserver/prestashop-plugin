@@ -1,7 +1,6 @@
 <?php
 
 use BTCPay\Constants;
-use BTCPay\LegacyBitcoinPaymentRepository;
 use BTCPay\Server\Client;
 use BTCPay\Server\WebhookHandler;
 use PrestaShop\PrestaShop\Adapter\Configuration;
@@ -42,7 +41,7 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 
 		$this->configuration = new Configuration();
 		$this->client        = Client::createFromConfiguration($this->configuration);
-		$this->handler       = new WebhookHandler($this->module, $this->context, $this->client, new LegacyBitcoinPaymentRepository());
+		$this->handler       = new WebhookHandler($this->module, $this->context, $this->client);
 	}
 
 	/**

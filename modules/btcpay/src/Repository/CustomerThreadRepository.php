@@ -10,7 +10,7 @@ class CustomerThreadRepository
 	 * @throws \PrestaShopException
 	 * @throws \PrestaShopDatabaseException
 	 */
-	public static function fetchOrCreateByByEmailAndOrder(\Shop $shop, \Order $order): \CustomerThread
+	public static function fetchOrCreate(\Shop $shop, \Order $order): \CustomerThread
 	{
 		// Get the customer
 		$customer = $order->getCustomer();

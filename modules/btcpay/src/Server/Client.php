@@ -3,7 +3,7 @@
 namespace BTCPay\Server;
 
 use BTCPay\Constants;
-use BTCPay\LegacyBitcoinPaymentRepository;
+use BTCPay\Repository\BitcoinPaymentRepository;
 use BTCPayServer\Client\AbstractClient;
 use BTCPayServer\Client\ApiKey as ApiKeyClient;
 use BTCPayServer\Client\Invoice as InvoiceClient;
@@ -62,11 +62,6 @@ class Client extends AbstractClient
 	 */
 	private $configuration;
 
-	/**
-	 * @var LegacyBitcoinPaymentRepository
-	 */
-	private $repository;
-
 	public function __construct(string $baseUrl, string $apiKey)
 	{
 		$httpClient = new CurlAdapter();
@@ -83,7 +78,6 @@ class Client extends AbstractClient
 		$this->webhook  = new Webhook($baseUrl, $apiKey, $httpClient);
 
 		$this->configuration = new Configuration();
-		$this->repository    = new LegacyBitcoinPaymentRepository();
 	}
 
 	public static function createFromConfiguration(ShopConfigurationInterface $configuration): ?self
@@ -170,7 +164,7 @@ class Client extends AbstractClient
 			return null;
 		}
 
-		if (null === ($bitcoinPayment = $this->repository->getOneByCartID($cart->id))) {
+		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByCartID($cart->id))) {
 			return null;
 		}
 

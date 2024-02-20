@@ -7,8 +7,8 @@ services:
     class: BTCPay
 
   # Repositories
-  prestashop.module.btcpay.repository:
-    class: BTCPay\Repository\BitcoinPaymentRepository
+  prestashop.module.btcpay.repository.install:
+    class: BTCPay\Repository\TableRepository
     arguments:
       - '@doctrine.dbal.default_connection'
       - '%database_prefix%'

@@ -4,18 +4,13 @@ namespace BTCPay\Server;
 
 use BTCPay\Constants;
 use BTCPay\Exception\BTCPayException;
-use BTCPay\LegacyBitcoinPaymentRepository;
+use BTCPay\Repository\BitcoinPaymentRepository;
 use BTCPayServer\Client\InvoiceCheckoutOptions;
 use BTCPayServer\Util\PreciseNumber;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 
 class Factory
 {
-	/**
-	 * @var LegacyBitcoinPaymentRepository
-	 */
-	private $repository;
-
 	/**
 	 * @var \Link
 	 */
@@ -38,7 +33,6 @@ class Factory
 
 	public function __construct(\BTCPay $module, \Context $context)
 	{
-		$this->repository    = new LegacyBitcoinPaymentRepository();
 		$this->link          = new \Link();
 		$this->configuration = new Configuration();
 		$this->context       = $context;
@@ -121,8 +115,8 @@ class Factory
 			$orderStatus = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_WAITING);
 
 			// Register invoice into bitcoin_payment table, if we didn't have one before.
-			if (null === ($bitcoinPayment = $this->repository->getOneByCartID($cart->id))) {
-				$bitcoinPayment = $this->repository->create($cart->id, $orderStatus, $invoiceId);
+			if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByCartID($cart->id))) {
+				$bitcoinPayment = BitcoinPaymentRepository::create($cart->id, $orderStatus, $invoiceId);
 			}
 
 			$bitcoinPayment->setInvoiceId($invoiceId);

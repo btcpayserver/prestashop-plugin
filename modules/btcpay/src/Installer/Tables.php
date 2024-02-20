@@ -2,18 +2,18 @@
 
 namespace BTCPay\Installer;
 
-use BTCPay\Repository\BitcoinPaymentRepository;
+use BTCPay\Repository\TableRepository;
 
 class Tables
 {
 	/**
-	 * @var BitcoinPaymentRepository
+	 * @var TableRepository
 	 */
-	private $repository;
+	private $tableRepository;
 
-	public function __construct(BitcoinPaymentRepository $repository)
+	public function __construct(TableRepository $repository)
 	{
-		$this->repository = $repository;
+		$this->tableRepository = $repository;
 	}
 
 	/**
@@ -22,7 +22,7 @@ class Tables
 	 */
 	public function install(): array
 	{
-		return $this->repository->createTables();
+		return $this->tableRepository->createTables();
 	}
 
 	/**
@@ -31,6 +31,6 @@ class Tables
 	 */
 	public function uninstall(): array
 	{
-		return $this->repository->dropTables();
+		return $this->tableRepository->dropTables();
 	}
 }

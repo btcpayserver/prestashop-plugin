@@ -2,80 +2,124 @@
 
 namespace BTCPay\Repository;
 
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Exception;
+use BTCPay\Entity\BitcoinPayment;
 
 class BitcoinPaymentRepository
 {
 	/**
-	 * @var Connection
+	 * @throws \PrestaShopException
 	 */
-	private $connection;
-
-	/**
-	 * @var string
-	 */
-	private $prefix;
-
-	public function __construct(Connection $connection, string $prefix)
+	public static function create(int $cartId, string $status, string $invoiceId): BitcoinPayment
 	{
-		$this->connection = $connection;
-		$this->prefix     = $prefix;
+		$bitcoinPayment = new BitcoinPayment();
+		$bitcoinPayment->setCartId($cartId);
+		$bitcoinPayment->setStatus($status);
+		$bitcoinPayment->setInvoiceId($invoiceId);
+
+		if (false === $bitcoinPayment->save(true)) {
+			\PrestaShopLogger::addLog('[ERROR] Could not store bitcoin_payment', \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
+
+			throw new \RuntimeException('[ERROR] Could not store bitcoin_payment');
+		}
+
+		\PrestaShopLogger::addLog('[INFO] Created bitcoin_payment for invoice ' . $invoiceId, \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'BitcoinPayment', $bitcoinPayment->getId());
+
+		return $bitcoinPayment;
 	}
 
 	/**
+	 * @throws \PrestaShopDatabaseException
 	 * @throws \JsonException
 	 */
-	public function createTables(): array
+	public static function getOneByInvoiceID(string $invoiceId): ?BitcoinPayment
 	{
-		$errors = [];
-		$engine = \_MYSQL_ENGINE_;
+		$query = new \DbQuery();
+		$query->select('bp.*')
+			->from('bitcoin_payment', 'bp')
+			->where(\sprintf('bp.invoice_id = "%s"', $invoiceId))
+			->limit(1);
 
-		$queries = [
-			"CREATE TABLE IF NOT EXISTS `{$this->prefix}bitcoin_payment`(
-    			`id` int(11) NOT NULL AUTO_INCREMENT,
-                `cart_id` int(11) NOT NULL,
-                `order_id` int(11),
-                `status` varchar(255) NOT NULL,
-                `invoice_id` varchar(255),
-                `invoice_reference` varchar(255),
-                `amount` varchar(255),
-                `bitcoin_price` varchar(255),
-                `bitcoin_paid` varchar(255),
-                `bitcoin_address` varchar(255),
-                `bitcoin_refund_address` varchar(255),
-                `redirect` varchar(255),
-                `rate` varchar(255),
-                PRIMARY KEY (`id`),
-                UNIQUE KEY `invoice_id` (`invoice_id`)
-            ) ENGINE=$engine DEFAULT CHARSET=utf8",
-		];
-
-		try {
-			foreach ($queries as $query) {
-				$this->connection->executeQuery($query);
-			}
-		} catch (Exception $e) {
-			$errors[] = ['key' => \json_encode($e->getMessage(), \JSON_THROW_ON_ERROR), 'parameters' => [], 'domain' => 'Admin.Modules.Notification'];
+		$result = \Db::getInstance()->query($query);
+		if (0 !== ($errorCode = (int) $result->errorCode())) {
+			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
 		}
 
-		return $errors;
+		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
+			return null;
+		}
+
+		return $object;
 	}
 
 	/**
+	 * @throws \PrestaShopDatabaseException
 	 * @throws \JsonException
 	 */
-	public function dropTables(): array
+	public static function getOneByInvoiceReference(string $invoiceReference): ?BitcoinPayment
 	{
-		$errors = [];
-		$query  = "DROP TABLE IF EXISTS `{$this->prefix}bitcoin_payment`";
+		$query = new \DbQuery();
+		$query->select('bp.*')
+			->from('bitcoin_payment', 'bp')
+			->where(\sprintf('bp.invoice_reference = "%s"', $invoiceReference))
+			->limit(1);
 
-		try {
-			$this->connection->executeQuery($query);
-		} catch (Exception $e) {
-			$errors[] = ['key' => \json_encode($e->getMessage(), \JSON_THROW_ON_ERROR), 'parameters' => [], 'domain' => 'Admin.Modules.Notification'];
+		$result = \Db::getInstance()->query($query);
+		if (0 !== ($errorCode = (int) $result->errorCode())) {
+			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
 		}
 
-		return $errors;
+		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
+			return null;
+		}
+
+		return $object;
+	}
+
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \JsonException
+	 */
+	public static function getOneByCartID(int $cartID): ?BitcoinPayment
+	{
+		$query = new \DbQuery();
+		$query->select('bp.*')
+			->from('bitcoin_payment', 'bp')
+			->where(\sprintf('bp.cart_id = "%s"', $cartID))
+			->limit(1);
+
+		$result = \Db::getInstance()->query($query);
+		if (0 !== ($errorCode = (int) $result->errorCode())) {
+			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
+		}
+
+		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
+			return null;
+		}
+
+		return $object;
+	}
+
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \JsonException
+	 */
+	public static function getOneByOrderID(int $orderID): ?BitcoinPayment
+	{
+		$query = new \DbQuery();
+		$query->select('bp.*')
+			->from('bitcoin_payment', 'bp')
+			->where(\sprintf('bp.order_id = "%s"', $orderID))
+			->limit(1);
+
+		$result = \Db::getInstance()->query($query);
+		if (0 !== ($errorCode = (int) $result->errorCode())) {
+			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
+		}
+
+		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
+			return null;
+		}
+
+		return $object;
 	}
 }
