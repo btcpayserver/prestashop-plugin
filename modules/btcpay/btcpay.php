@@ -7,14 +7,13 @@ use BTCPay\Installer\Hooks;
 use BTCPay\Installer\OrderStates;
 use BTCPay\Installer\Tables;
 use BTCPay\Installer\Webhook;
-use BTCPay\LegacyBitcoinPaymentRepository;
 use BTCPay\Repository\BitcoinPaymentRepository;
+use BTCPay\Repository\TableRepository;
 use BTCPay\Server\Client;
 use BTCPayServer\Exception\BTCPayException;
 use BTCPayServer\Exception\RequestException;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 use PrestaShop\PrestaShop\Adapter\Presenter\Order\OrderPresenter;
-use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
 if (!defined('_PS_VERSION_')) {
@@ -38,11 +37,6 @@ class BTCPay extends PaymentModule
 			'parent_class_name' => 'AdminParentPayment',
 		],
 	];
-
-	/**
-	 * @var BitcoinPaymentRepository
-	 */
-	private $repository;
 
 	/**
 	 * @var Configuration
@@ -123,8 +117,8 @@ class BTCPay extends PaymentModule
 			return false;
 		}
 
-		if (null === ($repository = $this->getRepository())) {
-			$this->addModuleErrors(['Expected a BitcoinPaymentRepository repository, but received NULL']);
+		if (null === ($repository = $this->get('prestashop.module.btcpay.repository.install')) || false === $repository instanceof TableRepository) {
+			$this->addModuleErrors(['Expected a TableRepository repository, but received null/something else']);
 
 			return false;
 		}
@@ -223,11 +217,8 @@ class BTCPay extends PaymentModule
 			return null;
 		}
 
-		// Get legacy repository
-		$repository = new LegacyBitcoinPaymentRepository();
-
 		// Get the order
-		if (null === ($bitcoinPayment = $repository->getOneByOrderID($params['id_order']))) {
+		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByOrderID($params['id_order']))) {
 			return null;
 		}
 
@@ -322,11 +313,8 @@ class BTCPay extends PaymentModule
 			return null;
 		}
 
-		// Get legacy repository
-		$repository = new LegacyBitcoinPaymentRepository();
-
 		// Get the order
-		if (null === ($bitcoinPayment = $repository->getOneByOrderID($order->id))) {
+		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByOrderID($order->id))) {
 			return null;
 		}
 
@@ -381,7 +369,7 @@ class BTCPay extends PaymentModule
 		}
 
 		// Get the order
-		if (null === ($bitcoinPayment = (new LegacyBitcoinPaymentRepository())->getOneByOrderID($order->id))) {
+		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByOrderID($order->id))) {
 			return null;
 		}
 
@@ -478,7 +466,7 @@ class BTCPay extends PaymentModule
 		}
 
 		// Get the order
-		if (null === ($bitcoinPayment = (new LegacyBitcoinPaymentRepository())->getOneByCartID($cart->id))) {
+		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByCartID($cart->id))) {
 			return;
 		}
 
@@ -498,21 +486,6 @@ class BTCPay extends PaymentModule
 		foreach ($errors as $error) {
 			$this->_errors[] = $this->trans($error['key'], $error['parameters'], $error['domain']);
 		}
-	}
-
-	private function getRepository(): ?BitcoinPaymentRepository
-	{
-		if (null === $this->repository) {
-			try {
-				$this->repository = $this->get('prestashop.module.btcpay.repository');
-			} catch (Throwable $e) {
-				if (null !== ($container = SymfonyContainer::getInstance())) {
-					$this->repository = new BitcoinPaymentRepository($container->get('doctrine.dbal.default_connection'), $container->getParameter('database_prefix'));
-				}
-			}
-		}
-
-		return $this->repository;
 	}
 
 	private function displayModuleWarnings(): void

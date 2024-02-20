@@ -2,7 +2,7 @@
 
 use BTCPay\Constants;
 use BTCPay\Invoice\Processor;
-use BTCPay\LegacyBitcoinPaymentRepository;
+use BTCPay\Repository\BitcoinPaymentRepository;
 use BTCPay\Server\Client;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 
@@ -25,17 +25,11 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 	 */
 	private $configuration;
 
-	/**
-	 * @var LegacyBitcoinPaymentRepository
-	 */
-	private $repository;
-
 	public function __construct()
 	{
 		parent::__construct();
 
 		$this->configuration = new Configuration();
-		$this->repository = new LegacyBitcoinPaymentRepository();
 	}
 
 	/**
@@ -78,7 +72,7 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 
 		// Get the passed invoice reference, which we can then use to get the actual order
 		$invoiceReference = Tools::getValue('invoice_reference', 0);
-		if (null === ($bitcoinPayment = $this->repository->getOneByInvoiceReference($invoiceReference))) {
+		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByInvoiceReference($invoiceReference))) {
 			$this->warning[] = $translator->trans('The passed invoice reference is not valid.', [], 'Modules.Btcpay.Front');
 			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
 

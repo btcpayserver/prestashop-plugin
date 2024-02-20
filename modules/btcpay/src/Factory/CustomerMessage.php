@@ -33,7 +33,7 @@ class CustomerMessage
 	public static function addToOrder(\Shop $shop, \Order $order, string $message): void
 	{
 		// Find or create the customer thread
-		$ct = CustomerThreadRepository::fetchOrCreateByByEmailAndOrder($shop, $order);
+		$ct = CustomerThreadRepository::fetchOrCreate($shop, $order);
 
 		// Ensure the thread is open
 		$ct->status = 'open';
