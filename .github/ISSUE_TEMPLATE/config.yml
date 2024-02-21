@@ -1,5 +1,11 @@
-blank_issues_enabled: false
+blank_issues_enabled: true
 contact_links:
-  - name: Community Support Chat
+  - name: 📝 Official Documentation
+    url: https://docs.btcpayserver.org
+    about: Check our documentation for answers to common questions
+  - name: 💬 Community Support Chat
     url: https://chat.btcpayserver.org/
-    about: Ask general questions and get community support in real-time.
+    about: Ask general questions and get community support in real-time
+  - name: 🙏 PrestaShop Support
+    url: https://www.prestashop-project.org/support/
+    about: Read up on how you can get support for your PrestaShop store
