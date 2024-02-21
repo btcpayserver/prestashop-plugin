@@ -29,11 +29,21 @@ jobs:
           restore-keys: "${{ runner.os }}-composer-"
       - name: "Validate composer"
         run: "composer validate"
-      - name: "Install Composer dependencies"
-        run: "composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader"
+      - name: "Install all dependencies"
+        run: "make install"
+      - uses: "actions/cache@v3"
+        with:
+          path: "~/.cache/local-php-security-checker"
+          key: "local-php-security-checker-cache"
 
       # Ensure our dependencies are fine
       - name: "Local PHP Security Checker"
         uses: "docker://pplotka/local-php-security-checker-github-actions:v1.0.0"
         with:
+          cache_dir: "~/.cache/local-php-security-checker"
+          path: "./composer.lock"
+      - name: "Local PHP Security Checker - Module"
+        uses: "docker://pplotka/local-php-security-checker-github-actions:v1.0.0"
+        with:
+          cache_dir: "~/.cache/local-php-security-checker"
           path: "./modules/btcpay/composer.lock"
