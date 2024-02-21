@@ -52,7 +52,7 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '6.1.0';
+		$this->version                = '6.1.1';
 		$this->author                 = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
 		$this->controllers            = ['payment', 'validation', 'webhook'];
@@ -117,12 +117,8 @@ class BTCPay extends PaymentModule
 			return false;
 		}
 
-		if (null === ($repository = $this->get('prestashop.module.btcpay.repository.install')) || false === $repository instanceof TableRepository) {
-			$this->addModuleErrors(['Expected a TableRepository repository, but received null/something else']);
-
-			return false;
-		}
-
+		// Create required tables
+		$repository = new TableRepository($this->get('doctrine.dbal.default_connection'));
 		if (!empty($errors = (new Tables($repository))->install())) {
 			$this->addModuleErrors($errors);
 			$this->uninstall();

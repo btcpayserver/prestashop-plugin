@@ -12,15 +12,10 @@ class TableRepository
 	 */
 	private $connection;
 
-	/**
-	 * @var string
-	 */
-	private $prefix;
-
-	public function __construct(Connection $connection, string $prefix)
+	public function __construct(Connection $connection)
 	{
 		$this->connection = $connection;
-		$this->prefix     = $prefix;
+		$this->prefix     = \_DB_PREFIX_;
 	}
 
 	/**
