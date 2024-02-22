@@ -22,7 +22,7 @@ jobs:
         id: "composer-cache"
         run: 'echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT'
       - name: "Cache composer dependencies"
-        uses: "actions/cache@v3"
+        uses: "actions/cache@v4"
         with:
           path: "${{ steps.composer-cache.outputs.dir }}"
           key: "${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}"
@@ -31,7 +31,7 @@ jobs:
         run: "composer validate"
       - name: "Install all dependencies"
         run: "make install"
-      - uses: "actions/cache@v3"
+      - uses: "actions/cache@v4"
         with:
           path: "~/.cache/local-php-security-checker"
           key: "local-php-security-checker-cache"
