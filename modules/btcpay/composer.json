@@ -36,7 +36,7 @@
     "ergebnis/composer-normalize": "^2.42",
     "roave/security-advisories": "dev-latest",
     "symfony/debug-bundle": "^4.4.37",
-    "symfony/var-dumper": "^4.4.47"
+    "symfony/var-dumper": "^5.4.35"
   },
   "replace": {
     "symfony/polyfill-php70": "*",
