@@ -1423,20 +1423,20 @@
         },
         {
             "name": "stechstudio/backoff",
-            "version": "1.2",
+            "version": "1.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/stechstudio/backoff.git",
-                "reference": "816e46107a6be2e1072ba0ff2cb26034872dfa49"
+                "reference": "7204cddf3f1afcd5368d74d52f4d8c447c5dc311"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/stechstudio/backoff/zipball/816e46107a6be2e1072ba0ff2cb26034872dfa49",
-                "reference": "816e46107a6be2e1072ba0ff2cb26034872dfa49",
+                "url": "https://api.github.com/repos/stechstudio/backoff/zipball/7204cddf3f1afcd5368d74d52f4d8c447c5dc311",
+                "reference": "7204cddf3f1afcd5368d74d52f4d8c447c5dc311",
                 "shasum": ""
             },
             "require-dev": {
-                "phpunit/phpunit": "5.5.*"
+                "phpunit/phpunit": "^10.0"
             },
             "type": "library",
             "autoload": {
@@ -1460,9 +1460,9 @@
             "description": "PHP library providing retry functionality with multiple backoff strategies and jitter support",
             "support": {
                 "issues": "https://github.com/stechstudio/backoff/issues",
-                "source": "https://github.com/stechstudio/backoff/tree/1.2"
+                "source": "https://github.com/stechstudio/backoff/tree/1.2.1"
             },
-            "time": "2020-12-26T14:57:10+00:00"
+            "time": "2024-03-07T21:00:19+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -4024,5 +4024,5 @@
     "platform-overrides": {
         "php": "8.0"
     },
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "2.6.0"
 }
