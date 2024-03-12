@@ -3,6 +3,7 @@
 [![Maintained](https://img.shields.io/maintenance/yes/2024?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/pulse)
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/btcpayserver/prestashop-plugin/validate.yml?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/actions)
 [![GitHub License](https://img.shields.io/github/license/btcpayserver/prestashop-plugin?color=brightgreen&style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/blob/6.x/LICENSE)
+[![](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin#contributing)
 [![GitHub contributors](https://img.shields.io/github/contributors-anon/btcpayserver/prestashop-plugin?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/graphs/contributors)
 
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/btcpayserver/prestashop-plugin?sort=semver&style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/releases)
@@ -33,11 +34,7 @@ As of right now the module is **not** compatible with Prestashop's multistore fe
 
 ## Documentation
 
-Please check out our [official website](https://btcpayserver.org/), our [complete documentation](https://docs.btcpayserver.org/) and [FAQ](https://docs.btcpayserver.org/FAQ/) for more details.
-
-If you have trouble using BTCPay, consider joining [communities listed on official website](https://btcpayserver.org/#communityCTA) to get help from BTCPay community members. Only file [Github issue](https://github.com/btcpayserver/prestashop-plugin/issues) for technical issues you can't resolve through other channels or feature requests you've validated with other members of community.
-
-Main community chat is located on [Mattermost](https://chat.btcpayserver.org/).
+Please check out our [official website](https://btcpayserver.org/), [complete documentation](https://docs.btcpayserver.org/) and [FAQ](https://docs.btcpayserver.org/FAQ/) for more details.
 
 ### Quick Start Guide
 
@@ -45,13 +42,12 @@ To get up and running with our plugin quickly, see the [PrestaShop Guide on our 
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the 
-[tags on this repository](https://github.com/btcpayserver/prestashop-plugin/tags).
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [releases within this repository](https://github.com/btcpayserver/prestashop-plugin/releases).
 
 ## Contributing
 
-[![Twitter Follow](https://img.shields.io/twitter/follow/btcpayserver?color=brightgreen&label=Follow%20%40BTCPayServer&style=flat-square)](https://twitter.com/btcpayserver)
-[![BTCPay Server Community](https://img.shields.io/badge/chat-mattermost-brightgreen?style=flat-square)](https://chat.btcpayserver.org/btcpayserver)
+[![Twitter Follow](https://img.shields.io/badge/X-Follow%20@BTCPayServer-brightgreen?style=social)](https://twitter.com/btcpayserver)
+[![BTCPay Server Community](https://img.shields.io/badge/Chat-Join%20Mattermost-brightgreen?style=social)](https://chat.btcpayserver.org/btcpayserver)
 
 BTCPay is built and maintained entirely by volunteer contributors around the internet. We welcome and appreciate new contributions.
 
