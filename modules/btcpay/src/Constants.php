@@ -19,6 +19,9 @@ class Constants
 	public const LASTEST_VERSION_CACHE_KEY        = 'BTCPAY_LATEST_VERSION';
 	public const LASTEST_VERSION_CACHE_EXPIRATION = 60 * 60 * 24 * 7; // 7 days
 
+	// GitHub API endpoint for releases
+	public const GITHUB_API_LATEST_ENDPOINT = 'https://api.github.com/repos/btcpayserver/prestashop-plugin/releases/latest';
+
 	// BTCPay Server webhook header
 	public const BTCPAY_HEADER_SIG = 'Btcpay-Sig';
 
