@@ -225,6 +225,9 @@ class ConfigureController extends FrameworkBundleAdminController
 		if (empty($request->request->all())) {
 			$this->addFlash('error', 'Did not receive data from BTCPay Server. If you received an <strong>Invalid Token</strong> page, make sure to properly setup PrestaShop and BTCPay Server (publicly accessible and HTTPS enabled). Please try again once done or use the API key option.');
 
+			// Make sure to reset the API key
+			$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
+
 			return $this->redirectToRoute('admin_btcpay_configure');
 		}
 
@@ -234,6 +237,9 @@ class ConfigureController extends FrameworkBundleAdminController
 			foreach ($errors as $error) {
 				$this->addFlash('error', $error->getMessage());
 			}
+
+			// Make sure to reset the API key
+			$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
 
 			return $this->redirectToRoute('admin_btcpay_configure');
 		}
@@ -303,6 +309,9 @@ class ConfigureController extends FrameworkBundleAdminController
 				foreach ($errors as $error) {
 					$this->addFlash('error', $error->getMessage());
 				}
+
+				// Make sure to reset the API key
+				$shopConfiguration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
 
 				return $this->redirectToRoute('admin_btcpay_configure');
 			}
