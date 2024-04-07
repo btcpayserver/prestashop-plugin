@@ -490,11 +490,32 @@ class BTCPay extends PaymentModule
 		// Try and create the client
 		$client = Client::createFromConfiguration($this->configuration);
 
-		// Show warning if API key is missing or if we're not yet fully synced
-		if (null === $client || empty($this->configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY))) {
-			$this->warning = $this->trans('Your BTCPay Server store has not yet been linked, payment option is unavailable.', [], 'Modules.Btcpay.Admin');
-		} elseif (!$client->server()->getInfo()->isFullySynced()) {
-			$this->warning = $this->trans('One (or more) coins are not yet synced, payment option will be unavailable until the sync has finished.', [], 'Modules.Btcpay.Admin');
+		try {
+			// Show warning if API key is missing or if we're not yet fully synced
+			if (null === $client || empty($this->configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY))) {
+				$this->warning = $this->trans('Your BTCPay Server store has not yet been linked, payment option is unavailable.', [], 'Modules.Btcpay.Admin');
+			} elseif (!$client->server()->getInfo()->isFullySynced()) {
+				$this->warning = $this->trans('One (or more) coins are not yet synced, payment option will be unavailable until the sync has finished.', [], 'Modules.Btcpay.Admin');
+			}
+		} catch (BTCPayException $exception) {
+			// Log the exception
+			PrestaShopLogger::addLog(\sprintf('[WARNING] BTCPay Server configuration is no longer valid, resetting host and API key. Error: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode());
+
+			// Show a warning
+			$this->warning = $this->trans('Your BTCPay Server configuration is no longer valid, please setup module again.', [], 'Modules.Btcpay.Admin');
+
+			// Reset configuration
+			$this->configuration->set(Constants::CONFIGURATION_BTCPAY_HOST, Constants::CONFIGURATION_DEFAULT_HOST);
+			$this->configuration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
+
+			// Bail
+			return;
+		} catch (\Throwable $exception) {
+			// Log the exception
+			PrestaShopLogger::addLog(\sprintf('[WARNING] Could not parse server information: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode());
+
+			// Bail
+			return;
 		}
 
 		// API key/sync warnings are more important than a new version, if a warning is set, return now
