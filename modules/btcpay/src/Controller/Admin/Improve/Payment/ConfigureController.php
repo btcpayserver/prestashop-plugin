@@ -21,6 +21,7 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Throwable;
 
@@ -234,6 +235,7 @@ class ConfigureController extends FrameworkBundleAdminController
 		// Validate incoming request and return any errors we encounter
 		$validateRequest = new ValidateApiKey($request->request);
 		if (0 !== \count($errors = $this->validator->validate($validateRequest))) {
+			/** @var ConstraintViolationInterface $error */
 			foreach ($errors as $error) {
 				$this->addFlash('error', $error->getMessage());
 			}
@@ -306,6 +308,7 @@ class ConfigureController extends FrameworkBundleAdminController
 			// Validate created API key and return any errors we encounter
 			$validateKey = new ValidateApiKey(new ParameterBag($client->apiKey()->getCurrent()->getData()));
 			if (0 !== \count($errors = $this->validator->validate($validateKey))) {
+				/** @var ConstraintViolationInterface $error */
 				foreach ($errors as $error) {
 					$this->addFlash('error', $error->getMessage());
 				}
