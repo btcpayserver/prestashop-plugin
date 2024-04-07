@@ -85,7 +85,7 @@
     "prestashop/ps_facetedsearch": "^3.7.1",
     "prestashop/ps_faviconnotificationbo": "^2",
     "prestashop/ps_featuredproducts": "^2",
-    "prestashop/ps_googleanalytics": "^4.0",
+    "prestashop/ps_googleanalytics": "^5.0",
     "prestashop/ps_imageslider": "^3",
     "prestashop/ps_languageselector": "^2",
     "prestashop/ps_linklist": "^6",

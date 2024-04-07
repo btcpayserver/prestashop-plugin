@@ -19,7 +19,7 @@ services:
       BTCPAY_BTCEXPLORERURL: 'http://nbxplorer:32838/'
     expose:
       - '49392'
-    image: 'btcpayserver/btcpayserver:1.12.5'
+    image: 'btcpayserver/btcpayserver:1.13.0'
     links:
       - postgres
     ports:
@@ -71,7 +71,7 @@ services:
       NBXPLORER_BTCNODEENDPOINT: 'bitcoind:39388'
     expose:
       - '32838'
-    image: 'nicolasdorier/nbxplorer:2.5.0'
+    image: 'nicolasdorier/nbxplorer:2.5.2'
     links:
       - postgres
     volumes:
