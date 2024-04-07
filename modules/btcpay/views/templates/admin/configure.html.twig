@@ -142,7 +142,7 @@
               <div class="card-text">
                 <dl>
                   <dt><span class="text-muted mb-0"><strong>{{ 'Linked Store'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                  <dd><span class="px-1"><a href="{{ client.baseUrl }}" target="_blank" rel="noopener noreferrer nofollow">{{ storeInfo.name }}</a></span></dd>
+                  <dd><span class="px-1"><a href="{{ client.baseUrl }}/stores/{{ storeInfo.id }}" target="_blank" rel="noopener noreferrer nofollow">{{ storeInfo.name }}</a></span></dd>
 
                   <dt><span class="text-muted mb-0"><strong>{{ 'Default speed policy'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
                   <dd><span class="px-1">{{ storeInfo.speedPolicy }}</span></dd>
