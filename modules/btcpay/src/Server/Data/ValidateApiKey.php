@@ -44,7 +44,7 @@ class ValidateApiKey
 	}
 
 	/**
-	 * @Assert\IsTrue(message="This plugin expects all passed permissions to be given. Remove the new API key and try again.")
+	 * @Assert\IsTrue(message="This plugin expects all passed permissions to be given. Please remove and recreate the API key")
 	 */
 	public function hasRequiredPermissions(): bool
 	{
@@ -59,7 +59,7 @@ class ValidateApiKey
 	}
 
 	/**
-	 * @Assert\IsTrue(message="This plugin requires one store (and one store only) to be authorized. Remove the new API key and try again.")
+	 * @Assert\IsTrue(message="This plugin requires one store (and one store only) to be authorized. Please remove and recreate the API key.")
 	 */
 	public function hasSingleStore(): bool
 	{
