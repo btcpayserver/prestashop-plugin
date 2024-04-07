@@ -319,6 +319,9 @@ class ConfigureController extends FrameworkBundleAdminController
 			// Get the store ID
 			$storeId = $validateKey->getStoreID();
 
+			// Grab the store
+			$store = $client->store()->getStore($storeId);
+
 			// Ensure we have a valid BTCPay Server version
 			if (null !== ($info = $client->server()->getInfo()) && \version_compare($info->getVersion(), Constants::MINIMUM_BTCPAY_VERSION, '<')) {
 				$this->addFlash('error', \sprintf('BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()));
@@ -332,8 +335,8 @@ class ConfigureController extends FrameworkBundleAdminController
 
 			// Ensure we have a payment methods setup
 			if (empty($client->payment()->getPaymentMethods($storeId))) {
-				$this->addFlash('error', \sprintf("This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')));
-				PrestaShopLogger::addLog(\sprintf("[ERROR] This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
+				$this->addFlash('error', \sprintf("This plugin expects a payment method to have been setup for store '%s'.", $store->offsetGet('name')));
+				PrestaShopLogger::addLog(\sprintf("[ERROR] This plugin expects a payment method to have been setup for store '%s'.", $store->offsetGet('name')), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				// Make sure to reset the API key
 				$shopConfiguration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
