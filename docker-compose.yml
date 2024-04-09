@@ -133,9 +133,9 @@ services:
     volumes:
       - 'prestashop_data:/bitnami/prestashop'
 
-  mailhog:
-    container_name: prestashop_mailhog
-    image: 'mailhog/mailhog:latest'
+  mailpit:
+    container_name: prestashop_mailpit
+    image: 'axllent/mailpit:latest'
     logging:
       driver: none
     ports:
