@@ -32,7 +32,7 @@
   "require-dev": {
     "ergebnis/composer-normalize": "^2.42",
     "roave/security-advisories": "dev-latest",
-    "symfony/debug-bundle": "~4.4.0",
+    "symfony/debug-bundle": "~5.4.39",
     "symfony/var-dumper": "~5.4.38"
   },
   "replace": {
