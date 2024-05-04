@@ -1,17 +1,42 @@
-# Prestashop Plugin
+# BTCPay Server - Prestashop Plugin
 
-[![Maintained](https://img.shields.io/maintenance/yes/2024?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/pulse)
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/btcpayserver/prestashop-plugin/validate.yml?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/actions)
-[![GitHub License](https://img.shields.io/github/license/btcpayserver/prestashop-plugin?color=brightgreen&style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/blob/6.x/LICENSE)
-[![](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin#contributing)
-[![GitHub contributors](https://img.shields.io/github/contributors-anon/btcpayserver/prestashop-plugin?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/graphs/contributors)
+![BTCPay Server](https://raw.githubusercontent.com/btcpayserver/btcpayserver/master/BTCPayServer/wwwroot/img/btc_pay_BG_twitter.png)
 
-[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/btcpayserver/prestashop-plugin?sort=semver&style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/releases)
-[![GitHub all releases](https://img.shields.io/github/downloads/btcpayserver/prestashop-plugin/total?style=flat-square)](https://github.com/btcpayserver/prestashop-plugin/releases)
+<h3 align="center">
+  Accept Bitcoin payments within PrestaShop
+</h3>
 
-This is a Bitcoin payment plugin for PrestaShop using BTCPay server. [BTCPay Server](https://btcpayserver.org) is a free and open source server for merchants wanting to accept Bitcoin for their business.
+<div align="center">
+  <p>
+    <a href="https://github.com/btcpayserver/prestashop-plugin/pulse"><img src="https://img.shields.io/maintenance/yes/2024?style=flat-square" alt="Maintained"/></a>
+    <a href="https://github.com/btcpayserver/prestashop-plugin/actions"><img src="https://img.shields.io/github/actions/workflow/status/btcpayserver/prestashop-plugin/validate.yml?style=flat-square" alt="GitHub Workflow Status"/></a>
+    <a href="https://github.com/btcpayserver/prestashop-plugin/blob/6.x/LICENSE"><img src="https://img.shields.io/github/license/btcpayserver/prestashop-plugin?color=brightgreen&amp;style=flat-square" alt="GitHub License"/></a>
+    <a href="https://github.com/btcpayserver/prestashop-plugin#contributing"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs are welcome"/></a>
+    <a href="https://github.com/btcpayserver/prestashop-plugin/graphs/contributors"><img src="https://img.shields.io/github/contributors-anon/btcpayserver/prestashop-plugin?style=flat-square" alt="GitHub contributors"/></a>
+  </p>
+  <p>
+    <a href="https://github.com/btcpayserver/prestashop-plugin/releases"><img src="https://img.shields.io/github/v/release/btcpayserver/prestashop-plugin?sort=semver&amp;style=flat-square" alt="GitHub release (latest SemVer)"/></a>
+    <a href="https://github.com/btcpayserver/prestashop-plugin/releases"><img src="https://img.shields.io/github/downloads/btcpayserver/prestashop-plugin/total?style=flat-square" alt="GitHub all releases"/></a>
+  </p>
+</div>
 
-## Requirements
+<div align="center">
+  <sub>"This is lies, my trust in you is broken, I will make you obsolete" 💚
+  </a>
+</div>
+<br/>
+
+<p align="center">
+  <a href="https://github.com/btcpayserver/prestashop-plugin/issues/new/choose">Report a bug</a>
+  ·
+  <a href="https://github.com/btcpayserver/prestashop-plugin/discussions/new/choose">Request a feature</a>
+  ·
+  <a href="https://docs.btcpayserver.org/FAQ/">FAQ</a>
+</p>
+
+---
+
+## 🔧 Requirements
 
 Please ensure that you meet the following requirements before installing this plugin.
 
@@ -28,40 +53,37 @@ Please ensure that you meet the following requirements before installing this pl
 - Prestashop version 8.0 and 8.0.1
 - BTCPay server version 1.7.0 up to 1.7.3.0
 
-## Multistore
+### Multistore
 
 As of right now the module is **not** compatible with Prestashop's multistore feature. 
 
-## Documentation
+## 📗 Documentation
 
 Please check out our [official website](https://btcpayserver.org/), [complete documentation](https://docs.btcpayserver.org/) and [FAQ](https://docs.btcpayserver.org/FAQ/) for more details.
 
-### Quick Start Guide
+If you have trouble using BTCPay Server, consider joining [communities listed on the official website](https://btcpayserver.org/#communityCTA) to get help from other contributors. Only create a [GitHub issue](https://github.com/btcpayserver/prestashop-plugin/issues/new/choose) for technical issues you can't resolve through other channels or feature requests you've validated with other members of the community.
+
+## 🚀 Quick Start Guide
 
 To get up and running with our plugin quickly, see the [PrestaShop Guide on our documentation website](https://docs.btcpayserver.org/PrestaShop/).
 
-## Versioning
+## 🧑‍💻 Versioning
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [releases within this repository](https://github.com/btcpayserver/prestashop-plugin/releases).
 
-## Contributing
+## 🤝 Contributing
 
-[![Twitter Follow](https://img.shields.io/badge/X-Follow%20@BTCPayServer-brightgreen?style=social)](https://twitter.com/btcpayserver)
-[![BTCPay Server Community](https://img.shields.io/badge/Chat-Join%20Mattermost-brightgreen?style=social)](https://chat.btcpayserver.org/btcpayserver)
+BTCPay Server is built and maintained entirely by volunteer contributors around the internet. We welcome and appreciate new contributions.
 
-BTCPay is built and maintained entirely by volunteer contributors around the internet. We welcome and appreciate new contributions.
+Contributors looking to help out, before opening a pull request, please join [our community chat](https://chat.btcpayserver.org/) or [start a GitHub discussion](https://github.com/btcpayserver/btcpayserver/discussions) to get early feedback, discuss the best ways to tackle the problem, and ensure there is no work duplication.
 
-Contributors looking to help out, before opening a pull request, please [create an issue](https://github.com/btcpayserver/prestashop-plugin/issues/new/choose) 
-or join [our community chat](https://chat.btcpayserver.org) to get early feedback, discuss best ways to tackle the problem and to ensure there is no work duplication.
-
-## PrestaShop Support
+## 🏪 PrestaShop Support
 
 PrestaShop support can be found through its official channels.
 
-* [Homepage](https://www.prestashop.com)
-* [Documentation](https://doc.prestashop.com)
-* [Support Forums](https://www.prestashop.com/forums)
+* [Documentation](https://docs.prestashop-project.org/v.8-documentation) - contains answers to commonly asked questions and provides instructions for almost everything. Including setup, management, etc.
+* [Support Forums](https://www.prestashop.com/forums) - the official Prestashop forum is a good place to find further answers and ask Prestashop related questions.
 
-## License
+## 📝 License
 
 BTCPay Server software, logo and designs are provided under [MIT License](LICENSE).
