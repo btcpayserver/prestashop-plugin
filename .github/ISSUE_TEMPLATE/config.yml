@@ -1,5 +1,11 @@
 blank_issues_enabled: true
 contact_links:
+  - name: 💡 Request a feature
+    url: https://github.com/btcpayserver/prestashop-plugin/discussions/categories/ideas-feature-requests
+    about: Submit a feature request or vote on ideas posted by others. Features with most upvotes become roadmap candidates
+  - name: 🧑‍💻 Ask a technical question
+    url: https://github.com/btcpayserver/prestashop-plugin/discussions/new?category=technical-support
+    about: If you're experiencing a technical problem post it to our community support forum
   - name: 📝 Official Documentation
     url: https://docs.btcpayserver.org
     about: Check our documentation for answers to common questions
