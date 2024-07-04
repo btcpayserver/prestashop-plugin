@@ -11,6 +11,7 @@ use BTCPay\Server\Client;
 use BTCPay\Server\Data\ValidateApiKey;
 use BTCPayServer\Client\ApiKey;
 use Exception;
+use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
 use PrestaShop\PrestaShop\Core\Form\FormHandlerInterface;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use PrestaShopBundle\Security\Annotation\AdminSecurity;
@@ -291,6 +292,16 @@ class ConfigureController extends FrameworkBundleAdminController
 		$this->addFlash('success', 'BTCPay Server plugin: Your store and server have been linked!');
 
 		return $this->redirectToRoute('admin_btcpay_configure');
+	}
+
+	protected function getConfiguration(): ShopConfigurationInterface
+	{
+		// Fallback in case 8.0 is used // TODO: Remove once we make 8.1.0 the minimum
+		if (\version_compare(\_PS_VERSION_, '8.1.0', '<')) {
+			return $this->configuration;
+		}
+
+		return parent::getConfiguration();
 	}
 
 	/**
