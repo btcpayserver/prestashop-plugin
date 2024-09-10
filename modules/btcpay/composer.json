@@ -25,15 +25,15 @@
     "ext-intl": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
-    "btcpayserver/btcpayserver-greenfield-php": "^2.3.0",
-    "composer/semver": "^3.3.2",
-    "stechstudio/backoff": "^1.2"
+    "btcpayserver/btcpayserver-greenfield-php": "^2.6.0",
+    "composer/semver": "^3.4.2",
+    "stechstudio/backoff": "^1.4"
   },
   "require-dev": {
-    "ergebnis/composer-normalize": "^2.42",
+    "ergebnis/composer-normalize": "^2.43",
     "roave/security-advisories": "dev-latest",
-    "symfony/debug-bundle": "~5.4.39",
-    "symfony/var-dumper": "~5.4.38"
+    "symfony/debug-bundle": "~5.4.40",
+    "symfony/var-dumper": "~5.4.43"
   },
   "replace": {
     "symfony/polyfill-mbstring": "*",
