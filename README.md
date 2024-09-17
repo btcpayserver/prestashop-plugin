@@ -50,12 +50,13 @@ Please ensure that you meet the following requirements before installing this pl
 - [You've a wallet connected to your store](https://docs.btcpayserver.org/WalletSetup)
 
 ### Tested successfully
-- Prestashop version 8.0 and 8.0.1
-- BTCPay server version 1.7.0 up to 1.7.3.0
+- Prestashop v8.0, v8.0.1, v8.0.4, v8.1.0, v8.1.3 and v8.1.4
+- BTCPay server v1.7.0, v1.7.3.0, v1.12.5, v1.13.0 and v1.13.5
+  - BTCPay server v2 should be supported as of module version v6.2.0.
 
 ### Multistore
 
-As of right now the module is **not** compatible with Prestashop's multistore feature. 
+As of right now the module is **not** compatible with Prestashop's multistore feature. Any help to resolve this is very much welcomed. Please see the relevant [discussion](https://github.com/btcpayserver/prestashop-plugin/discussions/130).
 
 ## 📗 Documentation
 
