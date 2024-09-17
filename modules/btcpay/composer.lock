@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "btcpayserver/btcpayserver-greenfield-php",
-            "version": "v2.7.0",
+            "version": "v2.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/btcpayserver/btcpayserver-greenfield-php.git",
-                "reference": "5e2ba7e3f585fc8e6dc068e22a0efbfdacd9c992"
+                "reference": "28197bf65fd4a0ba39598fac5651fec4a805b78c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/btcpayserver/btcpayserver-greenfield-php/zipball/5e2ba7e3f585fc8e6dc068e22a0efbfdacd9c992",
-                "reference": "5e2ba7e3f585fc8e6dc068e22a0efbfdacd9c992",
+                "url": "https://api.github.com/repos/btcpayserver/btcpayserver-greenfield-php/zipball/28197bf65fd4a0ba39598fac5651fec4a805b78c",
+                "reference": "28197bf65fd4a0ba39598fac5651fec4a805b78c",
                 "shasum": ""
             },
             "require": {
@@ -56,9 +56,9 @@
             "description": "BTCPay Server Greenfield API PHP client library.",
             "support": {
                 "issues": "https://github.com/btcpayserver/btcpayserver-greenfield-php/issues",
-                "source": "https://github.com/btcpayserver/btcpayserver-greenfield-php/tree/v2.7.0"
+                "source": "https://github.com/btcpayserver/btcpayserver-greenfield-php/tree/v2.7.1"
             },
-            "time": "2024-09-13T14:54:13+00:00"
+            "time": "2024-09-16T21:02:29+00:00"
         },
         {
             "name": "composer/semver",
