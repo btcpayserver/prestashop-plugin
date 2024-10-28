@@ -78,6 +78,10 @@ BTCPay Server is built and maintained entirely by volunteer contributors around 
 
 Contributors looking to help out, before opening a pull request, please join [our community chat](https://chat.btcpayserver.org/) or [start a GitHub discussion](https://github.com/btcpayserver/btcpayserver/discussions) to get early feedback, discuss the best ways to tackle the problem, and ensure there is no work duplication.
 
+### 🔧 Development
+
+We recommend using [PrestaShop Kickstarter](https://github.com/PrestaShopCorp/docker-compose-kickstarter) (which supports [ngrok](https://ngrok.com/)) and a dockerized [BTCPay Server instance](https://github.com/btcpayserver/btcpayserver-docker/blob/master/Production/docker-compose.btc.yml) (or [an online testnet instance](https://testnet.demo.btcpayserver.org/)) for testing locally. 
+
 ## 🏪 PrestaShop Support
 
 PrestaShop support can be found through its official channels.
