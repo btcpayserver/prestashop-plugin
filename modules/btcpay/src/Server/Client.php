@@ -10,8 +10,6 @@ use BTCPayServer\Client\Invoice as InvoiceClient;
 use BTCPayServer\Client\Server as ServerClient;
 use BTCPayServer\Client\Store as StoreClient;
 use BTCPayServer\Client\StorePaymentMethod;
-use BTCPayServer\Client\StorePaymentMethodLightningNetwork;
-use BTCPayServer\Client\StorePaymentMethodOnChain;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
 
@@ -47,16 +45,6 @@ class Client extends AbstractClient
 	private $payment;
 
 	/**
-	 * @var StorePaymentMethodOnChain
-	 */
-	private $onChain;
-
-	/**
-	 * @var StorePaymentMethodLightningNetwork
-	 */
-	private $offChain;
-
-	/**
 	 * @var Webhook
 	 */
 	private $webhook;
@@ -77,8 +65,6 @@ class Client extends AbstractClient
 		$this->server   = new ServerClient($baseUrl, $apiKey, $httpClient);
 		$this->store    = new StoreClient($baseUrl, $apiKey, $httpClient);
 		$this->payment  = new StorePaymentMethod($baseUrl, $apiKey, $httpClient);
-		$this->onChain  = new StorePaymentMethodOnChain($baseUrl, $apiKey, $httpClient);
-		$this->offChain = new StorePaymentMethodLightningNetwork($baseUrl, $apiKey, $httpClient);
 		$this->webhook  = new Webhook($baseUrl, $apiKey, $httpClient);
 
 		$this->configuration = new Configuration();
@@ -125,16 +111,6 @@ class Client extends AbstractClient
 	public function payment(): StorePaymentMethod
 	{
 		return $this->payment;
-	}
-
-	public function onChain(): StorePaymentMethodOnChain
-	{
-		return $this->onChain;
-	}
-
-	public function offChain(): StorePaymentMethodLightningNetwork
-	{
-		return $this->offChain;
 	}
 
 	public function webhook(): Webhook

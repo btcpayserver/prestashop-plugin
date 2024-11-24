@@ -52,7 +52,7 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '6.2.1';
+		$this->version                = '6.3.0';
 		$this->author                 = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
 		$this->controllers            = ['payment', 'validation', 'webhook'];
@@ -410,12 +410,6 @@ class BTCPay extends PaymentModule
 			if (!$client->server()->getInfo()->isFullySynced()) {
 				return [];
 			}
-
-			// Prepare smarty
-			$this->context->smarty->assign([
-				'onChain'  => $client->onChain()->getPaymentMethods($storeID),
-				'offChain' => $client->offChain()->getPaymentMethods($storeID),
-			]);
 
 			return [
 				(new PaymentOption())

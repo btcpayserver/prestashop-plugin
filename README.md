@@ -52,7 +52,7 @@ Please ensure that you meet the following requirements before installing this pl
 ### Tested successfully
 - Prestashop v8.0, v8.0.1, v8.0.4, v8.1.0, v8.1.3 and v8.1.4
 - BTCPay server v1.7.0, v1.7.3.0, v1.12.5, v1.13.0 and v1.13.5
-  - BTCPay server v2 should be supported as of module version v6.2.0.
+  - BTCPay server v2 should be supported as of module version v6.3.0.
 
 ### Multistore
 
