@@ -194,12 +194,9 @@
 
                 <dt><span class="text-muted mb-0"><strong>{{ 'Supported payment methods'|trans({}, 'Modules.Btcpay.Front') }}</strong></span></dt>
                 <dd>
-                  <ul class="list-unstyled px-1">
-                    {% for paymentMethod in client.offChain().getPaymentMethods(storeId) %}
-                      <li>{{ paymentMethod.cryptoCode }} Lightning ⚡</li>
-                    {% endfor %}
-                    {% for paymentMethod in client.onChain().getPaymentMethods(storeId) %}
-                      <li>{{ paymentMethod.cryptoCode }} On-Chain</li>
+                  <ul>
+                    {% for paymentMethod in client.payment().getPaymentMethods(storeId) %}
+                      <li>{{ paymentMethod.cryptoCode }} {% if 'LNURL' in paymentMethod.paymentMethod %}LNURL ⚡{% elseif 'LN' in paymentMethod.paymentMethod or 'Lightning' in paymentMethod.paymentMethod %}Lightning ⚡{% else %}(On-Chain){% endif %}</li>
                     {% endfor %}
                   </ul>
                 </dd>
