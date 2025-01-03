@@ -8,7 +8,7 @@
 
 <div align="center">
   <p>
-    <a href="https://github.com/btcpayserver/prestashop-plugin/pulse"><img src="https://img.shields.io/maintenance/yes/2024?style=flat-square" alt="Maintained"/></a>
+    <a href="https://github.com/btcpayserver/prestashop-plugin/pulse"><img src="https://img.shields.io/maintenance/yes/2025?style=flat-square" alt="Maintained"/></a>
     <a href="https://github.com/btcpayserver/prestashop-plugin/actions"><img src="https://img.shields.io/github/actions/workflow/status/btcpayserver/prestashop-plugin/validate.yml?style=flat-square" alt="GitHub Workflow Status"/></a>
     <a href="https://github.com/btcpayserver/prestashop-plugin/blob/6.x/LICENSE"><img src="https://img.shields.io/github/license/btcpayserver/prestashop-plugin?color=brightgreen&amp;style=flat-square" alt="GitHub License"/></a>
     <a href="https://github.com/btcpayserver/prestashop-plugin#contributing"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs are welcome"/></a>
