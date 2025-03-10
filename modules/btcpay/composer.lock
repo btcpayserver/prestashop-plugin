@@ -143,16 +143,16 @@
         },
         {
             "name": "stechstudio/backoff",
-            "version": "1.4",
+            "version": "1.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/stechstudio/backoff.git",
-                "reference": "cfbc47e8925652a0cd6f5b419f665081c8796ca6"
+                "reference": "8b8aceda98dec707147d8e144973841b11e4e9e4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/stechstudio/backoff/zipball/cfbc47e8925652a0cd6f5b419f665081c8796ca6",
-                "reference": "cfbc47e8925652a0cd6f5b419f665081c8796ca6",
+                "url": "https://api.github.com/repos/stechstudio/backoff/zipball/8b8aceda98dec707147d8e144973841b11e4e9e4",
+                "reference": "8b8aceda98dec707147d8e144973841b11e4e9e4",
                 "shasum": ""
             },
             "require-dev": {
@@ -180,9 +180,9 @@
             "description": "PHP library providing retry functionality with multiple backoff strategies and jitter support",
             "support": {
                 "issues": "https://github.com/stechstudio/backoff/issues",
-                "source": "https://github.com/stechstudio/backoff/tree/1.4"
+                "source": "https://github.com/stechstudio/backoff/tree/1.5"
             },
-            "time": "2024-08-29T21:43:13+00:00"
+            "time": "2025-03-10T13:19:10+00:00"
         }
     ],
     "packages-dev": [
@@ -3086,5 +3086,5 @@
     "platform-overrides": {
         "php": "8.0"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.3.0"
 }
