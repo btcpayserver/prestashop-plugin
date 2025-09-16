@@ -60,7 +60,9 @@ class BTCPayPaymentModuleFrontController extends ModuleFrontController
 
 			$this->warning[] = $this->context->getTranslator()->trans('We could not create a payment request via BTCPay Server. Please try again or contact us.', [], 'Modules.Btcpay.Front');
 			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
-		} catch (\Throwable) {
+		} catch (\Throwable $throwable) {
+			PrestaShopLogger::addLog(\sprintf('[ERROR] An error occurred during payment creation: %s', $throwable), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, $throwable->getCode());
+
 			$this->warning[] = $this->context->getTranslator()->trans('We are having issues with our BTCPay Server backend. Please try again or contact us.', [], 'Modules.Btcpay.Front');
 			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
 		}
