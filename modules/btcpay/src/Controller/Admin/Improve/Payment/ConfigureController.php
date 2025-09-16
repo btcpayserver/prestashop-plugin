@@ -62,7 +62,10 @@ class ConfigureController extends FrameworkBundleAdminController
 
 	public function __construct(BTCPay $module, ValidatorInterface $validator, FormHandlerInterface $serverFormHandler, FormHandlerInterface $generalFormHandler)
 	{
-		parent::__construct();
+		// Fallback in case 8.0 is used // TODO: Remove once we make 9.0 the minimum
+		if (\version_compare(\_PS_VERSION_, '8.1.0', '<')) {
+			parent::__construct();
+		}
 
 		$this->module             = $module;
 		$this->validator          = $validator;
@@ -296,7 +299,7 @@ class ConfigureController extends FrameworkBundleAdminController
 
 	protected function getConfiguration(): ShopConfigurationInterface
 	{
-		// Fallback in case 8.0 is used // TODO: Remove once we make 8.1.0 the minimum
+		// Fallback in case 8.0 is used // TODO: Remove once we make 9.0 the minimum
 		if (\version_compare(\_PS_VERSION_, '8.1.0', '<')) {
 			return $this->configuration;
 		}
