@@ -53,7 +53,7 @@ class BTCPayPaymentModuleFrontController extends ModuleFrontController
 
 		try {
 			if (null !== ($redirect = $this->factory->createPaymentRequest($this->context->customer, $this->context->cart))) {
-				Tools::redirectLink($redirect);
+				Tools::redirect($redirect);
 
 				return;
 			}
