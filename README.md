@@ -41,7 +41,7 @@
 Please ensure that you meet the following requirements before installing this plugin.
 
 - You are using PHP 8.0 or higher
-- Your PrestaShop is version 8.0 or higher.
+- Your PrestaShop is version 8.0/9.0 or higher.
 - Your BTCPay Server is version 1.7.0 or higher
 - The PDO, curl, gd, intl, json, and mbstring PHP extensions are available
 - You have a BTCPay Server, either [self-hosted](https://docs.btcpayserver.org/Deployment/) or [hosted by a third party](https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/)
@@ -50,9 +50,9 @@ Please ensure that you meet the following requirements before installing this pl
 - [You've a wallet connected to your store](https://docs.btcpayserver.org/WalletSetup)
 
 ### Tested successfully
-- Prestashop v8.0, v8.0.1, v8.0.4, v8.1.0, v8.1.3 and v8.1.4
-- BTCPay server v1.7.0, v1.7.3.0, v1.12.5, v1.13.0 and v1.13.5
-  - BTCPay server v2 should be supported as of module version v6.3.0.
+- Prestashop v8.0, v8.0.1, v8.0.4, v8.1.0, v8.1.3, v8.1.4, v8.2.1, v9.0.0
+- BTCPay server v1.7.0, v1.7.3.0, v1.12.5, v1.13.0, v1.13.5, v2.1.5, v2.2.1 
+  - BTCPay server v2 is supported as of module version v6.3.0.
 
 ### Multistore
 
