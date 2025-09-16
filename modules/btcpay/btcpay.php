@@ -240,8 +240,12 @@ class BTCPay extends PaymentModule
 
 		try {
 			// Get the invoice and its payments
-			$invoice        = $client->invoice()->getInvoice($storeID, $invoiceId);
-			$paymentMethods = $client->invoice()->getPaymentMethods($storeID, $invoiceId);
+			$invoice = $client->invoice()->getInvoice($storeID, $invoiceId);
+
+			// Filter out methods without payments
+			$paymentMethods = array_filter($client->invoice()->getPaymentMethods($storeID, $invoiceId), static function ($method) {
+				return !empty($method->getPayments());
+			});
 
 			// Has any payment been received
 			$paymentReceived = array_reduce($paymentMethods, static function ($carry, $method) {
