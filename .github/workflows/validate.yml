@@ -1,7 +1,13 @@
 name: "Validate"
 
-on: [ "pull_request" ]
-
+on:
+  push:
+    paths: [ 'modules/**' ]
+    branches: [ '6.x' ]
+    tags: [ 'v*' ]
+  pull_request:
+    paths: [ 'modules/**' ]
+  
 jobs:
   linting:
     name: "Linting (PHP ${{ matrix.php-versions }})"
