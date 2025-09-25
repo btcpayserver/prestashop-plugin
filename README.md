@@ -21,10 +21,8 @@
 </div>
 
 <div align="center">
-  <sub>"This is lies, my trust in you is broken, I will make you obsolete" 💚
-  </a>
+  <sub>"This is lies, my trust in you is broken, I will make you obsolete" 💚</sub>
 </div>
-<br/>
 
 <p align="center">
   <a href="https://github.com/btcpayserver/prestashop-plugin/issues/new/choose">Report a bug</a>
@@ -35,6 +33,8 @@
 </p>
 
 ---
+
+BTCPay Server’s PrestaShop plugin lets you accept Bitcoin payments directly in your PrestaShop store, with no intermediaries or fees. Secure, open-source, and easy to set up.
 
 ## 🔧 Requirements
 
@@ -50,8 +50,9 @@ Please ensure that you meet the following requirements before installing this pl
 - [You've a wallet connected to your store](https://docs.btcpayserver.org/WalletSetup)
 
 ### Tested successfully
+
 - Prestashop v8.0, v8.0.1, v8.0.4, v8.1.0, v8.1.3, v8.1.4, v8.2.1, v9.0.0
-- BTCPay server v1.7.0, v1.7.3.0, v1.12.5, v1.13.0, v1.13.5, v2.1.5, v2.2.1 
+- BTCPay server v1.7.0, v1.7.3.0, v1.12.5, v1.13.0, v1.13.5, v2.1.5, v2.2.1
   - BTCPay server v2 is supported as of module version v6.3.0.
 
 ### Multistore
@@ -78,9 +79,13 @@ BTCPay Server is built and maintained entirely by volunteer contributors around 
 
 Contributors looking to help out, before opening a pull request, please join [our community chat](https://chat.btcpayserver.org/) or [start a GitHub discussion](https://github.com/btcpayserver/btcpayserver/discussions) to get early feedback, discuss the best ways to tackle the problem, and ensure there is no work duplication.
 
-### 🔧 Development
+## 🔧 Development
 
-We recommend using [PrestaShop Kickstarter](https://github.com/PrestaShopCorp/docker-compose-kickstarter) (which supports [ngrok](https://ngrok.com/)) and a dockerized [BTCPay Server instance](https://github.com/btcpayserver/btcpayserver-docker/blob/master/Production/docker-compose.btc.yml) (or [an online testnet instance](https://testnet.demo.btcpayserver.org/)) for testing locally. 
+If you want to work on the plugin, it is recommended to install/use the following:
+- [Symfony CLI](https://symfony.com/doc/current/setup/symfony_cli.html) is required for Makefile and makes life easier.
+- [PrestaShop Flashlight](https://github.com/PrestaShop/prestashop-flashlight)
+  - This is a newer, maintained version of [PrestaShop Kickstarter](https://github.com/PrestaShopCorp/docker-compose-kickstarter).
+- Checkout the development [README](./development/README.md) for more information.
 
 ## 🏪 PrestaShop Support
 

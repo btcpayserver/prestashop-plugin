@@ -7,20 +7,25 @@ on:
 permissions: {}
 
 jobs:
-  linting:
-    name: "Release a new ZIP"
+  release:
+    name: "Build & Publish Release"
     runs-on: "ubuntu-latest"
     steps:
+      # Checkout repository
       - name: "Checkout"
         uses: "actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5" # v6.0.0
         with:
           persist-credentials: false
-      - name: "Setup PHP, with composer and extensions"
+
+      # Setup PHP & Composer
+      - name: "Setup PHP with Composer and extensions"
         uses: "shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1" # v2.36.0
         with:
           php-version: "8.0"
           extensions: "mbstring, xml, ctype, iconv, intl, gd"
-          tools: "composer:v2"
+          tools: "composer:v2, symfony-cli"
+
+      # Cache Composer dependencies
       - name: "Get composer cache directory"
         id: "composer-cache"
         run: 'echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT'
@@ -31,17 +36,19 @@ jobs:
           key: "${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}"
           restore-keys: "${{ runner.os }}-composer-"
           lookup-only: true
-      - name: "Validate composer"
-        run: "composer validate"
+
+      # Validate & install dependencies
+      - name: "Validate Composer configuration"
+        run: "symfony composer validate --no-interaction"
       - name: "Install Composer dependencies"
-        run: "composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader"
+        run: "symfony composer install --prefer-dist --no-progress --optimize-autoloader --no-interaction"
 
-      # Zip the module
-      - name: "Make zip"
-        run: "make"
+      # Build ZIP using Makefile
+      - name: "Build ZIP artifact"
+        run: "make build"
 
-      # Make a release from the tag and upload the zip
-      - name: "Create Release"
+      # Create GitHub Release & upload ZIP
+      - name: "Create GitHub Release"
         id: "create_release"
         uses: "softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b" # v2.5.0
         env:

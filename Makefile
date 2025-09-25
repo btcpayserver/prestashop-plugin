@@ -1,126 +1,74 @@
-MODULE := "btcpay"
-MODULE_FOLDER := "./modules"
+# --- Variables ---
+MODULE          := btcpay
+MODULE_FOLDER   := ./modules
+MODULE_PATH     := $(MODULE_FOLDER)/$(MODULE)
 
-BUILD_FOLDER := "./build"
-ZIP_NAME := "${MODULE}.zip"
-ZIP_DEBUG_NAME := "${MODULE}_debug.zip"
-MODULE_OUT := "${BUILD_FOLDER}/${ZIP_NAME}"
+BUILD_FOLDER    := ./build
+ZIP_NAME        := $(MODULE).zip
+MODULE_OUT      := $(BUILD_FOLDER)/$(ZIP_NAME)
 
-.PHONY: all build install update upgrade clean lint lint-fix
+# --- Colors ---
+BLUE := \033[36m
+RESET := \033[0m
+
+# --- Targets ---
+.PHONY: all deps build bump update upgrade clean lint lint-fix help
 
 all: build
 
-build: ## Build the bastard binary file
-	# Installing all dependencies
-	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer install --no-dev
+deps: ## Install and prepare all dependencies
+	@echo "$(BLUE)==> Installing dependencies...$(RESET)"
+	@cd "$(MODULE_PATH)" && symfony composer install
+	@echo "$(BLUE)==> Dumping autoloader...$(RESET)"
+	@cd "$(MODULE_PATH)" && symfony composer dump-autoload -o --no-dev
 
-	# Dump autoloader
-	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer dump-autoload -o --no-dev
+build: deps ## Build the module and create ZIP
+	@echo "$(BLUE)==> Building module...$(RESET)"
+	@rm -f "$(MODULE_OUT)"
+	@mkdir -p "$(BUILD_FOLDER)"
+	@cp ./LICENSE "$(MODULE_PATH)"
+	@cp ./README.md "$(MODULE_PATH)"
+	@cd "$(MODULE_FOLDER)" && zip -r "$(ZIP_NAME)" "$(MODULE)" && mv "$(ZIP_NAME)" "../$(BUILD_FOLDER)"
+	@echo "$(BLUE)==> Build complete: $(MODULE_OUT)$(RESET)"
 
-	# Removing the old ZIP if present
-	@rm -f $(MODULE_OUT)
+bump: ## Bump all PHP dependencies
+	@echo "$(BLUE)==> Bumping root dependencies...$(RESET)"
+	@symfony composer bump
+	@echo "$(BLUE)==> Bumping module dependencies...$(RESET)"
+	@cd "$(MODULE_PATH)" && symfony composer bump
 
-	# Make the build folder
-	@mkdir -p $(BUILD_FOLDER)
+update: ## Update all dependencies (including dev)
+	@echo "$(BLUE)==> Updating root dependencies...$(RESET)"
+	@symfony composer update
+	@echo "$(BLUE)==> Updating module dependencies...$(RESET)"
+	@cd "$(MODULE_PATH)" && symfony composer update
 
-	# Copy the license to the module
-	@cp ./LICENSE "$(MODULE_FOLDER)/$(MODULE)"
+upgrade: ## Upgrade all dependencies (including dev, with constraints)
+	@echo "$(BLUE)==> Upgrading root dependencies...$(RESET)"
+	@symfony composer upgrade -W
+	@echo "$(BLUE)==> Upgrading module dependencies...$(RESET)"
+	@cd "$(MODULE_PATH)" && symfony composer upgrade -W
 
-	# Copy the README to the module root and docs
-	@cp ./README.md "$(MODULE_FOLDER)/$(MODULE)"
-	@cp ./README.md "$(MODULE_FOLDER)/$(MODULE)/docs"
+clean: ## Remove previous builds and vendor files
+	@echo "$(BLUE)==> Cleaning build artifacts...$(RESET)"
+	@rm -f "$(MODULE_OUT)"
+	@rm -rf "$(MODULE_PATH)/vendor"
+	@find "$(MODULE_FOLDER)" -mindepth 1 -maxdepth 1 -type d ! -name "$(MODULE)" -exec rm -rf {} +
 
-	# Zip the module
-	@cd $(MODULE_FOLDER) \
-		&& zip -r $(ZIP_NAME) $(MODULE) \
-		&& mv $(ZIP_NAME) "../$(BUILD_FOLDER)"
+lint: ## Run linter (dry-run mode)
+	@echo "$(BLUE)==> Running PHP CS Fixer (dry-run)...$(RESET)"
+	@symfony php ./vendor/bin/php-cs-fixer fix --diff --dry-run -v
+	@echo "$(BLUE)==> Running PHPCS...$(RESET)"
+	@symfony php ./vendor/bin/phpcs -p
 
-debug: ## Build the bastard binary file as debug file
-	# Installing all dependencies
-	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer install
+lint-fix: ## Auto-fix linter issues
+	@echo "$(BLUE)==> Fixing code style with PHP CS Fixer...$(RESET)"
+	@symfony php ./vendor/bin/php-cs-fixer fix -v
+	@echo "$(BLUE)==> Running PHPCBF...$(RESET)"
+	@symfony php ./vendor/bin/phpcbf -p
 
-	# Dump autoloader
-	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer dump-autoload -o
-
-	# Removing the old ZIP if present
-	@rm -f $(MODULE_OUT)
-
-	# Make the build folder
-	@mkdir -p $(BUILD_FOLDER)
-
-	# Copy the license to the module
-	@cp ./LICENSE "$(MODULE_FOLDER)/$(MODULE)"
-
-	# Copy the README to the module
-	@cp ./README.md "$(MODULE_FOLDER)/$(MODULE)"
-
-	# Zip the module
-	@cd $(MODULE_FOLDER) \
-		&& zip -r $(ZIP_DEBUG_NAME) $(MODULE) \
-		&& mv $(ZIP_DEBUG_NAME) "../$(BUILD_FOLDER)"
-
-bump: ## Bump all package versions
-	# Bump all root dependencies
-	@composer install
-
-	# Bump all module dependencies
-	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer install
-
-install: ## Install everything for development
-	# Installing all root dependencies
-	@composer install
-
-	# Installing all module dependencies
-	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer install
-
-update: ## Update all dependencies (including development)
-	# Upgrading all root dependencies
-	@composer update
-
-	# Upgrading all module dependencies
-	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer update
-
-upgrade: ## Upgrade all dependencies (including development)
-	# Upgrading all root dependencies
-	@composer upgrade
-
-	# Upgrading all module dependencies
-	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer upgrade
-
-clean: ## Remove previous builds
-	# Removing the ZIP
-	@rm -f $(MODULE_OUT)
-
-	# Remove the vendor
-	@rm -rf "$(MODULE_FOLDER)/$(MODULE)/vendor"
-
-	# Remove all unnecessary modules
-	@ls -d $(MODULE_FOLDER)/* | grep -v $(MODULE) | xargs rm -rf
-
-lint: ## Lints the module
-	# Run PHP CS Fixer
-	@./vendor/bin/php-cs-fixer fix --diff --dry-run -v
-
-	# Run PHPCS
-	@./vendor/bin/phpcs --cache -p
-
-	# Run PHP Parallel Lint
-	@./vendor/bin/parallel-lint --exclude ./modules/btcpay/vendor ./modules/btcpay
-
-lint-fix: ## Resolves linter issues
-	# Run PHP CS Fixer
-	@./vendor/bin/php-cs-fixer fix -v
-
-	# Run PHPCBF
-	@./vendor/bin/phpcbf --cache -p
-
-help: ## Display this help screen
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+help: ## Show this help message
+	@echo "$(BLUE)Available targets:$(RESET)"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+		| sort \
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "  $(BLUE)%-15s$(RESET) %s\n", $$1, $$2}'

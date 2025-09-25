@@ -26,11 +26,11 @@
     "ext-json": "*",
     "ext-mbstring": "*",
     "btcpayserver/btcpayserver-greenfield-php": "^2.8.1",
-    "composer/semver": "^3.4.2",
-    "stechstudio/backoff": "^1.4"
+    "composer/semver": "^3.4.4",
+    "stechstudio/backoff": "^1.6"
   },
   "require-dev": {
-    "ergebnis/composer-normalize": "^2.43",
+    "ergebnis/composer-normalize": "^2.48.2",
     "roave/security-advisories": "dev-latest",
     "symfony/debug-bundle": "~5.4.40",
     "symfony/var-dumper": "~5.4.43"

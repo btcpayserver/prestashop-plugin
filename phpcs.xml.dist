@@ -56,7 +56,6 @@
 
   <!-- Force whitespace after a type cast -->
   <rule ref="Generic.Formatting.SpaceAfterCast"/>
-  <rule ref="Generic.Functions.CallTimePassByReference"/>
   <rule ref="Generic.Metrics.NestingLevel"/>
 
   <!-- Forbid PHP 4 constructors -->
@@ -91,6 +90,9 @@
       <property name="tabIndent" value="true"/>
     </properties>
   </rule>
+
+  <!-- Require space after language constructs -->
+  <rule ref="Generic.WhiteSpace.LanguageConstructSpacing"/>
 
   <!-- Forbid comments starting with # -->
   <rule ref="PEAR.Commenting.InlineComment"/>
@@ -149,14 +151,28 @@
   <!-- Forbid useless annotations - Git and LICENCE file provide more accurate information -->
   <rule ref="SlevomatCodingStandard.Commenting.ForbiddenAnnotations">
     <properties>
-      <property name="forbiddenAnnotations" type="array" value="@api,@author,@category,@created,@license,@package,@since,@subpackage,@version"/>
+      <property name="forbiddenAnnotations" type="array">
+        <element value="@api"/>
+        <element value="@author"/>
+        <element value="@category"/>
+        <element value="@created"/>
+        <element value="@license"/>
+        <element value="@package"/>
+        <element value="@since"/>
+        <element value="@subpackage"/>
+        <element value="@version"/>
+      </property>
     </properties>
   </rule>
 
   <!-- Forbid useless comments -->
   <rule ref="SlevomatCodingStandard.Commenting.ForbiddenComments">
     <properties>
-      <property name="forbiddenCommentPatterns" type="array" value="~^Created by \S+\.\z~i,~^\S+ [gs]etter\.\z~i,~(\S+\s+)?constructor\.~"/>
+      <property name="forbiddenCommentPatterns" type="array">
+        <element value="~^Created by \S+\.\z~i"/>
+        <element value="~^\S+ [gs]etter\.\z~i"/>
+        <element value="~(\S+\s+)?constructor\.~"/>
+      </property>
     </properties>
   </rule>
 
@@ -266,9 +282,6 @@
     <exclude name="Squiz.Arrays.ArrayDeclaration.ValueNotAligned"/>
   </rule>
 
-  <!-- Forbid duplicate properties -->
-  <rule ref="Squiz.Classes.DuplicateProperty"/>
-
   <!-- Force `self::` for self-reference, force lower-case self, forbid spaces around `::` -->
   <rule ref="Squiz.Classes.SelfMemberReference"/>
 
@@ -324,9 +337,6 @@
 
   <!-- Forbid blank line after function opening brace -->
   <rule ref="Squiz.WhiteSpace.FunctionOpeningBraceSpace"/>
-
-  <!-- Require space after language constructs -->
-  <rule ref="Squiz.WhiteSpace.LanguageConstructSpacing"/>
 
   <!-- Require space around logical operators -->
   <rule ref="Squiz.WhiteSpace.LogicalOperatorSpacing"/>

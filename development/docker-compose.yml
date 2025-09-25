@@ -1,0 +1,131 @@
+name: prestashop
+
+services:
+  # PrestaShop
+  prestashop:
+    image: prestashop/prestashop-flashlight:${PS_VERSION:-latest}
+    env_file: [ prestashop/prestashop.env ]
+    environment: { NGROK_TUNNEL_AUTO_DETECT: "http://ngrok:4040" }
+    depends_on:
+      - ngrok
+      - mysql
+    ports: [ "8000:80" ]
+
+  # MariaDB (PrestaShop Database)
+  mysql:
+    image: mariadb:lts
+    environment:
+      MYSQL_USER: prestashop
+      MYSQL_PASSWORD: prestashop
+      MYSQL_ROOT_PASSWORD: prestashop
+      MYSQL_DATABASE: prestashop
+    ports: [ "3306:3306" ]
+    volumes: [ "mysql_data:/var/lib/mysql" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "mariadb-admin ping -h localhost -pprestashop --silent" ]
+      interval: 5s
+      retries: 10
+      timeout: 3s
+
+  # Ngrok (Tunnel)
+  ngrok:
+    image: ngrok/ngrok:latest
+    env_file: [ .env ]
+    ports: [ "4040:4040" ]
+    volumes: [ "./ngrok/ngrok.yml:/var/lib/ngrok/ngrok.yml" ]
+
+  # BTCPayServer
+  btcpayserver:
+    image: btcpayserver/btcpayserver:2.3.3
+    platform: linux/amd64
+    restart: always
+    env_file: [ btcpayserver/btcpayserver.env ]
+    environment:
+      BTCPAY_POSTGRES: User ID=postgres;Host=postgres;Port=5432;Application Name=btcpayserver;Database=btcpayserver${NBITCOIN_NETWORK:-regtest}
+      BTCPAY_EXPLORERPOSTGRES: User ID=postgres;Host=postgres;Port=5432;Application Name=btcpayserver;MaxPoolSize=80;Database=nbxplorer${NBITCOIN_NETWORK:-regtest}
+      BTCPAY_NETWORK: ${NBITCOIN_NETWORK:-regtest}
+      BTCPAY_BIND: 0.0.0.0:49392
+      BTCPAY_ROOTPATH: /
+      BTCPAY_DEBUGLOG: btcpay.log
+      BTCPAY_UPDATEURL: https://api.github.com/repos/btcpayserver/btcpayserver/releases/latest
+      BTCPAY_DOCKERDEPLOYMENT: "true"
+      BTCPAY_CHAINS: "btc"
+      BTCPAY_BTCEXPLORERURL: http://nbxplorer:32838/
+    ports: [ "49392:49392" ]
+    links:
+      - postgres
+    volumes:
+      - "btcpay_datadir:/datadir"
+      - "nbxplorer_datadir:/root/.nbxplorer"
+
+  # Bitcoin Daemon (Regtest)
+  bitcoind:
+    image: btcpayserver/bitcoin:29.1
+    platform: linux/amd64
+    environment:
+      BITCOIN_NETWORK: ${NBITCOIN_NETWORK:-regtest}
+      CREATE_WALLET: "false"
+      BITCOIN_WALLETDIR: "/walletdata"
+      BITCOIN_EXTRA_ARGS: |
+        rpcport=43782
+        rpcbind=0.0.0.0:43782
+        rpcallowip=0.0.0.0/0
+        port=39388
+        whitelist=0.0.0.0/0
+        maxmempool=500
+        prune=50000
+    ports: [ "18443:43782" ]
+    volumes:
+      - "bitcoin_datadir:/data"
+      - "bitcoin_wallet_datadir:/walletdata"
+    healthcheck:
+      test: [ "CMD", "bitcoin-cli", "-regtest", "-rpcconnect=127.0.0.1", "-rpcport=43782", "-rpccookiefile=/data/regtest/.cookie", "getblockchaininfo" ]
+      interval: 10s
+      retries: 20
+      timeout: 5s
+
+  # NBXplorer (Bitcoin Indexer)
+  nbxplorer:
+    image: nicolasdorier/nbxplorer:2.5.30-1
+    platform: linux/amd64
+    environment:
+      NBXPLORER_NETWORK: ${NBITCOIN_NETWORK:-regtest}
+      NBXPLORER_BIND: 0.0.0.0:32838
+      NBXPLORER_TRIMEVENTS: 10000
+      NBXPLORER_SIGNALFILESDIR: /datadir
+      NBXPLORER_POSTGRES: User ID=postgres;Host=postgres;Port=5432;Application Name=nbxplorer;MaxPoolSize=20;Database=nbxplorer${NBITCOIN_NETWORK:-regtest}
+      NBXPLORER_CHAINS: "btc"
+      NBXPLORER_BTCRPCURL: http://bitcoind:43782/
+      NBXPLORER_BTCNODEENDPOINT: bitcoind:39388
+    links:
+      - postgres
+    volumes:
+      - "nbxplorer_datadir:/datadir"
+      - "bitcoin_datadir:/root/.bitcoin"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      bitcoind:
+        condition: service_healthy
+
+  # PostgreSQL (for BTCPay + NBXplorer)
+  postgres:
+    image: btcpayserver/postgres:13.18
+    platform: linux/amd64
+    environment: { POSTGRES_HOST_AUTH_METHOD: trust }
+    volumes: [ "postgres_datadir:/var/lib/postgresql/data" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      retries: 10
+      timeout: 3s
+
+# Named Volumes
+volumes:
+  btcpay_datadir:
+  btcpay_pluginsdir:
+  bitcoin_datadir:
+  bitcoin_wallet_datadir:
+  postgres_datadir:
+  nbxplorer_datadir:
+  mysql_data:

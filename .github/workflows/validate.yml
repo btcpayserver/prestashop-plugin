@@ -17,18 +17,24 @@ jobs:
     strategy:
       matrix:
         php-versions: [ '8.0', '8.1' ]
+
     steps:
+      # Checkout repository
       - name: "Checkout"
         uses: "actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5" # v6.0.0
         with:
           persist-credentials: false
+
+      # Setup PHP & Composer (with Symfony CLI)
       - name: "Setup PHP, with composer and extensions"
         uses: "shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1" # v2.36.0
         with:
           php-version: "${{ matrix.php-versions }}"
           extensions: "mbstring, xml, ctype, iconv, intl, gd"
-          tools: "composer:v2"
-      - name: "Get composer cache directory"
+          tools: "composer:v2, symfony-cli"
+
+      # Cache Composer dependencies
+      - name: "Get Composer cache directory"
         id: "composer-cache"
         run: 'echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT'
       - name: "Cache composer dependencies"
@@ -38,11 +44,14 @@ jobs:
           key: "${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}"
           restore-keys: "${{ runner.os }}-composer-"
           lookup-only: true
-      - name: "Validate composer"
-        run: "composer validate"
-      - name: "Install Composer dependencies"
-        run: "composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader"
 
-      # Ensure our code looks proper
-      - name: "Lint the code"
+      # Validate & install dependencies
+      - name: "Validate Composer configuration"
+        run: "symfony composer validate --no-interaction"
+
+      - name: "Install Composer dependencies"
+        run: "symfony composer install --prefer-dist --no-progress --optimize-autoloader --no-interaction"
+
+      # Run linter
+      - name: "Lint codebase"
         run: "make lint"
