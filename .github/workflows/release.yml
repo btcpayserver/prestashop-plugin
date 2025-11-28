@@ -4,6 +4,8 @@ on:
   push:
     tags: [ 'v*' ] # Push events to matching v*, i.e. v1.0, v20.15.10
 
+permissions: {}
+
 jobs:
   linting:
     name: "Release a new ZIP"
@@ -11,8 +13,10 @@ jobs:
     steps:
       - name: "Checkout"
         uses: "actions/checkout@v6"
+        with:
+          persist-credentials: false
       - name: "Setup PHP, with composer and extensions"
-        uses: "shivammathur/setup-php@v2" # https://github.com/shivammathur/setup-php
+        uses: "shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1" # v2.36.0
         with:
           php-version: "8.0"
           extensions: "mbstring, xml, ctype, iconv, intl, gd"
@@ -26,6 +30,7 @@ jobs:
           path: "${{ steps.composer-cache.outputs.dir }}"
           key: "${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}"
           restore-keys: "${{ runner.os }}-composer-"
+          lookup-only: true
       - name: "Validate composer"
         run: "composer validate"
       - name: "Install Composer dependencies"
@@ -38,7 +43,7 @@ jobs:
       # Make a release from the tag and upload the zip
       - name: "Create Release"
         id: "create_release"
-        uses: "softprops/action-gh-release@v2"
+        uses: "softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe" # v2.4.2
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         with:
