@@ -5,6 +5,8 @@ updates:
     directory: /
     schedule:
       interval: daily
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     reviewers:
       - BitcoinMitchell
@@ -16,6 +18,8 @@ updates:
     directory: /modules/btcpay
     schedule:
       interval: daily
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     reviewers:
       - BitcoinMitchell
@@ -27,6 +31,8 @@ updates:
     directory: "/.github/workflows"
     schedule:
       interval: daily
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     reviewers:
       - BitcoinMitchell
