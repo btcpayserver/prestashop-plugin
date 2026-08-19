@@ -3,6 +3,7 @@
 namespace BTCPay\Repository;
 
 use BTCPay\Entity\BitcoinPayment;
+use BTCPay\Invoice\CheckoutGuard;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
@@ -40,19 +41,10 @@ class BitcoinPaymentRepository
 		$query = new \DbQuery();
 		$query->select('bp.*')
 			->from('bitcoin_payment', 'bp')
-			->where(\sprintf('bp.invoice_id = "%s"', $invoiceId))
+			->where(\sprintf("bp.invoice_id = '%s'", \pSQL($invoiceId)))
 			->limit(1);
 
-		$result = \Db::getInstance()->query($query);
-		if (0 !== ($errorCode = (int) $result->errorCode())) {
-			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
-		}
-
-		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
-			return null;
-		}
-
-		return $object;
+		return self::hydrateOne($query);
 	}
 
 	/**
@@ -61,22 +53,17 @@ class BitcoinPaymentRepository
 	 */
 	public static function getOneByInvoiceReference(string $invoiceReference): ?BitcoinPayment
 	{
-		$query = new \DbQuery();
-		$query->select('bp.*')
-			->from('bitcoin_payment', 'bp')
-			->where(\sprintf('bp.invoice_reference = "%s"', $invoiceReference))
-			->limit(1);
-
-		$result = \Db::getInstance()->query($query);
-		if (0 !== ($errorCode = (int) $result->errorCode())) {
-			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
-		}
-
-		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
+		if (false === CheckoutGuard::isInvoiceReference($invoiceReference)) {
 			return null;
 		}
 
-		return $object;
+		$query = new \DbQuery();
+		$query->select('bp.*')
+			->from('bitcoin_payment', 'bp')
+			->where(\sprintf("bp.invoice_reference = '%s'", \pSQL($invoiceReference)))
+			->limit(1);
+
+		return self::hydrateOne($query);
 	}
 
 	/**
@@ -88,19 +75,10 @@ class BitcoinPaymentRepository
 		$query = new \DbQuery();
 		$query->select('bp.*')
 			->from('bitcoin_payment', 'bp')
-			->where(\sprintf('bp.cart_id = "%s"', $cartID))
+			->where(\sprintf('bp.cart_id = %d', $cartID))
 			->limit(1);
 
-		$result = \Db::getInstance()->query($query);
-		if (0 !== ($errorCode = (int) $result->errorCode())) {
-			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
-		}
-
-		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
-			return null;
-		}
-
-		return $object;
+		return self::hydrateOne($query);
 	}
 
 	/**
@@ -112,9 +90,18 @@ class BitcoinPaymentRepository
 		$query = new \DbQuery();
 		$query->select('bp.*')
 			->from('bitcoin_payment', 'bp')
-			->where(\sprintf('bp.order_id = "%s"', $orderID))
+			->where(\sprintf('bp.order_id = %d', $orderID))
 			->limit(1);
 
+		return self::hydrateOne($query);
+	}
+
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \JsonException
+	 */
+	private static function hydrateOne(\DbQuery $query): ?BitcoinPayment
+	{
 		$result = \Db::getInstance()->query($query);
 		if (0 !== ($errorCode = (int) $result->errorCode())) {
 			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
