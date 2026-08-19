@@ -61,6 +61,22 @@ class WebhookHandler
 			return;
 		}
 
+		// Ignore deliveries that are not for this store
+		$configuredStoreId = (string) $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
+		if (isset($data['storeId']) && (string) $data['storeId'] !== $configuredStoreId) {
+			\PrestaShopLogger::addLog(\sprintf('[WARNING] Ignoring webhook for store %s (configured store is %s)', $data['storeId'], $configuredStoreId), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
+
+			return;
+		}
+
+		// Ignore deliveries that are not for this webhook endpoint
+		$configuredWebhookId = (string) $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID);
+		if (isset($data['webhookId']) && (string) $data['webhookId'] !== $configuredWebhookId) {
+			\PrestaShopLogger::addLog(\sprintf('[WARNING] Ignoring webhook %s (configured webhook is %s)', $data['webhookId'], $configuredWebhookId), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
+
+			return;
+		}
+
 		// Get the data type
 		$eventType = (string) $data['type'];
 
