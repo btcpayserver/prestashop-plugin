@@ -48,6 +48,10 @@ class GeneralFormDataProvider implements FormDataProviderInterface
 			$this->configuration->set(Constants::CONFIGURATION_SHARE_METADATA, $shareMetadata);
 		}
 
+		if ($this->configuration->get(Constants::CONFIGURATION_PROTECT_ORDERS) !== ($protectOrders = $configuration->getProtectOrders())) {
+			$this->configuration->set(Constants::CONFIGURATION_PROTECT_ORDERS, $protectOrders);
+		}
+
 		// All is fine
 		return [];
 	}
