@@ -13,30 +13,18 @@ if (!\defined('_PS_VERSION_')) {
 
 class General
 {
-	/**
-	 * @Assert\NotBlank()
-	 * @Assert\Choice(choices=\BTCPay\Constants::TRANSACTION_SPEEDS, message="Invalid transaction speed")
-	 *
-	 * @var string
-	 */
+	#[Assert\NotBlank]
+	#[Assert\Choice(choices: Constants::TRANSACTION_SPEEDS, message: 'Invalid transaction speed')]
 	private $speed;
 
-	/**
-	 * @Assert\NotBlank()
-	 * @Assert\Choice(choices=\BTCPay\Constants::ORDER_MODES, message="Invalid order mode")
-	 *
-	 * @var string
-	 */
+	#[Assert\NotBlank]
+	#[Assert\Choice(choices: Constants::ORDER_MODES, message: 'Invalid order mode')]
 	private $orderMode;
 
-	/**
-	 * @Assert\Choice(choices={true, false})
-	 */
+	#[Assert\Choice(choices: [true, false])]
 	private $protectOrders;
 
-	/**
-	 * @Assert\Choice(choices={true, false})
-	 */
+	#[Assert\Choice(choices: [true, false])]
 	private $shareMetadata;
 
 	public function __construct(string $speed, string $orderMode, bool $protectOrders, bool $shareMetadata)

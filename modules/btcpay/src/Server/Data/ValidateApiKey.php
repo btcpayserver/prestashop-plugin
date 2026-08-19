@@ -12,19 +12,13 @@ if (!\defined('_PS_VERSION_')) {
 
 class ValidateApiKey
 {
-	/**
-	 * @Assert\NotBlank()
-	 *
-	 * @var string|null
-	 */
+	#[Assert\NotBlank]
+	/** @var string|null */
 	private $apiKey;
 
-	/**
-	 * @Assert\All({@Assert\NotBlank()})
-	 * @Assert\NotBlank()
-	 *
-	 * @var string[]
-	 */
+	#[Assert\All([new Assert\NotBlank()])]
+	#[Assert\NotBlank]
+	/** @var string[] */
 	private $permissions;
 
 	public function __construct(ParameterBag $request)
@@ -43,9 +37,7 @@ class ValidateApiKey
 		return \explode(':', $this->permissions[0])[1];
 	}
 
-	/**
-	 * @Assert\IsTrue(message="This plugin expects all passed permissions to be given. Please remove and recreate the API key")
-	 */
+	#[Assert\IsTrue(message: 'This plugin expects all passed permissions to be given. Please remove and recreate the API key')]
 	public function hasRequiredPermissions(): bool
 	{
 		$permissions = \array_reduce($this->permissions, static function (array $carry, string $permission) {
@@ -58,9 +50,7 @@ class ValidateApiKey
 		));
 	}
 
-	/**
-	 * @Assert\IsTrue(message="This plugin requires one store (and one store only) to be authorized. Please remove and recreate the API key.")
-	 */
+	#[Assert\IsTrue(message: 'This plugin requires one store (and one store only) to be authorized. Please remove and recreate the API key.')]
 	public function hasSingleStore(): bool
 	{
 		$storeId = null;

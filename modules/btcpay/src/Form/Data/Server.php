@@ -12,19 +12,13 @@ if (!\defined('_PS_VERSION_')) {
 
 class Server
 {
-	/**
-	 * @Assert\Url()
-	 * @Assert\NotBlank()
-	 *
-	 * @var string|null
-	 */
+	#[Assert\Url]
+	#[Assert\NotBlank]
+	/** @var string|null */
 	private $host;
 
-	/**
-	 * @Assert\Type(type="alnum")
-	 *
-	 * @var string|null
-	 */
+	#[Assert\Type(type: 'alnum')]
+	/** @var string|null */
 	private $apiKey;
 
 	public function __construct(string $host, string $apiKey = null)
