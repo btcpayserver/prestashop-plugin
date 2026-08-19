@@ -1,6 +1,7 @@
 <?php
 
 use BTCPay\Constants;
+use BTCPay\Invoice\CheckoutGuard;
 use BTCPay\Invoice\Processor;
 use BTCPay\Repository\BitcoinPaymentRepository;
 use BTCPay\Server\Client;
@@ -44,8 +45,7 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 	public function postProcess(): void
 	{
 		// Check if the cart we have is even valid
-		$cart = $this->context->cart;
-		if (0 === $cart->id_customer || 0 === $cart->id_address_delivery || 0 === $cart->id_address_invoice || !$this->module->active) {
+		if (!$this->module->active || null === $this->context->customer || 0 === (int) $this->context->customer->id) {
 			Tools::redirect($this->context->link->getPageLink('order', $this->ssl, null, ['step' => 1]));
 
 			return;
@@ -75,8 +75,19 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 		}
 
 		// Get the passed invoice reference, which we can then use to get the actual order
-		$invoiceReference = Tools::getValue('invoice_reference', 0);
-		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByInvoiceReference($invoiceReference))) {
+		$invoiceReference = Tools::getValue('invoice_reference');
+		if (!CheckoutGuard::isInvoiceReference($invoiceReference) || null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByInvoiceReference($invoiceReference))) {
+			$this->warning[] = $translator->trans('The passed invoice reference is not valid.', [], 'Modules.Btcpay.Front');
+			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
+
+			return;
+		}
+
+		// Load the payment's cart and bind the return request to that customer and shop
+		$paymentCart = new Cart($bitcoinPayment->getCartId());
+		if (!Validate::isLoadedObject($paymentCart)
+			|| (int) $paymentCart->id_customer !== (int) $this->context->customer->id
+			|| (int) $paymentCart->id_shop !== (int) $this->context->shop->id) {
 			$this->warning[] = $translator->trans('The passed invoice reference is not valid.', [], 'Modules.Btcpay.Front');
 			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
 
@@ -88,15 +99,20 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 
 		// Get the order and validate it
 		$order = Order::getByCartId($bitcoinPayment->getCartId());
-		if (null === $order || 0 === $order->id || (int) $order->id_customer !== (int) $this->context->customer->id) {
-			// The order must exist when using the `before` order mode
-			if (Constants::ORDER_MODE_BEFORE === $orderMode) {
-				$this->warning[] = $translator->trans('There is no order that we can process.', [], 'Modules.Btcpay.Front');
+		if (null !== $order && 0 !== (int) $order->id) {
+			if ((int) $order->id_customer !== (int) $this->context->customer->id) {
+				$this->warning[] = $translator->trans('The passed invoice reference is not valid.', [], 'Modules.Btcpay.Front');
 				$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
 
 				return;
 			}
+		} elseif (Constants::ORDER_MODE_BEFORE === $orderMode) {
+			// The order must exist when using the `before` order mode
+			$this->warning[] = $translator->trans('There is no order that we can process.', [], 'Modules.Btcpay.Front');
+			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
 
+			return;
+		} else {
 			// Ensure the client is ready for use
 			if (null === ($client = Client::createFromConfiguration($this->configuration)) || false === $client->isValid()) {
 				throw new RuntimeException('Expected the client to be available');
@@ -110,8 +126,15 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 			$order = Order::getByCartId($bitcoinPayment->getCartId());
 		}
 
+		if (null === $order || 0 === (int) $order->id) {
+			$this->warning[] = $translator->trans('We have not received a payment yet.', [], 'Modules.Btcpay.Front');
+			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
+
+			return;
+		}
+
 		// Get the customer so we can do a fancy redirect
-		$customer = new Customer((int) $cart->id_customer);
+		$customer = new Customer((int) $paymentCart->id_customer);
 
 		// If it's a guest, sent them to guest tracking
 		if (Cart::isGuestCartByCartId($bitcoinPayment->getCartId())) {

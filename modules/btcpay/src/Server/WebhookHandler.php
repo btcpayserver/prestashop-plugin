@@ -3,7 +3,6 @@
 namespace BTCPay\Server;
 
 use BTCPay\Constants;
-use BTCPay\Factory\CustomerMessage;
 use BTCPay\Invoice\Processor;
 use BTCPay\Repository\BitcoinPaymentRepository;
 use PrestaShop\PrestaShop\Adapter\Configuration;
@@ -16,11 +15,6 @@ if (!\defined('_PS_VERSION_')) {
 class WebhookHandler
 {
 	/**
-	 * @var \Context
-	 */
-	private $context;
-
-	/**
 	 * @var Configuration
 	 */
 	private $configuration;
@@ -32,7 +26,6 @@ class WebhookHandler
 
 	public function __construct(\BTCPay $module, \Context $context, Client $client)
 	{
-		$this->context       = $context;
 		$this->configuration = new Configuration();
 		$this->processor     = new Processor($module, $context, $this->configuration, $client);
 	}
@@ -57,6 +50,22 @@ class WebhookHandler
 		// If it's a test, just accept it
 		if (\str_contains($data['invoiceId'], '__test__')) {
 			\PrestaShopLogger::addLog(\sprintf('[INFO] Received test IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+
+			return;
+		}
+
+		// Ignore deliveries that are not for this store
+		$configuredStoreId = (string) $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
+		if (isset($data['storeId']) && (string) $data['storeId'] !== $configuredStoreId) {
+			\PrestaShopLogger::addLog(\sprintf('[WARNING] Ignoring webhook for store %s (configured store is %s)', $data['storeId'], $configuredStoreId), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
+
+			return;
+		}
+
+		// Ignore deliveries that are not for this webhook endpoint
+		$configuredWebhookId = (string) $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID);
+		if (isset($data['webhookId']) && (string) $data['webhookId'] !== $configuredWebhookId) {
+			\PrestaShopLogger::addLog(\sprintf('[WARNING] Ignoring webhook %s (configured webhook is %s)', $data['webhookId'], $configuredWebhookId), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
 
 			return;
 		}
@@ -204,28 +213,6 @@ class WebhookHandler
 			return;
 		}
 
-		// Check if protection is disabled, if so, just process the failure
-		if (false === $this->configuration->get(Constants::CONFIGURATION_PROTECT_ORDERS, true)) {
-			$this->processor->invoiceFailed($bitcoinPayment);
-		}
-
-		// Otherwise, will need to check the order so fetch it
-		$order = new \Order($bitcoinPayment->getOrderId());
-
-		// Check if the order has been paid, if so, add a note and abort
-		if (\Validate::isLoadedObject($orderState = $order->getCurrentOrderState()) && $orderState->paid) {
-			// Ensure we log this IPN
-			\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-			\PrestaShopLogger::addLog(\sprintf("[WARN] Webhook ('%s') received from BTCPay Server, but the order was already marked as paid.", $data['type']), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', $order->id);
-
-			// Build a simple note and add it to the order
-			$note = \sprintf("BTCPay Server: Webhook ('%s') received, but the order was already marked as paid.", $data['type']);
-			CustomerMessage::addToOrder($this->context->shop, $order, $note);
-
-			// Don't bother with the rest
-			return;
-		}
-
 		// The order has not been set to paid, process the failure
 		$this->processor->invoiceFailed($bitcoinPayment);
 	}
@@ -251,6 +238,13 @@ class WebhookHandler
 
 		// If there is no order, don't bother updating it
 		if (false === $bitcoinPayment->hasOrder()) {
+			// Delayed creation: a settled invoice still needs an order
+			if (Constants::ORDER_MODE_AFTER === $this->configuration->get(Constants::CONFIGURATION_ORDER_MODE)) {
+				$this->processor->paymentReceivedCreateAfter($bitcoinPayment);
+
+				return;
+			}
+
 			return;
 		}
 
