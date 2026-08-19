@@ -282,8 +282,8 @@ class BTCPay extends PaymentModule
 			return null;
 		}
 
-		// Check if we have an order and cart, if not abort
-		if (!array_key_exists('order', $params) || !array_key_exists('cart', $params)) {
+		// Check if we have an order, if not abort
+		if (!array_key_exists('order', $params)) {
 			return null;
 		}
 
@@ -298,8 +298,7 @@ class BTCPay extends PaymentModule
 			return false;
 		}
 
-		// Check if we actually have an cart
-		$cart = $params['cart'];
+		$cart = $params['cart'] ?? new Cart($order->id_cart);
 		if (!$cart instanceof Cart) {
 			return null;
 		}
