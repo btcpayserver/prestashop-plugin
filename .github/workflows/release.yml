@@ -8,7 +8,7 @@ permissions: {}
 
 jobs:
   linting:
-    name: "Release a new ZIP"
+    name: "Release a new ZIP (PHP 8.4)"
     runs-on: "ubuntu-latest"
     steps:
       - name: "Checkout"
@@ -18,7 +18,7 @@ jobs:
       - name: "Setup PHP, with composer and extensions"
         uses: "shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f" # v2.37.0
         with:
-          php-version: "8.0"
+          php-version: "8.4"
           extensions: "mbstring, xml, ctype, iconv, intl, gd"
           tools: "composer:v2"
       - name: "Get composer cache directory"

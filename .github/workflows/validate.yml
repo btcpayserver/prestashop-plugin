@@ -3,7 +3,7 @@ name: "Validate"
 on:
   push:
     paths: [ 'modules/**' ]
-    branches: [ '6.x' ]
+    branches: [ '7.x' ]
     tags: [ 'v*' ]
   pull_request:
     paths: [ 'modules/**' ]
@@ -16,7 +16,7 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        php-versions: [ '8.0', '8.1' ]
+        php-versions: [ '8.4', '8.5' ]
     steps:
       - name: "Checkout"
         uses: "actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5" # v6.0.0
