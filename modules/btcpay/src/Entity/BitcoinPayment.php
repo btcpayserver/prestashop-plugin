@@ -49,6 +49,11 @@ class BitcoinPayment extends \ObjectModel
 	/**
 	 * @var string|null
 	 */
+	public $currency_iso;
+
+	/**
+	 * @var string|null
+	 */
 	public $redirect;
 
 	public static $definition = [
@@ -60,6 +65,8 @@ class BitcoinPayment extends \ObjectModel
 			'status'            => ['type' => self::TYPE_STRING, 'required' => true, 'validate' => 'isString'],
 			'invoice_id'        => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
 			'invoice_reference' => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
+			'amount'            => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
+			'currency_iso'      => ['type' => self::TYPE_STRING, 'validate' => 'isString', 'size' => 3],
 			'redirect'          => ['type' => self::TYPE_STRING, 'validate' => 'isUrl'],
 		],
 	];
@@ -160,6 +167,16 @@ class BitcoinPayment extends \ObjectModel
 		$this->amount = $amount;
 	}
 
+	public function getCurrencyIso(): ?string
+	{
+		return $this->currency_iso;
+	}
+
+	public function setCurrencyIso(?string $currency_iso): void
+	{
+		$this->currency_iso = $currency_iso;
+	}
+
 	public function getRedirect(): ?string
 	{
 		return $this->redirect;
@@ -180,6 +197,7 @@ class BitcoinPayment extends \ObjectModel
 			'invoice_id'        => $this->getInvoiceId(),
 			'invoice_reference' => $this->getInvoiceReference(),
 			'amount'            => $this->getAmount(),
+			'currency_iso'      => $this->getCurrencyIso(),
 			'redirect'          => $this->getRedirect(),
 		];
 	}

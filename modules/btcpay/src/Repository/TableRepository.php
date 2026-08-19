@@ -16,6 +16,11 @@ class TableRepository
 	 */
 	private $connection;
 
+	/**
+	 * @var string
+	 */
+	private $prefix;
+
 	public function __construct(Connection $connection)
 	{
 		$this->connection = $connection;
@@ -39,12 +44,8 @@ class TableRepository
                 `invoice_id` varchar(255),
                 `invoice_reference` varchar(255),
                 `amount` varchar(255),
-                `bitcoin_price` varchar(255),
-                `bitcoin_paid` varchar(255),
-                `bitcoin_address` varchar(255),
-                `bitcoin_refund_address` varchar(255),
+                `currency_iso` char(3),
                 `redirect` varchar(255),
-                `rate` varchar(255),
                 PRIMARY KEY (`id`),
                 UNIQUE KEY `invoice_id` (`invoice_id`)
             ) ENGINE=$engine DEFAULT CHARSET=utf8",

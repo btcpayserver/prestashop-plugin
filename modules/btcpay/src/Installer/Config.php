@@ -35,6 +35,7 @@ class Config
 			|| !$this->configuration->set(Constants::CONFIGURATION_BTCPAY_STORE_ID, null)
 			|| !$this->configuration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID, null)
 			|| !$this->configuration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET, null)
+			|| !$this->configuration->set(Constants::CONFIGURATION_PROTECT_ORDERS, true)
 			|| !$this->configuration->set(Constants::CONFIGURATION_SHARE_METADATA, false)) {
 			return [
 				[
@@ -61,6 +62,7 @@ class Config
 			|| !$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_STORE_ID)
 			|| !$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID)
 			|| !$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET)
+			|| !$this->configuration->remove(Constants::CONFIGURATION_PROTECT_ORDERS)
 			|| !$this->configuration->remove(Constants::CONFIGURATION_SHARE_METADATA)) {
 			return [
 				[
