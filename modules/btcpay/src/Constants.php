@@ -11,9 +11,9 @@ if (!\defined('_PS_VERSION_')) {
 class Constants
 {
 	// Version information
-	public const MINIMUM_BTCPAY_VERSION = '1.7.0';
-	public const MINIMUM_PS_VERSION     = '8.0.0';
-	public const MINIMUM_PHP_VERSION    = '8.0.0';
+	public const MINIMUM_BTCPAY_VERSION = '2.4.2';
+	public const MINIMUM_PS_VERSION     = '9.1.0';
+	public const MINIMUM_PHP_VERSION    = '8.4.0';
 
 	// Cache configuration
 	public const LASTEST_VERSION_CACHE_KEY        = 'BTCPAY_LATEST_VERSION';
