@@ -41,6 +41,10 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 
 	public function __construct()
 	{
+		// Webhook responses must not render the shop theme
+		$this->display_header = false;
+		$this->display_footer = false;
+
 		parent::__construct();
 
 		$this->configuration = new Configuration();
@@ -67,28 +71,37 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 	{
 		$request = Request::createFromGlobals();
 
+		// BTCPay webhooks are POST-only; reject probes and misconfigured clients early
+		if (!$request->isMethod('POST')) {
+			header('HTTP/1.1 405 Method Not Allowed');
+			exit;
+		}
+
 		// If the module is inactive, or we don't receive a signature, or we don't have the webhook secret, just return
 		if (!$this->module->active
 			|| null === ($signature = $request->headers->get(Constants::BTCPAY_HEADER_SIG))
 			|| false === ($secret = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET))) {
-			return;
+			header('HTTP/1.1 400 Bad Request');
+			exit;
 		}
 
 		// Ensure the client is ready for use, if not, just return
 		if (null === $this->client || false === $this->client->isValid()) {
-			return;
+			header('HTTP/1.1 400 Bad Request');
+			exit;
 		}
 
 		// Ensure our webhook is actually valid
 		if (false === $this->client->webhook()->isIncomingWebhookRequestValid($request->getContent(), $signature, $secret)) {
 			$error = 'Invalid BTCPay Server payment notification message received - signature did not match.';
 			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
-
-			throw new \Exception($error);
+			header('HTTP/1.1 401 Unauthorized');
+			exit;
 		}
 
 		$this->handler->process($request);
 
 		echo 'OK';
+		exit;
 	}
 }
