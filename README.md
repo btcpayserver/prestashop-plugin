@@ -80,7 +80,22 @@ Contributors looking to help out, before opening a pull request, please join [ou
 
 ### 🔧 Development
 
-We recommend using [PrestaShop Kickstarter](https://github.com/PrestaShopCorp/docker-compose-kickstarter) (which supports [ngrok](https://ngrok.com/)) and a dockerized [BTCPay Server instance](https://github.com/btcpayserver/btcpayserver-docker/blob/master/Production/docker-compose.btc.yml) (or [an online testnet instance](https://testnet.demo.btcpayserver.org/)) for testing locally. 
+Work happens on `7.x`. You'll want [Symfony CLI](https://symfony.com/download) installed. The Makefile uses `symfony composer` so it picks the right PHP version for you.
+
+```bash
+git clone https://github.com/btcpayserver/prestashop-plugin.git
+cd prestashop-plugin
+git checkout 7.x
+make install
+```
+
+There are two `composer.json` files. Root is dev tooling (lint, PHPCS, PrestaShop 9.1 for static analysis). The installable module is `modules/btcpay/`.
+
+`make build` -> `build/btcpay.zip`. Run `make lint` before opening a PR (CI does the same on PHP 8.4 and 8.5). `make help` for the rest.
+
+We recommend [PrestaShop Kickstarter](https://github.com/PrestaShopCorp/docker-compose-kickstarter) (which supports [ngrok](https://ngrok.com/)) on PrestaShop 9.1+, and a dockerized [BTCPay Server instance](https://github.com/btcpayserver/btcpayserver-docker/blob/master/Production/docker-compose.btc.yml) (or [an online testnet instance](https://testnet.demo.btcpayserver.org/)) for testing locally.
+
+Install from a release or `make build`, then configure under **Improve -> Payment -> BTCPay Server**.
 
 ## 🏪 PrestaShop Support
 

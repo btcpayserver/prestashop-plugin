@@ -13,11 +13,11 @@ all: build
 build: ## Build the bastard binary file
 	# Installing all dependencies
 	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer install --no-dev
+		&& symfony composer install --no-dev
 
 	# Dump autoloader
 	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer dump-autoload -o --no-dev
+		&& symfony composer dump-autoload -o --no-dev
 
 	# Removing the old ZIP if present
 	@rm -f $(MODULE_OUT)
@@ -40,11 +40,11 @@ build: ## Build the bastard binary file
 debug: ## Build the bastard binary file as debug file
 	# Installing all dependencies
 	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer install
+		&& symfony composer install
 
 	# Dump autoloader
 	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer dump-autoload -o
+		&& symfony composer dump-autoload -o
 
 	# Removing the old ZIP if present
 	@rm -f $(MODULE_OUT)
@@ -65,35 +65,35 @@ debug: ## Build the bastard binary file as debug file
 
 bump: ## Bump all package versions
 	# Bump all root dependencies
-	@composer install
+	@symfony composer install
 
 	# Bump all module dependencies
 	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer install
+		&& symfony composer install
 
 install: ## Install everything for development
 	# Installing all root dependencies
-	@composer install
+	@symfony composer install
 
 	# Installing all module dependencies
 	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer install
+		&& symfony composer install
 
 update: ## Update all dependencies (including development)
 	# Upgrading all root dependencies
-	@composer update
+	@symfony composer update
 
 	# Upgrading all module dependencies
 	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer update
+		&& symfony composer update
 
 upgrade: ## Upgrade all dependencies (including development)
 	# Upgrading all root dependencies
-	@composer upgrade
+	@symfony composer upgrade
 
 	# Upgrading all module dependencies
 	@cd "$(MODULE_FOLDER)/$(MODULE)" \
-		&& composer upgrade
+		&& symfony composer upgrade
 
 clean: ## Remove previous builds
 	# Removing the ZIP
