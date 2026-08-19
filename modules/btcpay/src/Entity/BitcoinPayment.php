@@ -60,6 +60,7 @@ class BitcoinPayment extends \ObjectModel
 			'status'            => ['type' => self::TYPE_STRING, 'required' => true, 'validate' => 'isString'],
 			'invoice_id'        => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
 			'invoice_reference' => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
+			'amount'            => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
 			'redirect'          => ['type' => self::TYPE_STRING, 'validate' => 'isUrl'],
 		],
 	];
