@@ -11,17 +11,16 @@ use BTCPay\Server\Client;
 use BTCPay\Server\Data\ValidateApiKey;
 use BTCPayServer\Client\ApiKey;
 use Exception;
-use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
 use PrestaShop\PrestaShop\Core\Form\FormHandlerInterface;
-use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
-use PrestaShopBundle\Security\Annotation\AdminSecurity;
-use PrestaShopBundle\Security\Annotation\ModuleActivated;
+use PrestaShopBundle\Controller\Admin\PrestaShopAdminController;
+use PrestaShopBundle\Security\Attribute\AdminSecurity;
 use PrestaShopLogger;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Throwable;
@@ -30,10 +29,7 @@ if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-/**
- * @ModuleActivated(moduleName="btcpay", redirectRoute="admin_module_manage")
- */
-class ConfigureController extends FrameworkBundleAdminController
+class ConfigureController extends PrestaShopAdminController
 {
 	/**
 	 * @var BTCPay
@@ -62,11 +58,6 @@ class ConfigureController extends FrameworkBundleAdminController
 
 	public function __construct(BTCPay $module, ValidatorInterface $validator, FormHandlerInterface $serverFormHandler, FormHandlerInterface $generalFormHandler)
 	{
-		// Fallback in case 8.0 is used // TODO: Remove once we make 9.0 the minimum
-		if (\version_compare(\_PS_VERSION_, '8.1.0', '<')) {
-			parent::__construct();
-		}
-
 		$this->module             = $module;
 		$this->validator          = $validator;
 		$this->serverFormHandler  = $serverFormHandler;
@@ -74,11 +65,7 @@ class ConfigureController extends FrameworkBundleAdminController
 		$this->versioning         = new Versioning();
 	}
 
-	/**
-	 * @AdminSecurity("is_granted('read', request.get('_legacy_controller'))", message="Access denied.")
-	 *
-	 * @throws Exception
-	 */
+	#[AdminSecurity("is_granted('read', request.get('_legacy_controller'))", message: "Access denied.")]
 	public function viewAction(Request $request): Response
 	{
 		// Build the client
@@ -96,12 +83,11 @@ class ConfigureController extends FrameworkBundleAdminController
 	}
 
 	/**
-	 * @AdminSecurity("is_granted('update', request.get('_legacy_controller'))", message="Access denied.")
-	 *
 	 * @return RedirectResponse|Response
 	 *
 	 * @throws Exception
 	 */
+	#[AdminSecurity("is_granted('update', request.get('_legacy_controller'))", message: "Access denied.")]
 	public function editServerSettingsAction(Request $request): Response
 	{
 		// Get configuration container
@@ -129,7 +115,7 @@ class ConfigureController extends FrameworkBundleAdminController
 
 		// If there are errors in the form, error out here
 		if (0 !== \count($saveErrors = $this->serverFormHandler->save($submittedConfiguration->toArray()))) {
-			$this->flashErrors($saveErrors);
+			$this->addFlashErrors($saveErrors);
 
 			return $this->redirectToRoute('admin_btcpay_configure');
 		}
@@ -171,12 +157,11 @@ class ConfigureController extends FrameworkBundleAdminController
 	}
 
 	/**
-	 * @AdminSecurity("is_granted('update', request.get('_legacy_controller'))", message="Access denied.")
-	 *
 	 * @return RedirectResponse|Response
 	 *
 	 * @throws Exception
 	 */
+	#[AdminSecurity("is_granted('update', request.get('_legacy_controller'))", message: "Access denied.")]
 	public function editGeneralSettingsAction(Request $request): Response
 	{
 		// Get current configuration, before processing everything
@@ -201,7 +186,7 @@ class ConfigureController extends FrameworkBundleAdminController
 
 		// If there are errors in the form, error out here
 		if (0 !== \count($saveErrors = $this->generalFormHandler->save($general->toArray()))) {
-			$this->flashErrors($saveErrors);
+			$this->addFlashErrors($saveErrors);
 
 			return $this->redirectToRoute('admin_btcpay_configure');
 		}
@@ -297,16 +282,6 @@ class ConfigureController extends FrameworkBundleAdminController
 		return $this->redirectToRoute('admin_btcpay_configure');
 	}
 
-	protected function getConfiguration(): ShopConfigurationInterface
-	{
-		// Fallback in case 8.0 is used // TODO: Remove once we make 9.0 the minimum
-		if (\version_compare(\_PS_VERSION_, '8.1.0', '<')) {
-			return $this->configuration;
-		}
-
-		return parent::getConfiguration();
-	}
-
 	/**
 	 * @throws Exception
 	 */
@@ -395,8 +370,8 @@ class ConfigureController extends FrameworkBundleAdminController
 	private function processRedirect(Request $request, Server $configuration): RedirectResponse
 	{
 		// Get the store name and build the redirect URL
-		$storeName   = $this->getContext()->shop->name;
-		$redirectUrl = $request->getSchemeAndHttpHost() . $this->getAdminLink('btcpay', ['route' => 'admin_btcpay_validate'], true);
+		$storeName   = $this->getShopContext()->getName();
+		$redirectUrl = $this->generateUrl('admin_btcpay_validate', [], UrlGeneratorInterface::ABSOLUTE_URL);
 
 		// Create the authorization URL (with redirect)
 		$authorizeUrl = ApiKey::getAuthorizeUrl($configuration->getHost(), Constants::BTCPAY_PERMISSIONS, $storeName, true, true, $redirectUrl, $storeName);

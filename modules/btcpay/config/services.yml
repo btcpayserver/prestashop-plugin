@@ -15,7 +15,10 @@ services:
 
   # Controllers
   BTCPay\Controller\Admin\Improve\Payment\ConfigureController:
-    class: BTCPay\Controller\Admin\Improve\Payment\ConfigureController
+    autowire: true
+    autoconfigure: true
+    tags:
+      - { name: controller.service_arguments }
     arguments:
       - '@prestashop.module.btcpay'
       - '@validator'
