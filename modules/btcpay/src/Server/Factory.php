@@ -126,6 +126,7 @@ class Factory
 			$bitcoinPayment->setInvoiceId($invoiceId);
 			$bitcoinPayment->setInvoiceReference($invoiceReference);
 			$bitcoinPayment->setAmount($orderTotal);
+			$bitcoinPayment->setCurrencyIso($currency->iso_code);
 			$bitcoinPayment->setRedirect($invoiceUrl);
 
 			if (false === $bitcoinPayment->save(true)) {
