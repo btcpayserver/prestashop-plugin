@@ -3,6 +3,7 @@
 namespace BTCPay\Server;
 
 use BTCPay\Constants;
+use BTCPay\Invoice\CheckoutGuard;
 use BTCPay\Repository\BitcoinPaymentRepository;
 use BTCPayServer\Client\AbstractClient;
 use BTCPayServer\Client\ApiKey as ApiKeyClient;
@@ -158,6 +159,20 @@ class Client extends AbstractClient
 		// Check the invoice status
 		$invoice = $this->invoice->getInvoice($storeID, $bitcoinPayment->getInvoiceId());
 		if ($invoice->isInvalid() || $invoice->isExpired()) {
+			return null;
+		}
+
+		// Recreate the invoice when the cart total no longer matches the snapshot
+		$orderTotal   = (string) $cart->getOrderTotal(true);
+		$currency     = \Currency::getCurrencyInstance($cart->id_currency);
+		$storedAmount = $bitcoinPayment->getAmount();
+		if (null !== $storedAmount && '' !== $storedAmount && false === CheckoutGuard::amountsMatch($storedAmount, $orderTotal)) {
+			return null;
+		}
+
+		// Cart currency must still match the BTCPay invoice
+		$invoiceData = $invoice->getData();
+		if (\is_array($invoiceData) && isset($invoiceData['currency']) && \strtoupper((string) $invoiceData['currency']) !== \strtoupper((string) $currency->iso_code)) {
 			return null;
 		}
 
