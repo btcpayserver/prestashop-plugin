@@ -92,7 +92,15 @@ Contributors looking to help out, before opening a pull request, please join [ou
 
 ### 🔧 Development
 
-We recommend using [PrestaShop Kickstarter](https://github.com/PrestaShopCorp/docker-compose-kickstarter) (which supports [ngrok](https://ngrok.com/)) and a dockerized [BTCPay Server instance](https://github.com/btcpayserver/btcpayserver-docker/blob/master/Production/docker-compose.btc.yml) (or [an online testnet instance](https://testnet.demo.btcpayserver.org/)) for testing locally. 
+This repository includes a Docker-based local environment (PrestaShop, BTCPay Server regtest, MariaDB). See **[development/README.md](development/README.md)** for setup and usage.
+
+Quick start:
+
+```sh
+make dev-up
+```
+
+For webhook testing, follow the ngrok tunnel steps in the development guide. Alternatively, [PrestaShop Flashlight](https://github.com/PrestaShop/prestashop-flashlight) with a dockerized [BTCPay Server instance](https://github.com/btcpayserver/btcpayserver-docker/blob/master/Production/docker-compose.btc.yml) (or [testnet demo](https://testnet.demo.btcpayserver.org/)) can be used.
 
 ## 🏪 PrestaShop Support
 
