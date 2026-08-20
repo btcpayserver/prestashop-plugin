@@ -53,9 +53,14 @@ class Processor
 	{
 		// Get the order
 		$order = new \Order($bitcoinPayment->getOrderId());
+		if (false === \Validate::isLoadedObject($order)) {
+			\PrestaShopLogger::addLog(\sprintf("[ERROR] Could not load order '%s' for settled invoice", $bitcoinPayment->getOrderId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
+
+			return;
+		}
 
 		// Set the default status to be the current status
-		$orderStatus = $order->current_state;
+		$orderStatus = (string) $order->current_state;
 
 		// Get the store ID
 		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
@@ -100,9 +105,14 @@ class Processor
 	{
 		// Get the order
 		$order = new \Order($bitcoinPayment->getOrderId());
+		if (false === \Validate::isLoadedObject($order)) {
+			\PrestaShopLogger::addLog(\sprintf("[ERROR] Could not load order '%s' for failed invoice", $bitcoinPayment->getOrderId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
+
+			return;
+		}
 
 		// Set the default status to be the current status
-		$orderStatus = $order->current_state;
+		$orderStatus = (string) $order->current_state;
 
 		// Get the store ID
 		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);

@@ -497,7 +497,11 @@ class BTCPay extends PaymentModule
 			}
 		} catch (BTCPayException $exception) {
 			// Log the exception
-			PrestaShopLogger::addLog(\sprintf('[WARNING] BTCPay Server configuration is no longer valid, resetting host and API key. Error: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode());
+			PrestaShopLogger::addLog(
+				\sprintf('[ERROR] BTCPay Server configuration is no longer valid, resetting host and API key. Error: %s', $exception->getMessage()),
+				\PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR,
+				$exception->getCode()
+			);
 
 			// Show a warning
 			$this->warning = $this->trans('Your BTCPay Server configuration is no longer valid, please setup module again.', [], 'Modules.Btcpay.Admin');
