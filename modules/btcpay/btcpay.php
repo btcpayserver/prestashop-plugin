@@ -10,6 +10,7 @@ use BTCPay\Installer\Webhook;
 use BTCPay\Repository\BitcoinPaymentRepository;
 use BTCPay\Repository\TableRepository;
 use BTCPay\Server\Client;
+use BTCPay\Server\RateFallbackStatus;
 use BTCPayServer\Exception\BTCPayException;
 use BTCPayServer\Exception\RequestException;
 use PrestaShop\PrestaShop\Adapter\Configuration;
@@ -494,6 +495,9 @@ class BTCPay extends PaymentModule
 				$this->warning = $this->trans('Your BTCPay Server store has not yet been linked, payment option is unavailable.', [], 'Modules.Btcpay.Admin');
 			} elseif (!$client->server()->getInfo()->isFullySynced()) {
 				$this->warning = $this->trans('One (or more) coins are not yet synced, payment option will be unavailable until the sync has finished.', [], 'Modules.Btcpay.Admin');
+			} elseif (!empty($storeId = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))
+				&& RateFallbackStatus::resolve($client->storeRate(), (string) $storeId)->isMissing()) {
+				$this->warning = $this->trans('Your BTCPay Server store has no fallback rate provider. If the primary rate source fails, invoices cannot be created. Configure a fallback rate in BTCPay Server.', [], 'Modules.Btcpay.Admin');
 			}
 		} catch (BTCPayException $exception) {
 			// Log the exception
@@ -520,7 +524,7 @@ class BTCPay extends PaymentModule
 			return;
 		}
 
-		// API key/sync warnings are more important than a new version, if a warning is set, return now
+		// Higher-priority warnings above beat a new version notice
 		if (!empty($this->warning)) {
 			return;
 		}
