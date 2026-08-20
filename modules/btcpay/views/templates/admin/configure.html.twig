@@ -1,13 +1,22 @@
 {% extends '@PrestaShop/Admin/layout.html.twig' %}
 
 {% set invalidApiKey = client is defined and client is null %}
-{% set storeAvailable = storeId is defined and storeId is not null and client is defined and client is not null %}
+{% set storeAvailable = storeInfo is defined and storeInfo is not null and serverInfo is defined and serverInfo is not null %}
 {% set hasNewerVersion = latestVersion is defined and latestVersion != null and latestVersion.newer(moduleVersion) %}
+{% block content_header %}
+  {% if app.session.flashbag.peek('error')|length or app.session.flashbag.peek('failure')|length or app.session.flashbag.peek('success')|length or app.session.flashbag.peek('warning')|length or app.session.flashbag.peek('info')|length %}
+  <div class="row ps17">
+    <div class="col-12 col-md-10 col-lg-10 offset-md-1 offset-lg-1">
+      {{ parent() }}
+    </div>
+  </div>
+  {% endif %}
+{% endblock %}
 
 {% block content %}
   {% if hasNewerVersion %}
   <div class="row ps17">
-    <div class="col-12 col-spx-12 col-lg-10 col-md-10 offset-md-1 offset-lg-1">
+    <div class="col-12 col-md-10 col-lg-10 offset-md-1 offset-lg-1">
       <div class="alert alert-warning alert-dismissible fade show" role="alert">
         <p>{{ 'A new version of this module (%version%) has been released on GitHub. <a href="%url%" class="alert-link" target="_blank" rel="noopener noreferrer nofollow">Click here to check it out.</a>'|trans({'%version%': latestVersion.tagName, '%url%': latestVersion.url}, 'Modules.Btcpay.Admin')|raw }}</p>
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -20,7 +29,7 @@
 
   {% if storeAvailable and rateFallbackStatus is defined and rateFallbackStatus is not null and rateFallbackStatus.status == 'missing' %}
   <div class="row ps17">
-    <div class="col-12 col-spx-12 col-lg-10 col-md-10 offset-md-1 offset-lg-1">
+    <div class="col-12 col-md-10 col-lg-10 offset-md-1 offset-lg-1">
       <div class="alert alert-warning alert-dismissible fade show" role="alert">
         <p>{{ 'Your BTCPay Server store has no fallback rate provider. If the primary rate source fails, invoices cannot be created. <a href="%url%" class="alert-link" target="_blank" rel="noopener noreferrer nofollow">Configure a fallback rate in BTCPay Server</a>.'|trans({'%url%': client.baseUrl ~ '/stores/' ~ storeId ~ '/rates'}, 'Modules.Btcpay.Admin')|raw }}</p>
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -32,7 +41,7 @@
   {% endif %}
 
   <div class="row ps17">
-    <div class="col-12 col-spx-12 col-lg-10 col-md-10 offset-md-1 offset-lg-1">
+    <div class="col-12 col-md-10 col-lg-10 offset-md-1 offset-lg-1">
       <div class="card">
         <div class="card-header">
           <i class="material-icons">extension</i>
@@ -40,20 +49,19 @@
         </div>
         <div class="card-body">
           <div class="row">
-            <div class="col-12 col-sm-12 col-md-4 col-lg-3 col-xl-2">
+            <div class="col-12 col-md-4 col-lg-3 col-xl-2">
               <a href="https://btcpayserver.org/" target="_blank" rel="noopener noreferrer nofollow">
                 <img src="{{ asset('../modules/btcpay/views/images/btcpay-plugin.png') }}" class="img-fluid" alt="{{ 'BTCPay Server logo'|trans({}, 'Modules.Btcpay.Admin') }}"/>
               </a>
-              <div class="clearfix"></div>
             </div>
-            <div class="col-12 col-sm-12 col-md-8 col-lg-9 col-xl-10">
+            <div class="col-12 col-md-8 col-lg-9 col-xl-10">
               <div class="card-text">
                 <p>
-                  {{ 'To be able to use this payment module you need to have a BTCPay Server instance, either <a href="https://docs.btcpayserver.org/Deployment/" target="_blank" rel="noopener noreferrer nofollow">self-hosted</a> or <a href="https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/." target="_blank" rel="noopener noreferrer nofollow">hosted by a third-party</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}<br/>
-                  {{ 'Furthermore, you must have <a href="https://docs.btcpayserver.org/RegisterAccount" target="_blank" rel="noopener noreferrer nofollow">a registered account on the instance</a>, <a href="https://docs.btcpayserver.org/CreateStore" target="_blank" rel="noopener noreferrer nofollow">an actual store on the instance</a> and <a href="https://docs.btcpayserver.org/WalletSetup" target="_blank">a wallet connected to your store</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}
+                  {{ 'To be able to use this payment module you need to have a BTCPay Server instance, either <a href="https://docs.btcpayserver.org/Deployment/" target="_blank" rel="noopener noreferrer nofollow">self-hosted</a> or <a href="https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/" target="_blank" rel="noopener noreferrer nofollow">hosted by a third-party</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}<br/>
+                  {{ 'Furthermore, you must have <a href="https://docs.btcpayserver.org/RegisterAccount" target="_blank" rel="noopener noreferrer nofollow">a registered account on the instance</a>, <a href="https://docs.btcpayserver.org/CreateStore" target="_blank" rel="noopener noreferrer nofollow">an actual store on the instance</a> and <a href="https://docs.btcpayserver.org/WalletSetup" target="_blank" rel="noopener noreferrer nofollow">a wallet connected to your store</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}
                 </p>
                 <hr class="mt-0 mb-3" />
-                <p>{{ 'For additional information, checkout <a href="https://docs.btcpayserver.org/PrestaShop/" target="_blank" rel="noopener noreferrer nofollow">the documentation</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
+                <p>{{ 'For additional information, check out <a href="https://docs.btcpayserver.org/PrestaShop/" target="_blank" rel="noopener noreferrer nofollow">the documentation</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
               </div>
             </div>
           </div>
@@ -63,95 +71,99 @@
   </div>
 
   <div class="row ps17">
-    <div class="{% if invalidApiKey %}col-5 col-spx-5 col-lg-5 col-md-5 {% else %}col-12 col-spx-12 col-lg-10 col-md-10{% endif %} offset-md-1 offset-lg-1">
-      <div class="card">
-        {{ form_start(server_form, {'action': url('admin_btcpay_configure_server_process'), 'attr': {'class': 'form', 'id': 'server-form'}}) }}
-        <h3 class="card-header">
-          <i class="material-icons">mode_edit</i>
-          {{ 'Server'|trans({}, 'Admin.Global') }}
-        </h3>
+    <div class="col-12 col-md-10 col-lg-10 offset-md-1 offset-lg-1">
+      <div class="row">
+        <div class="{% if invalidApiKey %}col-12 col-lg-6{% else %}col-12{% endif %}">
+          <div class="card">
+            {{ form_start(server_form, {'action': url('admin_btcpay_configure_server_process'), 'attr': {'class': 'form', 'id': 'server-form'}}) }}
+            <h3 class="card-header">
+              <i class="material-icons">mode_edit</i>
+              {{ 'Server'|trans({}, 'Admin.Global') }}
+            </h3>
 
-        <div class="card-block">
-          <div class="card-text">
-            {{ form_row(server_form.host) }}
-            {{ form_row(server_form.apiKey) }}
-            {{ form_rest(server_form) }}
+            <div class="card-body">
+              <div class="card-text">
+                {{ form_row(server_form.host) }}
+                {{ form_row(server_form.apiKey) }}
+                {{ form_rest(server_form) }}
+              </div>
+            </div>
+
+            <div class="card-footer text-right">
+              <button class="btn btn-primary" type="submit">{{ 'Save'|trans({}, 'Admin.Actions') }}</button>
+            </div>
+            {{ form_end(server_form) }}
+          </div>
+
+          <div class="card">
+            {{ form_start(general_form, {'action': url('admin_btcpay_configure_general_process'), 'attr': {'class': 'form', 'id': 'general-form'}}) }}
+            <h3 class="card-header">
+              <i class="material-icons">settings</i>
+              {{ 'General'|trans({}, 'Admin.Global') }}
+            </h3>
+
+            <div class="card-body">
+              <div class="card-text">
+                {{ form_row(general_form.speed) }}
+                {{ form_row(general_form.orderMode) }}
+                {{ form_row(general_form.protectOrders) }}
+                {{ form_row(general_form.shareMetadata) }}
+                {{ form_rest(general_form) }}
+              </div>
+            </div>
+
+            <div class="card-footer text-right">
+              <button class="btn btn-primary" type="submit">{{ 'Save'|trans({}, 'Admin.Actions') }}</button>
+            </div>
+            {{ form_end(general_form) }}
           </div>
         </div>
 
-        <div class="card-footer text-right">
-          <button class="btn btn-primary" type="submit">{{ 'Save'|trans({}, 'Admin.Actions') }}</button>
-        </div>
-        {{ form_end(server_form) }}
-      </div>
+        {% if invalidApiKey %}
+        <div class="col-12 col-lg-6">
+          <div class="card">
+            <h3 class="card-header">
+              <i class="material-icons">info_outline</i>
+              {{ 'Setup information'|trans({}, 'Admin.Global') }}
+            </h3>
 
-      <div class="card">
-        {{ form_start(general_form, {'action': url('admin_btcpay_configure_general_process'), 'attr': {'class': 'form', 'id': 'general-form'}}) }}
-        <h3 class="card-header">
-          <i class="material-icons">settings</i>
-          {{ 'General'|trans({}, 'Admin.Global') }}
-        </h3>
+            <div class="card-body">
+              <div class="card-text">
+                <p>{{ 'The quickest way to get the plugin working is to set the proper <em>BTCPay Server URL</em> and press save. You will be redirected to your BTCPay Server where you will be guided through the API key creation process. Once the key is created, you\'ll be redirected back to PrestaShop.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
+                <p>{{ 'Redirecting back from BTCPay Server sometimes fails due to PrestaShop weirdness. If it does, you can still use this plugin by copying the API key from <code>/account/apikeys</code> and pasting it in the form.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
+                <hr/>
+                <p>{{ 'If preferred, you can also make an API key yourself by pressing the button below (<em>make sure your BTCPay Server URL is correct, first</em>) or by creating it at <code>/account/addapikey</code>. If you are going to make an API key yourself, make sure that it has the following permissions for a <em>singular</em> store:'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
+                <ul>
+                  {% for permission in constant('\\BTCPay\\Constants::BTCPAY_PERMISSIONS') %}
+                    <li>{{ permission }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
 
-        <div class="card-block">
-          <div class="card-text">
-            {{ form_row(general_form.speed) }}
-            {{ form_row(general_form.orderMode) }}
-            {{ form_row(general_form.protectOrders) }}
-            {{ form_row(general_form.shareMetadata) }}
-            {{ form_rest(general_form) }}
-          </div>
-        </div>
-
-        <div class="card-footer text-right">
-          <button class="btn btn-primary" type="submit">{{ 'Save'|trans({}, 'Admin.Actions') }}</button>
-        </div>
-        {{ form_end(general_form) }}
-      </div>
-    </div>
-    {% if invalidApiKey %}
-      <div class="col-5 col-spx-5 col-lg-5 col-md-5">
-        <div class="card">
-          <h3 class="card-header">
-            <i class="material-icons">info_outline</i>
-            {{ 'Setup information'|trans({}, 'Admin.Global') }}
-          </h3>
-
-          <div class="card-block">
-            <div class="card-text">
-              <p>{{ 'The quickest way to get the plugin working is to set the proper <em>BTCPay Server URL</em> and press save. You will be redirected to your BTCPay Server where you will be guided through the API key creation process. Once the key is created, you\'ll be redirected back to Prestashop.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
-              <p>{{ 'Redirecting back from BTCPay Server sometimes fails due to PrestaShop weirdness, if it does, you can still use this plugin by copying the API key from <code>/account/apikeys</code>. and pasting it in the form.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
-              <hr/>
-              <p>{{ 'If preferred, you can also make an API key yourself by pressing the button below (<em>make sure your BTCPay Server URL is correct, first</em>) or by creating it at <code>/account/addapikey</code>. If you are going to make an API key yourself, make sure that it has the following permissions for a <em>singluar</em> store:'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
-              <ul>
-                {% for permission in constant('\\BTCPay\\Constants::BTCPAY_PERMISSIONS') %}
-                  <li>{{ permission }}</li>
-                {% endfor %}
-              </ul>
-              <p>{{ 'For additional information, checkout <a href="https://docs.btcpayserver.org/PrestaShop/" target="_blank" rel="noopener noreferrer nofollow">the documentation</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
+            <div class="card-footer text-right">
+              {% if server_form.vars.value.host %}
+                <a href="{{ server_form.vars.value.host }}" class="btn btn-outline-secondary" target="_blank" rel="noopener noreferrer nofollow">{{ 'Visit Dashboard'|trans({}, 'Admin.Actions') }}</a>
+              {% endif %}
+              <a href="{{ authorizeUrl }}" class="btn btn-primary">{{ 'Create API key'|trans({}, 'Admin.Actions') }}</a>
             </div>
           </div>
-
-          <div class="card-footer text-right">
-            <a href="{{ server_form.vars.value.host }}" class="btn btn-primary" target="_blank" rel="noopener noreferrer nofollow">{{ 'Visit Dashboard'|trans({}, 'Admin.Actions') }}</a>
-            <a href="{{ authorizeUrl }}" class="btn btn-primary" target="_blank" rel="noopener noreferrer nofollow">{{ 'Create API key'|trans({}, 'Admin.Actions') }}</a>
-          </div>
         </div>
+        {% endif %}
       </div>
-    {% endif %}
+    </div>
   </div>
 
   {% if storeAvailable %}
-    {% set storeInfo = client.store().getStore(storeId) %}
-    {% set serverInfo = client.server().getInfo() %}
     <div class="row ps17">
-      <div class="col-12 col-spx-12 col-lg-10 col-md-10 offset-md-1 offset-lg-1">
+      <div class="col-12 col-md-10 col-lg-10 offset-md-1 offset-lg-1">
         <div class="card-deck">
           <div class="card">
             <h3 class="card-header">
               {{ 'Store Information'|trans({}, 'Admin.Actions') }}
             </h3>
 
-            <div class="card-block">
+            <div class="card-body">
               <div class="card-text">
                 <dl>
                   <dt><span class="text-muted mb-0"><strong>{{ 'Linked Store'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
@@ -161,21 +173,20 @@
                   <dd><span class="px-1">{{ storeInfo.speedPolicy }}</span></dd>
 
                   <dt><span class="text-muted mb-0"><strong>{{ 'Invoice expiration time'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                  <dd><span class="px-1">{{ storeInfo.invoiceExpiration }} {{ 'minutes'|trans({}, 'Modules.BtcPay.Global') }}</span></dd>
+                  <dd><span class="px-1">{{ (storeInfo.invoiceExpiration / 60)|round(0, 'floor') }} {{ 'minutes'|trans({}, 'Modules.Btcpay.Global') }}</span></dd>
 
-                  <dt><span class="text-muted mb-0"><strong>Invoice monitoring expiration time</strong></span></dt>
-                  <dd><span class="px-1">{{ storeInfo.monitoringExpiration }} {{ 'minutes'|trans({}, 'Modules.BtcPay.Global') }}</span></dd>
+                  <dt><span class="text-muted mb-0"><strong>{{ 'Invoice monitoring expiration time'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
+                  <dd><span class="px-1">{{ (storeInfo.monitoringExpiration / 60)|round(0, 'floor') }} {{ 'minutes'|trans({}, 'Modules.Btcpay.Global') }}</span></dd>
 
                   <dt><span class="text-muted mb-0"><strong>{{ 'Default currency'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                  <dd><span class="px-1">{% if storeInfo.defaultCurrency is empty %}{{ 'None'|trans({}, 'Modules.BtcPay.Global') }}{% else %}{{ storeInfo.defaultCurrency }}{% endif %}</span>
-                  </dd>
+                  <dd><span class="px-1">{% if storeInfo.defaultCurrency is empty %}{{ 'None'|trans({}, 'Admin.Global') }}{% else %}{{ storeInfo.defaultCurrency }}{% endif %}</span></dd>
 
                   <dt><span class="text-muted mb-0"><strong>{{ 'Fallback rate provider'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
                   <dd>
                     {% if rateFallbackStatus is defined and rateFallbackStatus is not null and rateFallbackStatus.status == 'configured' %}
                       <span class="text-success px-1">{{ 'Yes'|trans({}, 'Admin.Global') }}{% if rateFallbackStatus.source %} ({{ rateFallbackStatus.source }}){% endif %}</span>
                     {% elseif rateFallbackStatus is defined and rateFallbackStatus is not null and rateFallbackStatus.status == 'missing' %}
-                      <span class="text-warning px-1">{{ 'No'|trans({}, 'Admin.Global') }} ⚠️ — <a href="{{ client.baseUrl }}/stores/{{ storeId }}/rates" target="_blank" rel="noopener noreferrer nofollow">{{ 'Configure in BTCPay Server'|trans({}, 'Modules.Btcpay.Admin') }}</a></span>
+                      <span class="text-warning px-1">{{ 'No'|trans({}, 'Admin.Global') }} - <a href="{{ client.baseUrl }}/stores/{{ storeId }}/rates" target="_blank" rel="noopener noreferrer nofollow">{{ 'Configure in BTCPay Server'|trans({}, 'Modules.Btcpay.Admin') }}</a></span>
                     {% else %}
                       <span class="text-muted px-1">{{ 'Unable to check (requires BTCPay Server 2.1.2+)'|trans({}, 'Modules.Btcpay.Admin') }}</span>
                     {% endif %}
@@ -195,30 +206,40 @@
                 <dt><span class="text-muted mb-0"><strong>{{ 'Version'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
                 <dd><span class="px-1"><a href="https://github.com/btcpayserver/btcpayserver/releases" target="_blank" rel="noopener noreferrer nofollow">{{ serverInfo.version }}</a></span></dd>
 
-                {% set webhook = client.webhook().getCurrent(storeId, webhookId) %}
                 <dt><span class="text-muted mb-0"><strong>{{ 'Webhook'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
                 {% if webhook is not null and webhook.enabled is defined and webhook.enabled %}
-                  <dd><span class="text-success px-1">✓</span></dd>
+                  <dd><span class="text-success px-1">{{ 'Enabled'|trans({}, 'Admin.Global') }}</span></dd>
                 {% elseif webhook is not null and webhook.enabled is defined and not webhook.enabled %}
-                  <dd><span class="text-warning px-1">Webhook has been disabled, re-enable it again your store</span></dd>
+                  <dd><span class="text-warning px-1">{{ 'Webhook has been disabled, re-enable it in your store'|trans({}, 'Modules.Btcpay.Admin') }}</span></dd>
                 {% else %}
-                  <dd><span class="text-warning px-1">Webhook is missing, retry the setup process</span></dd>
+                  <dd><span class="text-warning px-1">{{ 'Webhook is missing, retry the setup process'|trans({}, 'Modules.Btcpay.Admin') }}</span></dd>
                 {% endif %}
 
                 <dt><span class="text-muted mb-0"><strong>{{ 'Node fully synced'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
                 <dd>
                   {% if serverInfo.fullySynced %}
-                    <span class="text-success px-1">Yes</span>
+                    <span class="text-success px-1">{{ 'Yes'|trans({}, 'Admin.Global') }}</span>
                   {% else %}
-                    <span class="text-warning px-1"><span title="The payment option won't be available until the server is synced">No ⚠️</span></span>
+                    <span class="text-warning px-1" title="{{ 'The payment option will not be available until the server is synced'|trans({}, 'Modules.Btcpay.Admin') }}">{{ 'No'|trans({}, 'Admin.Global') }}</span>
                   {% endif %}
                 </dd>
 
-                <dt><span class="text-muted mb-0"><strong>{{ 'Supported payment methods'|trans({}, 'Modules.Btcpay.Front') }}</strong></span></dt>
+                <dt><span class="text-muted mb-0"><strong>{{ 'Supported payment methods'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
                 <dd>
                   <ul>
-                    {% for paymentMethod in client.payment().getPaymentMethods(storeId) %}
-                      <li>{{ paymentMethod.cryptoCode }} {% if 'LNURL' in paymentMethod.paymentMethod %}LNURL ⚡{% elseif 'LN' in paymentMethod.paymentMethod or 'Lightning' in paymentMethod.paymentMethod %}Lightning ⚡{% else %}(On-Chain){% endif %}</li>
+                    {% for paymentMethod in paymentMethods %}
+                      <li>
+                        {{ paymentMethod.cryptoCode }}
+                        {% if paymentMethod.type == 'LNURL' %}
+                          ({{ 'LNURL'|trans({}, 'Modules.Btcpay.Admin') }})
+                        {% elseif paymentMethod.type == 'Lightning' %}
+                          ({{ 'Lightning'|trans({}, 'Modules.Btcpay.Admin') }})
+                        {% else %}
+                          ({{ 'On-Chain'|trans({}, 'Modules.Btcpay.Admin') }})
+                        {% endif %}
+                      </li>
+                    {% else %}
+                      <li class="text-muted">{{ 'None'|trans({}, 'Admin.Global') }}</li>
                     {% endfor %}
                   </ul>
                 </dd>

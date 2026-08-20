@@ -435,10 +435,27 @@ class ConfigureController extends FrameworkBundleAdminController
 	private function getResponse(Request $request, FormInterface $serverForm, FormInterface $generalForm, string $authorizeUrl, ?Client $client): Response
 	{
 		$storeId            = $this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
+		$webhookId          = $this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID);
 		$rateFallbackStatus = null;
+		$storeInfo          = null;
+		$serverInfo         = null;
+		$webhook            = null;
+		$paymentMethods     = [];
 
 		if (null !== $client && $client->isValid() && !empty($storeId)) {
-			$rateFallbackStatus = RateFallbackStatus::resolve($client->storeRate(), (string) $storeId);
+			try {
+				$storeIdStr         = (string) $storeId;
+				$storeInfo          = $client->store()->getStore($storeIdStr);
+				$serverInfo         = $client->server()->getInfo();
+				$webhook            = $client->webhook()->getCurrent($storeIdStr, !empty($webhookId) ? (string) $webhookId : null);
+				$rateFallbackStatus = RateFallbackStatus::resolve($client->storeRate(), $storeIdStr);
+				$paymentMethods     = $this->formatPaymentMethods($client->payment()->getPaymentMethods($storeIdStr));
+			} catch (Throwable $throwable) {
+				PrestaShopLogger::addLog(\sprintf('[ERROR] Could not load BTCPay store/server details for configure page: %s', $throwable->getMessage()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, $throwable->getCode());
+				$storeInfo  = null;
+				$serverInfo = null;
+				$webhook    = null;
+			}
 		}
 
 		return $this->render('@Modules/btcpay/views/templates/admin/configure.html.twig', [
@@ -446,13 +463,48 @@ class ConfigureController extends FrameworkBundleAdminController
 			'general_form'       => $generalForm->createView(),
 			'help_link'          => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
 			'storeId'            => $storeId,
-			'webhookId'          => $this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID),
+			'webhookId'          => $webhookId,
 			'latestVersion'      => $this->versioning->latest(),
 			'moduleVersion'      => $this->module->version,
 			'authorizeUrl'       => $authorizeUrl,
 			'client'             => $client,
+			'storeInfo'          => $storeInfo,
+			'serverInfo'         => $serverInfo,
+			'webhook'            => $webhook,
+			'paymentMethods'     => $paymentMethods,
 			'rateFallbackStatus' => $rateFallbackStatus,
 			'enableSidebar'      => true,
 		]);
+	}
+
+	/**
+	 * @param array<int, mixed> $methods
+	 *
+	 * @return list<array{cryptoCode: string, type: string}>
+	 */
+	private function formatPaymentMethods(array $methods): array
+	{
+		$formatted = [];
+
+		foreach ($methods as $paymentMethod) {
+			$data       = \is_object($paymentMethod) && \method_exists($paymentMethod, 'getData') ? $paymentMethod->getData() : (array) $paymentMethod;
+			$methodId   = (string) ($data['paymentMethod'] ?? $data['paymentMethodId'] ?? '');
+			$cryptoCode = (string) ($data['cryptoCode'] ?? '');
+
+			if (false !== \stripos($methodId, 'LNURL')) {
+				$type = 'LNURL';
+			} elseif (false !== \stripos($methodId, 'Lightning') || (bool) \preg_match('/(^|-)LN$/i', $methodId)) {
+				$type = 'Lightning';
+			} else {
+				$type = 'On-Chain';
+			}
+
+			$formatted[] = [
+				'cryptoCode' => $cryptoCode,
+				'type'       => $type,
+			];
+		}
+
+		return $formatted;
 	}
 }
