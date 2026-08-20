@@ -18,6 +18,19 @@
   </div>
   {% endif %}
 
+  {% if storeAvailable and rateFallbackStatus is defined and rateFallbackStatus is not null and rateFallbackStatus.status == 'missing' %}
+  <div class="row ps17">
+    <div class="col-12 col-spx-12 col-lg-10 col-md-10 offset-md-1 offset-lg-1">
+      <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <p>{{ 'Your BTCPay Server store has no fallback rate provider. If the primary rate source fails, invoices cannot be created. <a href="%url%" class="alert-link" target="_blank" rel="noopener noreferrer nofollow">Configure a fallback rate in BTCPay Server</a>.'|trans({'%url%': client.baseUrl ~ '/stores/' ~ storeId ~ '/rates'}, 'Modules.Btcpay.Admin')|raw }}</p>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <div class="row ps17">
     <div class="col-12 col-spx-12 col-lg-10 col-md-10 offset-md-1 offset-lg-1">
       <div class="card">
@@ -155,6 +168,17 @@
 
                   <dt><span class="text-muted mb-0"><strong>{{ 'Default currency'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
                   <dd><span class="px-1">{% if storeInfo.defaultCurrency is empty %}{{ 'None'|trans({}, 'Modules.BtcPay.Global') }}{% else %}{{ storeInfo.defaultCurrency }}{% endif %}</span>
+                  </dd>
+
+                  <dt><span class="text-muted mb-0"><strong>{{ 'Fallback rate provider'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
+                  <dd>
+                    {% if rateFallbackStatus is defined and rateFallbackStatus is not null and rateFallbackStatus.status == 'configured' %}
+                      <span class="text-success px-1">{{ 'Yes'|trans({}, 'Admin.Global') }}{% if rateFallbackStatus.source %} ({{ rateFallbackStatus.source }}){% endif %}</span>
+                    {% elseif rateFallbackStatus is defined and rateFallbackStatus is not null and rateFallbackStatus.status == 'missing' %}
+                      <span class="text-warning px-1">{{ 'No'|trans({}, 'Admin.Global') }} ⚠️ — <a href="{{ client.baseUrl }}/stores/{{ storeId }}/rates" target="_blank" rel="noopener noreferrer nofollow">{{ 'Configure in BTCPay Server'|trans({}, 'Modules.Btcpay.Admin') }}</a></span>
+                    {% else %}
+                      <span class="text-muted px-1">{{ 'Unable to check (requires BTCPay Server 2.1.2+)'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                    {% endif %}
                   </dd>
                 </dl>
               </div>

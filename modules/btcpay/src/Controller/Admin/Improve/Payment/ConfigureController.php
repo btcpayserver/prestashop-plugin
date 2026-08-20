@@ -9,6 +9,7 @@ use BTCPay\Form\Data\Server;
 use BTCPay\Github\Versioning;
 use BTCPay\Server\Client;
 use BTCPay\Server\Data\ValidateApiKey;
+use BTCPay\Server\RateFallbackStatus;
 use BTCPayServer\Client\ApiKey;
 use Exception;
 use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
@@ -433,17 +434,25 @@ class ConfigureController extends FrameworkBundleAdminController
 
 	private function getResponse(Request $request, FormInterface $serverForm, FormInterface $generalForm, string $authorizeUrl, ?Client $client): Response
 	{
+		$storeId            = $this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
+		$rateFallbackStatus = null;
+
+		if (null !== $client && $client->isValid() && !empty($storeId)) {
+			$rateFallbackStatus = RateFallbackStatus::resolve($client->storeRate(), (string) $storeId);
+		}
+
 		return $this->render('@Modules/btcpay/views/templates/admin/configure.html.twig', [
-			'server_form'   => $serverForm->createView(),
-			'general_form'  => $generalForm->createView(),
-			'help_link'     => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
-			'storeId'       => $this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_STORE_ID),
-			'webhookId'     => $this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID),
-			'latestVersion' => $this->versioning->latest(),
-			'moduleVersion' => $this->module->version,
-			'authorizeUrl'  => $authorizeUrl,
-			'client'        => $client,
-			'enableSidebar' => true,
+			'server_form'        => $serverForm->createView(),
+			'general_form'       => $generalForm->createView(),
+			'help_link'          => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
+			'storeId'            => $storeId,
+			'webhookId'          => $this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID),
+			'latestVersion'      => $this->versioning->latest(),
+			'moduleVersion'      => $this->module->version,
+			'authorizeUrl'       => $authorizeUrl,
+			'client'             => $client,
+			'rateFallbackStatus' => $rateFallbackStatus,
+			'enableSidebar'      => true,
 		]);
 	}
 }
