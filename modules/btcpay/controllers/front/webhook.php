@@ -104,4 +104,11 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 		echo 'OK';
 		exit;
 	}
+
+	/**
+	 * Allow BTCPay IPNs while the shop is in maintenance mode.
+	 */
+	protected function displayMaintenancePage(): void
+	{
+	}
 }
