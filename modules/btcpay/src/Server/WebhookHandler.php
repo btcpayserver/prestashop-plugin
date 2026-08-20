@@ -225,6 +225,8 @@ class WebhookHandler
 		// Check if protection is disabled, if so, just process the failure
 		if (false === $this->configuration->get(Constants::CONFIGURATION_PROTECT_ORDERS, true)) {
 			$this->processor->invoiceFailed($bitcoinPayment);
+
+			return;
 		}
 
 		// Otherwise, will need to check the order so fetch it
