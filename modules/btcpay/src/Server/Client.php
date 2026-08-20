@@ -51,6 +51,11 @@ class Client extends AbstractClient
 	private $webhook;
 
 	/**
+	 * @var StoreRate
+	 */
+	private $storeRate;
+
+	/**
 	 * @var Configuration
 	 */
 	private $configuration;
@@ -61,12 +66,13 @@ class Client extends AbstractClient
 
 		parent::__construct($baseUrl, $apiKey, $httpClient);
 
-		$this->apiKey   = new ApiKeyClient($baseUrl, $apiKey, $httpClient);
-		$this->invoice  = new InvoiceClient($baseUrl, $apiKey, $httpClient);
-		$this->server   = new ServerClient($baseUrl, $apiKey, $httpClient);
-		$this->store    = new StoreClient($baseUrl, $apiKey, $httpClient);
-		$this->payment  = new StorePaymentMethod($baseUrl, $apiKey, $httpClient);
-		$this->webhook  = new Webhook($baseUrl, $apiKey, $httpClient);
+		$this->apiKey    = new ApiKeyClient($baseUrl, $apiKey, $httpClient);
+		$this->invoice   = new InvoiceClient($baseUrl, $apiKey, $httpClient);
+		$this->server    = new ServerClient($baseUrl, $apiKey, $httpClient);
+		$this->store     = new StoreClient($baseUrl, $apiKey, $httpClient);
+		$this->payment   = new StorePaymentMethod($baseUrl, $apiKey, $httpClient);
+		$this->webhook   = new Webhook($baseUrl, $apiKey, $httpClient);
+		$this->storeRate = new StoreRate($baseUrl, $apiKey, $httpClient);
 
 		$this->configuration = new Configuration();
 	}
@@ -117,6 +123,11 @@ class Client extends AbstractClient
 	public function webhook(): Webhook
 	{
 		return $this->webhook;
+	}
+
+	public function storeRate(): StoreRate
+	{
+		return $this->storeRate;
 	}
 
 	public function isValid(): bool
