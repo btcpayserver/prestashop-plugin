@@ -44,8 +44,10 @@ class WebhookHandler
 	 */
 	public function process(Request $request): void
 	{
-		$data = \json_decode($request->getContent(), true, 512, \JSON_THROW_ON_ERROR);
-		if (false === $data || null === $data) {
+		$data = \json_decode($request->getContent(), true);
+		if (!\is_array($data)) {
+			\PrestaShopLogger::addLog('[WARNING] Ignoring webhook with invalid JSON', \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
+
 			return;
 		}
 
