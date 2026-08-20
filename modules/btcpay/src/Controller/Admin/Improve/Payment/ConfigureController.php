@@ -168,7 +168,7 @@ class ConfigureController extends FrameworkBundleAdminController
 		}
 
 		// If nothing has been set, redirect to the host
-		return $this->processRedirect($request, $submittedConfiguration);
+		return $this->processRedirect($submittedConfiguration);
 	}
 
 	/**
@@ -393,11 +393,11 @@ class ConfigureController extends FrameworkBundleAdminController
 	/**
 	 * @throws Exception
 	 */
-	private function processRedirect(Request $request, Server $configuration): RedirectResponse
+	private function processRedirect(Server $configuration): RedirectResponse
 	{
 		// Get the store name and build the redirect URL
 		$storeName   = $this->getContext()->shop->name;
-		$redirectUrl = $request->getSchemeAndHttpHost() . $this->getAdminLink('btcpay', ['route' => 'admin_btcpay_validate'], true);
+		$redirectUrl = \Tools::getShopDomainSsl(true) . $this->getAdminLink('btcpay', ['route' => 'admin_btcpay_validate'], true);
 
 		// Create the authorization URL (with redirect)
 		$authorizeUrl = ApiKey::getAuthorizeUrl($configuration->getHost(), Constants::BTCPAY_PERMISSIONS, $storeName, true, true, $redirectUrl, $storeName);

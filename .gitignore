@@ -14,6 +14,8 @@ btcpay.zip
 .phpcs-cache
 
 # Ignore developer specific docker-compose
+/development/.env
+/development/docker-compose.override.yml
 docker-compose.override.yml
 
 # Ignore files in the module that are added via `make`

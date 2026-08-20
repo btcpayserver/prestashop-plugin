@@ -79,6 +79,32 @@ install: ## Install everything for development
 	@cd "$(MODULE_FOLDER)/$(MODULE)" \
 		&& composer install
 
+dev-up: install ## Start the local Docker stack (PrestaShop + BTCPay regtest)
+	@cd development && docker compose up -d
+
+dev-down: ## Stop the local Docker stack
+	@cd development && docker compose --profile tunnel down
+
+dev-logs: ## Follow Docker logs
+	@cd development && docker compose logs -f
+
+dev-tunnel: ## Start stack with ngrok tunnel for webhooks
+	@cd development && docker compose -f docker-compose.yml -f docker-compose.tunnel.yml --profile tunnel up -d --force-recreate prestashop ngrok ngrok-btcpay
+	@echo "* Waiting for ngrok tunnels..."
+	@i=0; while [ $$i -lt 45 ]; do \
+		curl -sf http://127.0.0.1:4040/api/tunnels >/dev/null 2>&1 \
+			&& curl -sf http://127.0.0.1:4041/api/tunnels >/dev/null 2>&1 \
+			&& break; \
+		i=$$((i+1)); sleep 1; \
+	done
+	@echo "* PrestaShop:    $$(curl -sf http://127.0.0.1:4040/api/tunnels | python3 -c 'import json,sys; t=json.load(sys.stdin)["tunnels"]; print(next((x["public_url"] for x in t if x.get("proto")=="https"), t[0]["public_url"] if t else "(unavailable)"))')"
+	@echo "* BTCPay Server: $$(curl -sf http://127.0.0.1:4041/api/tunnels | python3 -c 'import json,sys; t=json.load(sys.stdin)["tunnels"]; print(next((x["public_url"] for x in t if x.get("proto")=="https"), t[0]["public_url"] if t else "(unavailable)"))')"
+	@echo "* Inspectors:    PrestaShop http://localhost:4040  |  BTCPay http://localhost:4041"
+
+dev-reset: dev-down ## Wipe volumes and restart fresh
+	@cd development && docker compose --profile tunnel down -v
+	@$(MAKE) dev-up
+
 update: ## Update all dependencies (including development)
 	# Upgrading all root dependencies
 	@composer update

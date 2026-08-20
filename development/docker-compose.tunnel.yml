@@ -1,0 +1,13 @@
+services:
+  prestashop:
+    environment:
+      PS_DOMAIN: ""
+      NGROK_TUNNEL_AUTO_DETECT: http://ngrok:4040
+      # ngrok free tunnels are HTTPS; Flashlight enables PS_SSL_* when protocol is https
+      # (also auto-sets SSL_REDIRECT when the detected ngrok URL is https://).
+      PS_PROTOCOL: https
+      SSL_REDIRECT: "true"
+      PS_TRUSTED_PROXIES: "127.0.0.1,REMOTE_ADDR"
+    depends_on:
+      ngrok:
+        condition: service_started
