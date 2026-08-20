@@ -68,6 +68,18 @@ If you have trouble using BTCPay Server, consider joining [communities listed on
 
 To get up and running with our plugin quickly, see the [PrestaShop Guide on our documentation website](https://docs.btcpayserver.org/PrestaShop/).
 
+## 📧 Merchant alerts (logs by email)
+
+Severe module issues (configuration auto-reset, webhook/invoice processing failures, etc.) are written to the PrestaShop logs at **Error** severity. PrestaShop can email you those entries; the module does not send its own alert mail.
+
+In the back office, open **Advanced Parameters -> Logs** and ensure:
+
+1. **Minimum severity level for logs by email** is set to **Error** (or Major).
+2. **Send emails to** includes an address you monitor (often the shop contact email).
+3. Shop mail itself works (**Advanced Parameters -> E-mail**; send a test message).
+
+With that enabled, open the log entry from the alert mail under **Advanced Parameters -> Logs** for the full message. Invalid webhook signature probes are logged as **Warning** so they do not flood your inbox.
+
 ## 🧑‍💻 Versioning
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [releases within this repository](https://github.com/btcpayserver/prestashop-plugin/releases).
