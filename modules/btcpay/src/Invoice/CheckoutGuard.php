@@ -35,6 +35,37 @@ class CheckoutGuard
 		return self::isNonNegativeAmount($value) && 1 === \preg_match('/[1-9]/', $value);
 	}
 
+	/**
+	 * Number of fractional digits in a validated decimal string.
+	 */
+	public static function fractionalDigits(string $value): int
+	{
+		$dot = \strpos($value, '.');
+
+		return false === $dot ? 0 : \strlen($value) - $dot - 1;
+	}
+
+	/**
+	 * Convert a crypto amount with its rate, losslessly.
+	 *
+	 * Returns null when either input is malformed or the converted amount is not
+	 * positive, so callers never hand malformed data to bcmath or book a
+	 * zero/negative payment. The exact product of two finite decimals needs the
+	 * sum of their fractional digits, so the multiplication scale is derived from
+	 * the inputs and BCMath never truncates the conversion.
+	 */
+	public static function convertAmount(string $value, string $rate): ?string
+	{
+		if (false === self::isNonNegativeAmount($value) || false === self::isNonNegativeAmount($rate)) {
+			return null;
+		}
+
+		$scale     = self::fractionalDigits($value) + self::fractionalDigits($rate);
+		$converted = \bcmul($value, $rate, $scale);
+
+		return self::isPositiveAmount($converted) ? $converted : null;
+	}
+
 	public static function canCreateOrder(bool $partial, bool $processing, bool $paidLate, bool $overpaid, bool $settled): bool
 	{
 		return $partial || $processing || $paidLate || $overpaid || $settled;

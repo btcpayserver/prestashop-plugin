@@ -29,7 +29,12 @@ class PaymentAmounts
 			return [];
 		}
 
-		$workScale = \max($precision + 8, 8);
+		// Aggregation scale derives from the converted amounts' fractional lengths, so
+		// summing them stays lossless; rounding to the booking precision happens on top
+		$workScale = $precision;
+		foreach ($allRawAmounts as $raw) {
+			$workScale = \max($workScale, CheckoutGuard::fractionalDigits((string) $raw));
+		}
 		$sum       = '0';
 		foreach ($allRawAmounts as $raw) {
 			$sum = \bcadd($sum, (string) $raw, $workScale);
@@ -57,8 +62,11 @@ class PaymentAmounts
 
 	private static function roundDecimal(string $amount, int $precision): string
 	{
-		$factor = \bcpow('10', (string) $precision, 0);
+		// Multiply exactly (no truncation), then apply the half-up correction before
+		// the final truncate
+		$mulScale = \max(CheckoutGuard::fractionalDigits($amount), $precision);
+		$factor   = \bcpow('10', (string) $precision, 0);
 
-		return \bcdiv(\bcadd(\bcmul($amount, $factor, $precision + 4), '0.5', 0), $factor, $precision);
+		return \bcdiv(\bcadd(\bcmul($amount, $factor, $mulScale), '0.5', 0), $factor, $precision);
 	}
 }
