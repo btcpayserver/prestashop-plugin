@@ -21,6 +21,16 @@ class CheckoutGuard
 		return 0 === \bccomp($a, $b, 8);
 	}
 
+	public static function isNonNegativeAmount(string $value): bool
+	{
+		return 1 === \preg_match('/^\d+(\.\d+)?$/', $value);
+	}
+
+	public static function isPositiveAmount(string $value): bool
+	{
+		return self::isNonNegativeAmount($value) && 0 < \bccomp($value, '0', 8);
+	}
+
 	public static function canCreateOrder(bool $partial, bool $processing, bool $paidLate, bool $overpaid, bool $settled): bool
 	{
 		return $partial || $processing || $paidLate || $overpaid || $settled;

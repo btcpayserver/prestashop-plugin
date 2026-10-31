@@ -247,11 +247,23 @@ class Processor
 				// Use order currency precision
 				$precision = (int) \Currency::getCurrencyInstance((int) $order->id_currency)->precision;
 
-				// Ensure proper rounded payment amount
-				$paymentAmount = \Tools::ps_round((float) \bcmul($payment->getValue(), $paymentMethod->getRate(), $precision), $precision);
+				// Convert the settled payment to the order currency
+				$amount = \bcmul($payment->getValue(), $paymentMethod->getRate(), 8);
 
-				// Add the payment
-				$order->addOrderPayment($paymentAmount, null, $payment->getTransactionId());
+				// Never record a zero or negative payment row
+				if (false === CheckoutGuard::isPositiveAmount($amount)) {
+					\PrestaShopLogger::addLog(\sprintf("[WARNING] Ignoring settled payment '%s' with non-positive amount '%s'", $payment->getTransactionId(), $amount), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', $order->id);
+
+					continue;
+				}
+
+				// Ensure proper rounded payment amount
+				$paymentAmount = \Tools::ps_round((float) $amount, $precision);
+
+				// Add the payment and make sure it was actually stored
+				if (false === $order->addOrderPayment($paymentAmount, null, $payment->getTransactionId())) {
+					\PrestaShopLogger::addLog(\sprintf("[ERROR] Could not record settled payment '%s' for order '%d'", $payment->getTransactionId(), $order->id), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'Order', $order->id);
+				}
 			}
 		}
 	}
@@ -495,6 +507,11 @@ class Processor
 	{
 		$data = $invoice->getData();
 		if (!\is_array($data) || !isset($data['amount']) || !\is_string($data['amount']) || '' === $data['amount']) {
+			return null;
+		}
+
+		// Reject negative or malformed amounts; zero is allowed for free orders
+		if (false === CheckoutGuard::isNonNegativeAmount($data['amount'])) {
 			return null;
 		}
 
