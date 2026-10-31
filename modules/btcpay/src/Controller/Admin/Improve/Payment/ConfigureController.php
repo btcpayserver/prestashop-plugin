@@ -223,6 +223,8 @@ class ConfigureController extends FrameworkBundleAdminController
 	}
 
 	/**
+	 * @AdminSecurity("request.get('_anonymous_controller') or is_granted('update', request.get('_legacy_controller'))", message="Access denied.")
+	 *
 	 * @return RedirectResponse|Response
 	 *
 	 * @throws Exception
