@@ -11,6 +11,7 @@ use BTCPay\Repository\BitcoinPaymentRepository;
 use BTCPay\Repository\TableRepository;
 use BTCPay\Server\Client;
 use BTCPay\Server\RateFallbackStatus;
+use BTCPay\Server\TransientError;
 use BTCPayServer\Exception\BTCPayException;
 use BTCPayServer\Exception\RequestException;
 use PrestaShop\PrestaShop\Adapter\Configuration;
@@ -510,6 +511,21 @@ class BTCPay extends PaymentModule
 				$this->warning = $this->trans('Your BTCPay Server store has no fallback rate provider. If the primary rate source fails, invoices cannot be created. Configure a fallback rate in BTCPay Server.', [], 'Modules.Btcpay.Admin');
 			}
 		} catch (BTCPayException $exception) {
+			// A temporary failure (connectivity, gateway errors such as 502/503/504, rate limiting)
+			// is no evidence the configuration is invalid: keep it and only warn.
+			if (TransientError::isTransient($exception)) {
+				PrestaShopLogger::addLog(
+					\sprintf('[WARNING] BTCPay Server is temporarily unavailable, keeping host and API key. Error: %s', $exception->getMessage()),
+					\PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING,
+					$exception->getCode()
+				);
+
+				$this->warning = $this->trans('Your BTCPay Server is temporarily unavailable. Your configuration has been kept; payment option may be unavailable until it is reachable again.', [], 'Modules.Btcpay.Admin');
+
+				// Bail
+				return;
+			}
+
 			// Log the exception
 			PrestaShopLogger::addLog(
 				\sprintf('[ERROR] BTCPay Server configuration is no longer valid, resetting host and API key. Error: %s', $exception->getMessage()),

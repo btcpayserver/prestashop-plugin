@@ -2,10 +2,12 @@
 
 namespace PrestaShop\PrestaShop\Adapter;
 
+use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
+
 /**
  * In-memory configuration for tests that must not access a PrestaShop database.
  */
-class Configuration
+class Configuration implements ShopConfigurationInterface
 {
 	public static array $values = [];
 
