@@ -68,14 +68,35 @@ class Webhook extends \BTCPayServer\Client\Webhook
 		// Create the brand-new webhook
 		$webhook = $this->createWebhook($storeId, $webhookURL, null, $secret);
 
-		// Ensure we actually made a proper webhook
-		if (empty($webhook->getId()) || empty($webhook->getSecret())) {
-			throw new BTCPayException("Webhook wasn't created correctly.", Response::HTTP_INTERNAL_SERVER_ERROR);
-		}
+		$webhookId = null;
 
-		// Ensure the webhook was created with the secret we provided
-		if ($webhook->getSecret() !== $secret) {
-			throw new BTCPayException("Webhook secret doesn't match our secret.", Response::HTTP_INTERNAL_SERVER_ERROR);
+		try {
+			$webhookId = $webhook->getId();
+
+			// Ensure we actually made a proper webhook
+			if (empty($webhookId) || empty($webhook->getSecret())) {
+				throw new BTCPayException("Webhook wasn't created correctly.", Response::HTTP_INTERNAL_SERVER_ERROR);
+			}
+
+			// Ensure the webhook was created with the secret we provided
+			if ($webhook->getSecret() !== $secret) {
+				throw new BTCPayException("Webhook secret doesn't match our secret.", Response::HTTP_INTERNAL_SERVER_ERROR);
+			}
+		} catch (\Throwable $throwable) {
+			// Roll back the remote webhook so it does not outlive the failed configuration
+			try {
+				if (false === empty($webhookId)) {
+					$this->deleteWebhook($storeId, $webhookId);
+				}
+			} catch (\Throwable $cleanup) {
+				\PrestaShopLogger::addLog(
+					\sprintf("[WARNING] Could not remove webhook '%s' from store '%s' after a failed setup: %s", $webhookId, $storeId, $cleanup->getMessage()),
+					\PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING,
+					$cleanup->getCode()
+				);
+			}
+
+			throw $throwable;
 		}
 
 		// Store the webhook secret we made, so we can check that the webhook is actually made by us
