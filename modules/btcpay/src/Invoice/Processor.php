@@ -249,9 +249,19 @@ class Processor
 					continue;
 				}
 
+				// Convert the settled payment to the order currency
+				$raw = \bcmul($payment->getValue(), $paymentMethod->getRate(), $scale);
+
+				// Never record a zero or negative payment row
+				if (false === CheckoutGuard::isPositiveAmount($raw)) {
+					\PrestaShopLogger::addLog(\sprintf("[WARNING] Ignoring settled payment '%s' with non-positive amount '%s'", $payment->getTransactionId(), $raw), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', $order->id);
+
+					continue;
+				}
+
 				$settled[] = [
 					'transactionId' => (string) $payment->getTransactionId(),
-					'raw'           => \bcmul($payment->getValue(), $paymentMethod->getRate(), $scale),
+					'raw'           => $raw,
 				];
 			}
 		}
@@ -547,6 +557,11 @@ class Processor
 	{
 		$data = $invoice->getData();
 		if (!\is_array($data) || !isset($data['amount']) || !\is_string($data['amount']) || '' === $data['amount']) {
+			return null;
+		}
+
+		// Reject negative or malformed amounts; zero is allowed for free orders
+		if (false === CheckoutGuard::isNonNegativeAmount($data['amount'])) {
 			return null;
 		}
 
