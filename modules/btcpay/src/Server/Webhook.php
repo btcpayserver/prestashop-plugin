@@ -38,8 +38,16 @@ class Webhook extends \BTCPayServer\Client\Webhook
 	 */
 	public function ensureWebhook(string $storeId): void
 	{
-		// Check if we have an existing webhook, if so, just cancel now (empty check is required).
-		if (false === empty($this->getCurrent($storeId, $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID)))) {
+		$webhookId = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID);
+		$secret    = (string) $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET);
+
+		// A webhook without a stored secret cannot validate deliveries, so recreate it
+		if ('' === $secret && false === empty($webhookId)) {
+			$this->removeCurrent();
+		}
+
+		// Check if we have an existing webhook with a secret, if so, just cancel now (empty check is required).
+		if ('' !== $secret && false === empty($this->getCurrent($storeId, $webhookId))) {
 			return;
 		}
 
