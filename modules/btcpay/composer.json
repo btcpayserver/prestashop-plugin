@@ -31,6 +31,7 @@
   },
   "require-dev": {
     "ergebnis/composer-normalize": "^2.43",
+    "phpunit/phpunit": "^9.6",
     "roave/security-advisories": "dev-latest",
     "symfony/debug-bundle": "~5.4.40",
     "symfony/var-dumper": "~5.4.43"
@@ -55,6 +56,14 @@
       "btcpay.php"
     ],
     "exclude-from-classmap": []
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "BTCPay\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
   },
   "config": {
     "allow-plugins": {
