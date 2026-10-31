@@ -223,10 +223,14 @@ class ConfigureController extends FrameworkBundleAdminController
 	}
 
 	/**
+	 * @AdminSecurity("request.get('_anonymous_controller') or is_granted('update', request.get('_legacy_controller'))", message="Access denied.")
+	 *
 	 * @return RedirectResponse|Response
 	 *
 	 * @throws Exception
 	 */
+	// Fully qualified so the docblock annotation keeps resolving to the PS8 annotation class.
+	#[\PrestaShopBundle\Security\Attribute\AdminSecurity("request.get('_anonymous_controller') or is_granted('update', request.get('_legacy_controller'))", message: 'Access denied.')]
 	public function validateAPIKeyAction(Request $request): Response
 	{
 		// Anonymous callbacks may only change configuration for a pending authorization.
