@@ -6,6 +6,7 @@ use BTCPay\Constants;
 use BTCPay\Factory\CustomerMessage;
 use BTCPay\Invoice\Processor;
 use BTCPay\Repository\BitcoinPaymentRepository;
+use BTCPay\Repository\WebhookDeliveryRepository;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -51,6 +52,40 @@ class WebhookHandler
 			return;
 		}
 
+		$deliveryId = isset($data['deliveryId']) && \is_scalar($data['deliveryId']) ? (string) $data['deliveryId'] : '';
+		if ('' === $deliveryId) {
+			$this->dispatch($data);
+
+			return;
+		}
+
+		$invoiceId = isset($data['invoiceId']) && \is_scalar($data['invoiceId']) ? (string) $data['invoiceId'] : '';
+		$eventType = isset($data['type']) && \is_scalar($data['type']) ? (string) $data['type'] : '';
+
+		// Claim the delivery before processing so retries and duplicates are only handled once
+		if (false === WebhookDeliveryRepository::claim($deliveryId, $invoiceId, $eventType)) {
+			\PrestaShopLogger::addLog(\sprintf('[INFO] Ignoring already processed webhook delivery %s', $deliveryId), \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE);
+
+			return;
+		}
+
+		try {
+			$this->dispatch($data);
+		} catch (\Throwable $throwable) {
+			// Allow BTCPay to retry the delivery after a processing failure
+			WebhookDeliveryRepository::release($deliveryId);
+
+			throw $throwable;
+		}
+	}
+
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \JsonException
+	 * @throws \PrestaShopException
+	 */
+	private function dispatch(array $data): void
+	{
 		// Check if we received an event
 		if (!\array_key_exists('type', $data) || !\array_key_exists('invoiceId', $data)) {
 			return;

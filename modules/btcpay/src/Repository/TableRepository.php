@@ -53,6 +53,15 @@ class TableRepository
                 PRIMARY KEY (`id`),
                 UNIQUE KEY `invoice_id` (`invoice_id`)
             ) ENGINE=$engine DEFAULT CHARSET=utf8",
+			"CREATE TABLE IF NOT EXISTS `{$this->prefix}webhook_delivery`(
+                `id` int(11) NOT NULL AUTO_INCREMENT,
+                `delivery_id` varchar(255) NOT NULL,
+                `invoice_id` varchar(255),
+                `event_type` varchar(255),
+                `date_add` datetime NOT NULL,
+                PRIMARY KEY (`id`),
+                UNIQUE KEY `delivery_id` (`delivery_id`)
+            ) ENGINE=$engine DEFAULT CHARSET=utf8",
 		];
 
 		try {
@@ -72,10 +81,15 @@ class TableRepository
 	public function dropTables(): array
 	{
 		$errors = [];
-		$query  = "DROP TABLE IF EXISTS `{$this->prefix}bitcoin_payment`";
+		$queries = [
+			"DROP TABLE IF EXISTS `{$this->prefix}webhook_delivery`",
+			"DROP TABLE IF EXISTS `{$this->prefix}bitcoin_payment`",
+		];
 
 		try {
-			$this->connection->executeQuery($query);
+			foreach ($queries as $query) {
+				$this->connection->executeQuery($query);
+			}
 		} catch (Exception $e) {
 			$errors[] = ['key' => \json_encode($e->getMessage(), \JSON_THROW_ON_ERROR), 'parameters' => [], 'domain' => 'Admin.Modules.Notification'];
 		}
