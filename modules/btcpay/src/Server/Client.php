@@ -11,6 +11,7 @@ use BTCPayServer\Client\Invoice as InvoiceClient;
 use BTCPayServer\Client\Server as ServerClient;
 use BTCPayServer\Client\Store as StoreClient;
 use BTCPayServer\Client\StorePaymentMethod;
+use BTCPayServer\Http\ClientInterface;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
 
@@ -60,9 +61,9 @@ class Client extends AbstractClient
 	 */
 	private $configuration;
 
-	public function __construct(string $baseUrl, string $apiKey)
+	public function __construct(string $baseUrl, string $apiKey, ?ClientInterface $httpClient = null)
 	{
-		$httpClient = new CurlAdapter();
+		$httpClient ??= new CurlAdapter();
 
 		parent::__construct($baseUrl, $apiKey, $httpClient);
 
