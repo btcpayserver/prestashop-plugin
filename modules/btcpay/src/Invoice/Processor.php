@@ -239,8 +239,10 @@ class Processor
 		// Grab the payments from the server
 		$paymentMethods = $this->client->invoice()->getPaymentMethods($storeID, $bitcoinPayment->getInvoiceId());
 
-		$precision = (int) \Currency::getCurrencyInstance((int) $order->id_currency)->precision;
-		$scale     = \max($precision + 8, 8);
+		// Use the order currency precision when recording the converted amount, the
+		// conversion itself derives its scale from the inputs to stay lossless
+		$currency  = \Currency::getCurrencyInstance((int) $order->id_currency);
+		$precision = \Validate::isLoadedObject($currency) ? (int) $currency->precision : 2;
 		$settled   = [];
 
 		foreach ($paymentMethods as $paymentMethod) {
@@ -249,12 +251,11 @@ class Processor
 					continue;
 				}
 
-				// Convert the settled payment to the order currency
-				$raw = \bcmul($payment->getValue(), $paymentMethod->getRate(), $scale);
-
-				// Never record a zero or negative payment row
-				if (false === CheckoutGuard::isPositiveAmount($raw)) {
-					\PrestaShopLogger::addLog(\sprintf("[WARNING] Ignoring settled payment '%s' with non-positive amount '%s'", $payment->getTransactionId(), $raw), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', $order->id);
+				// Convert the settled payment to the order currency; malformed or
+				// non-positive amounts must never reach the payment books
+				$raw = CheckoutGuard::convertAmount($payment->getValue(), $paymentMethod->getRate());
+				if (null === $raw) {
+					\PrestaShopLogger::addLog(\sprintf("[WARNING] Ignoring settled payment '%s' with invalid or non-positive amount '%s' (rate '%s')", $payment->getTransactionId(), $payment->getValue(), $paymentMethod->getRate()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', $order->id);
 
 					continue;
 				}
