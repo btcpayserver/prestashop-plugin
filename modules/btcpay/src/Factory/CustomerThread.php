@@ -23,7 +23,7 @@ class CustomerThread
 		$ct->id_customer = $order->id_customer;
 		$ct->id_shop     = (int) $shop->id;
 		$ct->id_order    = (int) $order->id;
-		$ct->id_lang     = \Language::getIdByIso('en');
+		$ct->id_lang     = (int) $order->id_lang;
 		$ct->email       = $customer->email;
 		$ct->status      = 'open';
 		$ct->token       = \Tools::passwdGen(12);
