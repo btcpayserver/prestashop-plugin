@@ -132,17 +132,50 @@ class Client extends AbstractClient
 
 	public function isValid(): bool
 	{
+		$key = $this->cacheKey();
+		if (null !== ($cached = Health::getValid($key))) {
+			return $cached;
+		}
+
+		// While BTCPay Server is unreachable do not even try (no network call, no wait)
+		if (Health::isUnreachable()) {
+			return false;
+		}
+
 		try {
 			// Test the server connection
-			$this->server()->getInfo();
+			$this->serverInfo();
 
 			// Test the store connection
 			$this->store()->getStore($this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))->getName();
 		} catch (\Throwable) {
+			Health::setValid($key, false);
+
 			return false;
 		}
 
+		Health::setValid($key, true);
+
 		return true;
+	}
+
+	/**
+	 * Server information, fetched at most once per request.
+	 */
+	public function serverInfo(): \BTCPayServer\Result\ServerInfo
+	{
+		$key = $this->cacheKey();
+		if (null === ($info = Health::getServerInfo($key))) {
+			$info = $this->server()->getInfo();
+			Health::setServerInfo($key, $info);
+		}
+
+		return $info;
+	}
+
+	private function cacheKey(): string
+	{
+		return \hash('sha256', $this->getBaseUrl() . '|' . $this->getApiKey() . '|' . (string) $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID));
 	}
 
 	/**

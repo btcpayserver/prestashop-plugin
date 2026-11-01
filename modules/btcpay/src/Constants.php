@@ -45,6 +45,18 @@ class Constants
 	// Default values
 	public const CONFIGURATION_DEFAULT_HOST = 'https://testnet.demo.btcpayserver.org';
 
+	// Network robustness: never wait more than this for BTCPay Server
+	public const HTTP_CONNECT_TIMEOUT = 3;  // seconds to open the connection
+	public const HTTP_TIMEOUT         = 10; // seconds for the whole request
+	public const HTTP_MAX_ATTEMPTS    = 2;  // only for idempotent GET requests; POST/PUT/DELETE are sent once
+
+	// After a connection failure/timeout, remote calls are paused for this many seconds (configuration is kept)
+	public const UNREACHABLE_WINDOW                = 120;
+	public const CONFIGURATION_UNREACHABLE_UNTIL   = 'BTCPAY_UNREACHABLE_UNTIL';
+
+	// A failed GitHub version check is cached as well, so offline shops do not retry it on every page
+	public const LASTEST_VERSION_FAILURE_EXPIRATION = 60 * 60 * 24; // 1 day
+
 	// Order (creation) related configuration
 	public const CONFIGURATION_ORDER_MODE = 'BTCPAY_ORDERMODE';
 

@@ -10,6 +10,7 @@ use BTCPay\Installer\Webhook;
 use BTCPay\Repository\BitcoinPaymentRepository;
 use BTCPay\Repository\TableRepository;
 use BTCPay\Server\Client;
+use BTCPay\Server\Health;
 use BTCPay\Server\RateFallbackStatus;
 use BTCPayServer\Exception\BTCPayException;
 use BTCPayServer\Exception\RequestException;
@@ -49,11 +50,18 @@ class BTCPay extends PaymentModule
 	 */
 	private $versioning;
 
+	/**
+	 * Declared to avoid a dynamic property (deprecated since PHP 8.2); read by EU legal modules.
+	 *
+	 * @var bool
+	 */
+	public $is_eu_compatible;
+
 	public function __construct()
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '6.3.2';
+		$this->version                = '6.3.4';
 		$this->author                 = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
 		$this->controllers            = ['payment', 'validation', 'webhook'];
@@ -73,8 +81,10 @@ class BTCPay extends PaymentModule
 		$this->configuration = new Configuration();
 		$this->versioning    = new Versioning();
 
-		// Process any and all alerts/warnings
-		$this->displayModuleWarnings();
+		// Warnings need remote calls: compute them only in the back office, never in the shop front.
+		if ($this->shouldComputeWarnings()) {
+			$this->displayModuleWarnings();
+		}
 	}
 
 	public function install(): bool
@@ -261,8 +271,8 @@ class BTCPay extends PaymentModule
 			]);
 
 			return $this->display(__FILE__, 'views/templates/admin/invoice_block.tpl');
-		} catch (RequestException $exception) {
-			// Log the exception
+		} catch (BTCPayException $exception) {
+			// Log the exception (network errors included: never break the back office order page)
 			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay Server invoice in hookDisplayAdminOrderMainBottom: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode(), 'Order', $bitcoinPayment->getOrderId());
 
 			// Show that the invoice was not found
@@ -338,8 +348,8 @@ class BTCPay extends PaymentModule
 			]);
 
 			return $this->display(__FILE__, 'views/templates/hooks/order_detail.tpl');
-		} catch (RequestException $exception) {
-			// Log the exception
+		} catch (BTCPayException $exception) {
+			// Log the exception (network errors included: never break the customer's order page)
 			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay Server invoice in hookDisplayOrderDetail: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode(), 'Order', $order->id);
 
 			// If the invoice is gone just return null
@@ -412,7 +422,7 @@ class BTCPay extends PaymentModule
 
 		try {
 			// If the server is not fully synced, do not show the option
-			if (!$client->server()->getInfo()->isFullySynced()) {
+			if (!$client->serverInfo()->isFullySynced()) {
 				return [];
 			}
 
@@ -424,7 +434,7 @@ class BTCPay extends PaymentModule
 					->setCallToActionText($this->trans('Pay with BTCPay Server', [], 'Modules.Btcpay.Front'))
 					->setAdditionalInformation($this->context->smarty->fetch('module:btcpay/views/templates/hooks/payment_option.tpl')),
 			];
-		} catch (BTCPayException $exception) {
+		} catch (\Throwable $exception) {
 			// Log the exception
 			PrestaShopLogger::addLog(\sprintf('[WARNING] Could not load payments options from server: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode());
 
@@ -484,6 +494,15 @@ class BTCPay extends PaymentModule
 		}
 	}
 
+	/**
+	 * Remote checks for the module warning are only useful on back office pages (module list, configuration).
+	 * In the shop front (cart, checkout, webhook) the module is instantiated on every hook call: no remote calls there.
+	 */
+	private function shouldComputeWarnings(): bool
+	{
+		return \defined('_PS_ADMIN_DIR_') && \PHP_SAPI !== 'cli' && !Tools::getIsset('ajax');
+	}
+
 	private function displayModuleWarnings(): void
 	{
 		// Try and create the client
@@ -493,28 +512,28 @@ class BTCPay extends PaymentModule
 			// Show warning if API key is missing or if we're not yet fully synced
 			if (null === $client || empty($this->configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY))) {
 				$this->warning = $this->trans('Your BTCPay Server store has not yet been linked, payment option is unavailable.', [], 'Modules.Btcpay.Admin');
-			} elseif (!$client->server()->getInfo()->isFullySynced()) {
+			} elseif (Health::isUnreachable()) {
+				$this->warning = $this->trans('BTCPay Server is not reachable at the moment: the payment option is hidden until it answers again. Your configuration has been kept.', [], 'Modules.Btcpay.Admin');
+			} elseif (!$client->serverInfo()->isFullySynced()) {
 				$this->warning = $this->trans('One (or more) coins are not yet synced, payment option will be unavailable until the sync has finished.', [], 'Modules.Btcpay.Admin');
 			} elseif (!empty($storeId = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))
 				&& RateFallbackStatus::resolve($client->storeRate(), (string) $storeId)->isMissing()) {
 				$this->warning = $this->trans('Your BTCPay Server store has no fallback rate provider. If the primary rate source fails, invoices cannot be created. Configure a fallback rate in BTCPay Server.', [], 'Modules.Btcpay.Admin');
 			}
 		} catch (BTCPayException $exception) {
-			// Log the exception
+			// A network or HTTP error is NOT a reason to forget the configuration: keep host and API key, only warn.
+			// (Earlier versions reset the host to the demo server and deleted the API key here, see discussion #187.)
 			PrestaShopLogger::addLog(
-				\sprintf('[ERROR] BTCPay Server configuration is no longer valid, resetting host and API key. Error: %s', $exception->getMessage()),
-				\PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR,
+				\sprintf('[WARNING] Could not check the BTCPay Server configuration (kept unchanged): %s', $exception->getMessage()),
+				\PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING,
 				$exception->getCode()
 			);
 
-			// Show a warning
-			$this->warning = $this->trans('Your BTCPay Server configuration is no longer valid, please setup module again.', [], 'Modules.Btcpay.Admin');
+			$this->warning = $this->trans('BTCPay Server is not reachable at the moment: the payment option is hidden until it answers again. Your configuration has been kept.', [], 'Modules.Btcpay.Admin');
+			if ($exception instanceof RequestException && \in_array((int) $exception->getCode(), [401, 403], true)) {
+				$this->warning = $this->trans('Your BTCPay Server configuration is no longer valid, please setup module again.', [], 'Modules.Btcpay.Admin');
+			}
 
-			// Reset configuration
-			$this->configuration->set(Constants::CONFIGURATION_BTCPAY_HOST, Constants::CONFIGURATION_DEFAULT_HOST);
-			$this->configuration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
-
-			// Bail
 			return;
 		} catch (\Throwable $exception) {
 			// Log the exception
@@ -531,7 +550,7 @@ class BTCPay extends PaymentModule
 
 		// Otherwise, add a warning on version upgrade
 		if (null !== ($latest = $this->versioning->latest()) && $latest->newer($this->version)) {
-			$this->warning = $this->trans(\sprintf('There is a new version available for this plugin: %s.', $latest->getTagName()), [], 'Modules.Btcpay.Admin');
+			$this->warning = $this->trans('There is a new version available for this plugin: %version%.', ['%version%' => $latest->getTagName()], 'Modules.Btcpay.Admin');
 		}
 	}
 }

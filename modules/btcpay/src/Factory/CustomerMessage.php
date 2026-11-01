@@ -31,19 +31,29 @@ class CustomerMessage
 	}
 
 	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
+	 * Adds a private note to the order thread. The note is informational only: a failure is logged and never
+	 * interrupts the caller (the order status has already been changed when this is called from the webhook).
 	 */
 	public static function addToOrder(\Shop $shop, \Order $order, string $message): void
 	{
-		// Find or create the customer thread
-		$ct = CustomerThreadRepository::fetchOrCreate($shop, $order);
+		try {
+			// Find or create the customer thread
+			$ct = CustomerThreadRepository::fetchOrCreate($shop, $order);
 
-		// Ensure the thread is open
-		$ct->status = 'open';
-		$ct->update();
+			// Ensure the thread is open
+			$ct->status = 'open';
+			$ct->update();
 
-		// Create the message
-		self::create($ct, $message);
+			// Create the message
+			self::create($ct, $message);
+		} catch (\Throwable $throwable) {
+			\PrestaShopLogger::addLog(
+				\sprintf('[WARNING] Could not add the BTCPay note to order %d: %s', (int) $order->id, $throwable->getMessage()),
+				\PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING,
+				null,
+				'Order',
+				(int) $order->id
+			);
+		}
 	}
 }

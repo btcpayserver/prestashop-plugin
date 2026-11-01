@@ -53,6 +53,9 @@ class Config
 	 */
 	public function uninstall(): array
 	{
+		// Added in 6.3.4 (may not exist)
+		\Configuration::deleteByName(Constants::CONFIGURATION_UNREACHABLE_UNTIL);
+
 		// Remove configuration
 		if (!$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_HOST)
 			|| !$this->configuration->remove(Constants::CONFIGURATION_SPEED_MODE)

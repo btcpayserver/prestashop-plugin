@@ -7,6 +7,7 @@ use BTCPay\Entity\BitcoinPayment;
 use BTCPay\Factory\CustomerMessage;
 use BTCPay\Repository\OrderPaymentRepository;
 use BTCPay\Server\Client;
+use BTCPay\Util\Decimal;
 use BTCPayServer\Result\Invoice;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 
@@ -131,15 +132,34 @@ class Processor
 			$orderStatus = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED);
 		}
 
-		// If nothing changed, return
-		if ((string) $order->current_state === $orderStatus) {
+		// If nothing changed, return (an order already cancelled after a failure is not touched again)
+		$failedState   = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED);
+		$canceledState = (string) \Configuration::get('PS_OS_CANCELED');
+		if ((string) $order->current_state === $orderStatus
+			|| ($orderStatus === $failedState && (string) $order->current_state === $canceledState)) {
 			\PrestaShopLogger::addLog('[INFO] The state is the same as the one received', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
 
 			return;
 		}
 
 		// Update the status
-		$this->updateOrderStatus($bitcoinPayment, $orderStatus, $invoice);
+		if (!$this->updateOrderStatus($bitcoinPayment, $orderStatus, $invoice)) {
+			return;
+		}
+
+		// A failed/expired crypto payment cancels the order: PrestaShop puts the products back in stock only for
+		// the "Canceled"/"Payment error" states, and the customer receives the standard cancellation email.
+		// If the customer pays late, the next webhook moves the order on and PrestaShop takes the stock again.
+		if ($orderStatus === $failedState && '' !== $canceledState && $canceledState !== $failedState) {
+			$this->addHistory((int) $bitcoinPayment->getOrderId(), $canceledState, true);
+			$note = \sprintf("BTCPay Server: invoice '%s' expired or invalid, order cancelled and products put back in stock.", $invoice->getId());
+			// Expired after a partial payment: the customer's coins are with the merchant, who must refund or complete the order by hand
+			if ($invoice->isPartiallyPaid()) {
+				$note .= ' WARNING: the invoice was PARTIALLY PAID before expiring; the amount received (see the order payments and the invoice in BTCPay Server) must be refunded or the order completed manually.';
+				\PrestaShopLogger::addLog(\sprintf("[WARNING] Invoice '%s' expired after a partial payment: refund or complete the order manually", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', (int) $bitcoinPayment->getOrderId());
+			}
+			CustomerMessage::addToOrder($this->context->shop, new \Order($bitcoinPayment->getOrderId()), $note);
+		}
 	}
 
 	/**
@@ -149,6 +169,11 @@ class Processor
 	 */
 	public function paymentReceived(BitcoinPayment $bitcoinPayment): void
 	{
+		// No order linked to this invoice (yet): nothing to update
+		if (false === $bitcoinPayment->hasOrder()) {
+			return;
+		}
+
 		// Get the order
 		$order = new \Order($bitcoinPayment->getOrderId());
 
@@ -310,17 +335,19 @@ class Processor
 					continue;
 				}
 
-				// Add the payment
-				$order->addOrderPayment(\bcmul($payment->getValue(), $paymentMethod->getRate()), null, $payment->getTransactionId());
+				// Add the payment (exact decimal math without bcmath; bcmul() with its default scale 0 dropped the decimals)
+				$order->addOrderPayment(Decimal::mul($payment->getValue(), $paymentMethod->getRate(), 6), null, $payment->getTransactionId());
 			}
 		}
 	}
 
 	/**
+	 * @return bool true when the order status was changed
+	 *
 	 * @throws \PrestaShopDatabaseException
 	 * @throws \PrestaShopException
 	 */
-	private function updateOrderStatus(BitcoinPayment $bitcoinPayment, string $orderStatus, Invoice $invoice): void
+	private function updateOrderStatus(BitcoinPayment $bitcoinPayment, string $orderStatus, Invoice $invoice): bool
 	{
 		$order = new \Order($bitcoinPayment->getOrderId());
 
@@ -332,14 +359,14 @@ class Processor
 			\PrestaShopLogger::addLog(\sprintf("[WARN] Refusing to move paid order to state '%s'", $orderStatus), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', $order->id);
 			CustomerMessage::addToOrder($this->context->shop, $order, \sprintf("BTCPay Server: ignored a status change to '%s' because the order is already paid.", $orderStatus));
 
-			return;
+			return false;
 		}
 
 		// Verify the invoice still matches the checkout snapshot before marking paid
 		if ($targetPaid && false === $this->checkoutValueHolds($bitcoinPayment, $invoice, null, $order)) {
 			\PrestaShopLogger::addLog(\sprintf("[ERROR] Refusing to mark order paid; invoice '%s' amount/currency does not match the checkout snapshot", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'Order', $order->id);
 
-			return;
+			return false;
 		}
 
 		// Set the status
@@ -353,13 +380,31 @@ class Processor
 			throw new \RuntimeException($error);
 		}
 
-		// Add the order change to the order history table
+		// Add the order change to the order history table, sending the state email to the customer if the state has one
+		$this->addHistory((int) $bitcoinPayment->getOrderId(), $orderStatus, true);
+
+		return true;
+	}
+
+	/**
+	 * Store a state change; with $withEmail the customer gets the state email (add() alone never sends it).
+	 *
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \PrestaShopException
+	 */
+	private function addHistory(int $orderId, string $orderStatus, bool $withEmail): void
+	{
 		$orderHistory           = new \OrderHistory();
-		$orderHistory->id_order = $bitcoinPayment->getOrderId();
+		$orderHistory->id_order = $orderId;
 
 		// Store the change and make sure to create an invoice using existing payments (in case the status is changed to 'paid with crypto')
-		$orderHistory->changeIdOrderState($orderStatus, $bitcoinPayment->getOrderId(), true);
-		$orderHistory->add();
+		$orderHistory->changeIdOrderState((int) $orderStatus, $orderId, true);
+
+		if ($withEmail) {
+			$orderHistory->addWithemail(true);
+		} else {
+			$orderHistory->add();
+		}
 	}
 
 	private function statusFromInvoice(Invoice $invoice, string $default): string

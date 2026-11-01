@@ -2,6 +2,8 @@
 
 namespace BTCPay\Invoice;
 
+use BTCPay\Util\Decimal;
+
 if (!\defined('_PS_VERSION_')) {
 	exit;
 }
@@ -18,7 +20,12 @@ class CheckoutGuard
 
 	public static function amountsMatch(string $a, string $b): bool
 	{
-		return 0 === \bccomp($a, $b, 8);
+		try {
+			return 0 === Decimal::comp($a, $b, 8);
+		} catch (\Throwable $exception) {
+			// Not a decimal number: treat as a mismatch (safe default, the order is not marked paid)
+			return false;
+		}
 	}
 
 	public static function canCreateOrder(bool $partial, bool $processing, bool $paidLate, bool $overpaid, bool $settled): bool

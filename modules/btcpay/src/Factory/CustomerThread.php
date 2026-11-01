@@ -23,7 +23,9 @@ class CustomerThread
 		$ct->id_customer = $order->id_customer;
 		$ct->id_shop     = (int) $shop->id;
 		$ct->id_order    = (int) $order->id;
-		$ct->id_lang     = \Language::getIdByIso('en');
+		// Language::getIdByIso('en') is false on a shop without English: CustomerThread->add() then
+		// throws "id_lang is empty" and the webhook answered 500. Use the order language (then the shop default).
+		$ct->id_lang     = (int) $order->id_lang ?: (int) \Configuration::get('PS_LANG_DEFAULT');
 		$ct->email       = $customer->email;
 		$ct->status      = 'open';
 		$ct->token       = \Tools::passwdGen(12);

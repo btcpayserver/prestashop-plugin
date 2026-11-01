@@ -78,7 +78,7 @@
             {{ form_start(server_form, {'action': url('admin_btcpay_configure_server_process'), 'attr': {'class': 'form', 'id': 'server-form'}}) }}
             <h3 class="card-header">
               <i class="material-icons">mode_edit</i>
-              {{ 'Server'|trans({}, 'Admin.Global') }}
+              {{ 'Server'|trans({}, 'Modules.Btcpay.Admin') }}
             </h3>
 
             <div class="card-body">
@@ -124,7 +124,7 @@
           <div class="card">
             <h3 class="card-header">
               <i class="material-icons">info_outline</i>
-              {{ 'Setup information'|trans({}, 'Admin.Global') }}
+              {{ 'Setup information'|trans({}, 'Modules.Btcpay.Admin') }}
             </h3>
 
             <div class="card-body">
@@ -143,9 +143,9 @@
 
             <div class="card-footer text-right">
               {% if server_form.vars.value.host %}
-                <a href="{{ server_form.vars.value.host }}" class="btn btn-outline-secondary" target="_blank" rel="noopener noreferrer nofollow">{{ 'Visit Dashboard'|trans({}, 'Admin.Actions') }}</a>
+                <a href="{{ server_form.vars.value.host }}" class="btn btn-outline-secondary" target="_blank" rel="noopener noreferrer nofollow">{{ 'Visit Dashboard'|trans({}, 'Modules.Btcpay.Admin') }}</a>
               {% endif %}
-              <a href="{{ authorizeUrl }}" class="btn btn-primary">{{ 'Create API key'|trans({}, 'Admin.Actions') }}</a>
+              <a href="{{ authorizeUrl }}" class="btn btn-primary">{{ 'Create API key'|trans({}, 'Modules.Btcpay.Admin') }}</a>
             </div>
           </div>
         </div>
@@ -160,7 +160,7 @@
         <div class="card-deck">
           <div class="card">
             <h3 class="card-header">
-              {{ 'Store Information'|trans({}, 'Admin.Actions') }}
+              {{ 'Store Information'|trans({}, 'Modules.Btcpay.Admin') }}
             </h3>
 
             <div class="card-body">
@@ -198,7 +198,7 @@
 
           <div class="card">
             <h3 class="card-header">
-              {{ 'Server Information'|trans({}, 'Admin.Actions') }}
+              {{ 'Server Information'|trans({}, 'Modules.Btcpay.Admin') }}
             </h3>
 
             <div class="card-body">

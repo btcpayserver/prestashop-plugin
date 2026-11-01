@@ -102,9 +102,7 @@ class OrderStates
 		$order_state->unremovable = true;
 		$order_state->module_name = $this->moduleName;
 
-		foreach (Language::getLanguages(true, false, true) as $languageId) {
-			$order_state->name[$languageId] = 'Awaiting crypto payment';
-		}
+		$order_state->name = self::names('Awaiting crypto payment');
 
 		if (false === $order_state->add()) {
 			return false;
@@ -129,9 +127,7 @@ class OrderStates
 		$order_state->unremovable = true;
 		$order_state->module_name = $this->moduleName;
 
-		foreach (Language::getLanguages(true, false, true) as $languageId) {
-			$order_state->name[$languageId] = 'Waiting for confirmations';
-		}
+		$order_state->name = self::names('Waiting for confirmations');
 
 		if (false === $order_state->add()) {
 			return false;
@@ -152,16 +148,15 @@ class OrderStates
 	{
 		$order_state              = new OrderState();
 		$order_state->name        = [];
-		$order_state->send_email  = true;
-		$order_state->template    = 'payment_error';
+		// No email here: a failed payment is followed by the PrestaShop "Canceled" state, which emails the customer
+		$order_state->send_email  = false;
 		$order_state->color       = '#EC2E15';
-		$order_state->logable     = true;
+		// Not a sale: a failed/expired invoice must not count in the statistics
+		$order_state->logable     = false;
 		$order_state->unremovable = true;
 		$order_state->module_name = $this->moduleName;
 
-		foreach (Language::getLanguages(true, false, true) as $languageId) {
-			$order_state->name[$languageId] = 'Crypto transaction failed';
-		}
+		$order_state->name = self::names('Crypto transaction failed');
 
 		if (false === $order_state->add()) {
 			return false;
@@ -192,9 +187,7 @@ class OrderStates
 		$order_state->invoice     = true;
 		$order_state->module_name = $this->moduleName;
 
-		foreach (Language::getLanguages(true, false, true) as $languageId) {
-			$order_state->name[$languageId] = 'Paid with crypto';
-		}
+		$order_state->name = self::names('Paid with crypto');
 
 		if (false === $order_state->add()) {
 			return false;
@@ -204,6 +197,19 @@ class OrderStates
 		$this->configuration->set(Constants::CONFIGURATION_ORDER_STATE_PAID, (int) $order_state->id);
 
 		return true;
+	}
+
+	/**
+	 * @return array<int, string> the same state name for every language, active or not (no language is left without a name)
+	 */
+	public static function names(string $name): array
+	{
+		$names = [];
+		foreach (Language::getLanguages(false) as $language) {
+			$names[(int) $language['id_lang']] = $name;
+		}
+
+		return $names;
 	}
 
 	private function installImage(OrderState $order_state, string $image_name): void

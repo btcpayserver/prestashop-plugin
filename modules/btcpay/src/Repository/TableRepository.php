@@ -16,6 +16,13 @@ class TableRepository
 	 */
 	private $connection;
 
+	/**
+	 * Declared to avoid a dynamic property (deprecated since PHP 8.2).
+	 *
+	 * @var string
+	 */
+	private $prefix;
+
 	public function __construct(Connection $connection)
 	{
 		$this->connection = $connection;

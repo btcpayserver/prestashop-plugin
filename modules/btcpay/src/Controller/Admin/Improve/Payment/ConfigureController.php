@@ -88,9 +88,13 @@ class ConfigureController extends FrameworkBundleAdminController
 		// Create the authorization URL (without redirect)
 		$authorizeUrl = ApiKey::getAuthorizeUrl($this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_HOST), Constants::BTCPAY_PERMISSIONS, $this->module->name, true, true, null, $this->module->name);
 
-		// Ensure we always have a webhook
+		// Ensure we always have a webhook (a network error must not break the configuration page)
 		if (null !== $client && $client->isValid()) {
-			$client->webhook()->ensureWebhook($this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_STORE_ID));
+			try {
+				$client->webhook()->ensureWebhook($this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_STORE_ID));
+			} catch (Throwable $throwable) {
+				PrestaShopLogger::addLog(\sprintf('[WARNING] Could not verify the BTCPay Server webhook: %s', $throwable->getMessage()), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $throwable->getCode());
+			}
 		}
 
 		return $this->getResponse($request, $this->serverFormHandler->getForm(), $this->generalFormHandler->getForm(), $authorizeUrl, $client);
@@ -137,7 +141,7 @@ class ConfigureController extends FrameworkBundleAdminController
 
 		// If the configuration is the same, just stop
 		if ($submittedConfiguration->equals($currentConfiguration)) {
-			$this->addFlash('success', 'BTCPay Server Plugin: Settings have not changed.');
+			$this->addFlash('success', $this->t('BTCPay Server Plugin: Settings have not changed.'));
 
 			return $this->redirectToRoute('admin_btcpay_configure');
 		}
@@ -146,7 +150,7 @@ class ConfigureController extends FrameworkBundleAdminController
 		if (null === $submittedConfiguration->getApiKey() && !empty($currentConfiguration->getApiKey())) {
 			// Remove the current webhook to prevent issues in the future
 			if (false === (new Client($shopConfiguration->get(Constants::CONFIGURATION_BTCPAY_HOST), $currentConfiguration->getApiKey()))->webhook()->removeCurrent()) {
-				$this->addFlash('error', 'BTCPay Server Plugin: Could not remove webhook from the server. Please double check it is actually gone.');
+				$this->addFlash('error', $this->t('BTCPay Server Plugin: Could not remove webhook from the server. Please double check it is actually gone.'));
 			}
 
 			$shopConfiguration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
@@ -154,7 +158,7 @@ class ConfigureController extends FrameworkBundleAdminController
 			$shopConfiguration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID, null);
 			$shopConfiguration->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET, null);
 
-			$this->addFlash('success', 'BTCPay Server plugin: API key has been removed');
+			$this->addFlash('success', $this->t('BTCPay Server plugin: API key has been removed'));
 
 			return $this->redirectToRoute('admin_btcpay_configure');
 		}
@@ -209,13 +213,13 @@ class ConfigureController extends FrameworkBundleAdminController
 
 		// If the configuration is the same, just stop
 		if ($general->equals($currentConfiguration)) {
-			$this->addFlash('success', 'BTCPay Server Plugin: Settings have not changed.');
+			$this->addFlash('success', $this->t('BTCPay Server Plugin: Settings have not changed.'));
 
 			return $this->redirectToRoute('admin_btcpay_configure');
 		}
 
 		// Return home
-		$this->addFlash('success', 'BTCPay Server Plugin: Settings have been saved.');
+		$this->addFlash('success', $this->t('BTCPay Server Plugin: Settings have been saved.'));
 
 		return $this->redirectToRoute('admin_btcpay_configure');
 	}
@@ -229,7 +233,7 @@ class ConfigureController extends FrameworkBundleAdminController
 	{
 		// If we received an empty post we probably hit the PrestaShop security check
 		if (empty($request->request->all())) {
-			$this->addFlash('error', 'Did not receive data from BTCPay Server. If you received an <strong>Invalid Token</strong> page, make sure to properly setup PrestaShop and BTCPay Server (publicly accessible and HTTPS enabled). Please try again once done or use the API key option.');
+			$this->addFlash('error', $this->t('Did not receive data from BTCPay Server. If you received an <strong>Invalid Token</strong> page, make sure to properly setup PrestaShop and BTCPay Server (publicly accessible and HTTPS enabled). Please try again once done or use the API key option.'));
 
 			// Make sure to reset the API key
 			$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
@@ -260,7 +264,7 @@ class ConfigureController extends FrameworkBundleAdminController
 		try {
 			// Ensure we have a valid BTCPay Server version
 			if (null !== ($info = $client->server()->getInfo()) && \version_compare($info->getVersion(), Constants::MINIMUM_BTCPAY_VERSION, '<')) {
-				$this->addFlash('error', \sprintf('BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()));
+				$this->addFlash('error', \sprintf($this->t('BTCPay server version is too low. Expected %s or higher, received %s.'), Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()));
 				PrestaShopLogger::addLog(\sprintf('[ERROR] BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				// Make sure to reset the API key
@@ -271,7 +275,7 @@ class ConfigureController extends FrameworkBundleAdminController
 
 			// Ensure we have a payment methods setup
 			if (empty($client->payment()->getPaymentMethods($storeId))) {
-				$this->addFlash('error', \sprintf("This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')));
+				$this->addFlash('error', \sprintf($this->t('This plugin expects a payment method to have been setup for store \'%s\'.'), $client->store()->getStore($storeId)->offsetGet('name')));
 				PrestaShopLogger::addLog(\sprintf("[ERROR] This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				// Make sure to reset the API key
@@ -283,7 +287,7 @@ class ConfigureController extends FrameworkBundleAdminController
 			// Ensure we have a webhook
 			$client->webhook()->ensureWebhook($storeId);
 		} catch (Throwable $throwable) {
-			$this->addFlash('error', \sprintf('BTCPay Server plugin: %s', $throwable->getMessage()));
+			$this->addFlash('error', \sprintf($this->t('BTCPay Server plugin: %s'), $throwable->getMessage()));
 			PrestaShopLogger::addLog(\sprintf('[ERROR] An error occurred during configuration validation: %s', $throwable), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, $throwable->getCode());
 
 			return $this->redirectToRoute('admin_btcpay_configure');
@@ -293,9 +297,17 @@ class ConfigureController extends FrameworkBundleAdminController
 		$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, $validateRequest->getApiKey());
 		$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_STORE_ID, $storeId);
 
-		$this->addFlash('success', 'BTCPay Server plugin: Your store and server have been linked!');
+		$this->addFlash('success', $this->t('BTCPay Server plugin: Your store and server have been linked!'));
 
 		return $this->redirectToRoute('admin_btcpay_configure');
+	}
+
+	/**
+	 * Translate a back office message of this module (Modules.Btcpay.Admin).
+	 */
+	private function t(string $message, array $parameters = []): string
+	{
+		return $this->module->getTranslator()->trans($message, $parameters, 'Modules.Btcpay.Admin');
 	}
 
 	protected function getConfiguration(): ShopConfigurationInterface
@@ -342,7 +354,7 @@ class ConfigureController extends FrameworkBundleAdminController
 
 			// Ensure we have a valid BTCPay Server version
 			if (null !== ($info = $client->server()->getInfo()) && \version_compare($info->getVersion(), Constants::MINIMUM_BTCPAY_VERSION, '<')) {
-				$this->addFlash('error', \sprintf('BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()));
+				$this->addFlash('error', \sprintf($this->t('BTCPay server version is too low. Expected %s or higher, received %s.'), Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()));
 				PrestaShopLogger::addLog(\sprintf('[ERROR] BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				// Make sure to reset the API key
@@ -353,7 +365,7 @@ class ConfigureController extends FrameworkBundleAdminController
 
 			// Ensure we have a payment methods setup
 			if (empty($client->payment()->getPaymentMethods($storeId))) {
-				$this->addFlash('error', \sprintf("This plugin expects a payment method to have been setup for store '%s'.", $store->offsetGet('name')));
+				$this->addFlash('error', \sprintf($this->t('This plugin expects a payment method to have been setup for store \'%s\'.'), $store->offsetGet('name')));
 				PrestaShopLogger::addLog(\sprintf("[ERROR] This plugin expects a payment method to have been setup for store '%s'.", $store->offsetGet('name')), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				// Make sure to reset the API key
@@ -368,7 +380,7 @@ class ConfigureController extends FrameworkBundleAdminController
 			// Ensure we have a webhook
 			$client->webhook()->ensureWebhook($storeId);
 		} catch (Throwable $throwable) {
-			$this->addFlash('error', \sprintf('BTCPay Server plugin: %s', $throwable->getMessage()));
+			$this->addFlash('error', \sprintf($this->t('BTCPay Server plugin: %s'), $throwable->getMessage()));
 			PrestaShopLogger::addLog(\sprintf('[ERROR] An error occurred during setup: %s', $throwable), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, $throwable->getCode());
 
 			// Ensure nothing is saved
@@ -384,7 +396,7 @@ class ConfigureController extends FrameworkBundleAdminController
 		$shopConfiguration->set(Constants::CONFIGURATION_BTCPAY_API_KEY, $validateKey->getApiKey());
 		$shopConfiguration->set(Constants::CONFIGURATION_BTCPAY_STORE_ID, $storeId);
 
-		$this->addFlash('success', 'BTCPay Server plugin: Your store and server have been linked!');
+		$this->addFlash('success', $this->t('BTCPay Server plugin: Your store and server have been linked!'));
 
 		// Return home
 		return $this->redirectToRoute('admin_btcpay_configure');
@@ -418,7 +430,15 @@ class ConfigureController extends FrameworkBundleAdminController
 
 			// Ensure we have a webhook
 			$client->webhook()->ensureWebhook($storeID);
-		} catch (Throwable) {
+		} catch (Throwable $throwable) {
+			// Only an authentication error means the stored key is no longer valid; a network problem keeps everything
+			if (!($throwable instanceof \BTCPayServer\Exception\RequestException) || !\in_array((int) $throwable->getCode(), [401, 403], true)) {
+				$this->addFlash('error', \sprintf($this->t('BTCPay Server plugin: %s'), $throwable->getMessage()));
+				PrestaShopLogger::addLog(\sprintf('[WARNING] BTCPay Server not reachable while saving the configuration (kept unchanged): %s', $throwable->getMessage()), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $throwable->getCode());
+
+				return $this->redirectToRoute('admin_btcpay_configure');
+			}
+
 			// Reset BTCPay details
 			$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
 			$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID, null);

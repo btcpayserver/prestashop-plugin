@@ -12,6 +12,11 @@ if (!\defined('_PS_VERSION_')) {
 class BitcoinPaymentRepository
 {
 	/**
+	 * Only the columns mapped by the entity: the legacy columns of the table (bitcoin_price, bitcoin_paid,
+	 * bitcoin_address, bitcoin_refund_address, rate) would become dynamic properties (deprecated since PHP 8.2).
+	 */
+	private const COLUMNS = 'bp.id, bp.cart_id, bp.order_id, bp.status, bp.invoice_id, bp.invoice_reference, bp.amount, bp.redirect';
+	/**
 	 * @throws \PrestaShopException
 	 */
 	public static function create(int $cartId, string $status, string $invoiceId): BitcoinPayment
@@ -39,7 +44,7 @@ class BitcoinPaymentRepository
 	public static function getOneByInvoiceID(string $invoiceId): ?BitcoinPayment
 	{
 		$query = new \DbQuery();
-		$query->select('bp.*')
+		$query->select(self::COLUMNS)
 			->from('bitcoin_payment', 'bp')
 			->where(\sprintf("bp.invoice_id = '%s'", \pSQL($invoiceId)))
 			->limit(1);
@@ -58,7 +63,7 @@ class BitcoinPaymentRepository
 		}
 
 		$query = new \DbQuery();
-		$query->select('bp.*')
+		$query->select(self::COLUMNS)
 			->from('bitcoin_payment', 'bp')
 			->where(\sprintf("bp.invoice_reference = '%s'", \pSQL($invoiceReference)))
 			->limit(1);
@@ -73,7 +78,7 @@ class BitcoinPaymentRepository
 	public static function getOneByCartID(int $cartID): ?BitcoinPayment
 	{
 		$query = new \DbQuery();
-		$query->select('bp.*')
+		$query->select(self::COLUMNS)
 			->from('bitcoin_payment', 'bp')
 			->where(\sprintf('bp.cart_id = %d', $cartID))
 			->limit(1);
@@ -88,7 +93,7 @@ class BitcoinPaymentRepository
 	public static function getOneByOrderID(int $orderID): ?BitcoinPayment
 	{
 		$query = new \DbQuery();
-		$query->select('bp.*')
+		$query->select(self::COLUMNS)
 			->from('bitcoin_payment', 'bp')
 			->where(\sprintf('bp.order_id = %d', $orderID))
 			->limit(1);
@@ -103,11 +108,18 @@ class BitcoinPaymentRepository
 	private static function hydrateOne(\DbQuery $query): ?BitcoinPayment
 	{
 		$result = \Db::getInstance()->query($query);
+		if (!$result instanceof \PDOStatement) {
+			throw new \PrestaShopDatabaseException(\Db::getInstance()->getMsgError(), \Db::getInstance()->getNumberError());
+		}
 		if (0 !== ($errorCode = (int) $result->errorCode())) {
 			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
 		}
 
-		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
+		// FETCH_PROPS_LATE: run the ObjectModel constructor BEFORE the columns are assigned. Without it the constructor
+		// (called after fetchObject() sets the properties) copies the cached class defaults over every field from the
+		// second BitcoinPayment built in the same request on, returning an empty object instead of the stored row.
+		$result->setFetchMode(\PDO::FETCH_CLASS | \PDO::FETCH_PROPS_LATE, BitcoinPayment::class);
+		if (false === ($object = $result->fetch())) {
 			return null;
 		}
 

@@ -24,7 +24,7 @@ class Webhook extends \BTCPayServer\Client\Webhook
 	 */
 	private $link;
 
-	public function __construct(string $baseUrl, string $apiKey, ClientInterface $client = null)
+	public function __construct(string $baseUrl, string $apiKey, ?ClientInterface $client = null)
 	{
 		parent::__construct($baseUrl, $apiKey, $client);
 
