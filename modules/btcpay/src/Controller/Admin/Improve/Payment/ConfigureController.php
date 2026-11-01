@@ -397,7 +397,7 @@ class ConfigureController extends FrameworkBundleAdminController
 	{
 		// Get the store name and build the redirect URL
 		$storeName   = $this->getContext()->shop->name;
-		$redirectUrl = \Tools::getShopDomainSsl(true) . $this->getAdminLink('btcpay', ['route' => 'admin_btcpay_validate'], true);
+		$redirectUrl = $this->getAdminLink('btcpay', ['route' => 'admin_btcpay_validate'], true);
 
 		// Create the authorization URL (with redirect)
 		$authorizeUrl = ApiKey::getAuthorizeUrl($configuration->getHost(), Constants::BTCPAY_PERMISSIONS, $storeName, true, true, $redirectUrl, $storeName);
