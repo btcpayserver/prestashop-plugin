@@ -30,7 +30,7 @@ class ValidateApiKey
 	public function __construct(ParameterBag $request)
 	{
 		$this->apiKey      = $request->get('apiKey');
-		$this->permissions = $request->get('permissions', []);
+		$this->permissions = $request->all()['permissions'] ?? [];
 	}
 
 	public function getApiKey(): ?string
