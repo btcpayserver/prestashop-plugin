@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file original="Modules.Btcpay.Global" source-language="en-US" target-language="it-IT" datatype="plaintext">
+    <body>
+      <trans-unit id="1" resname="minutes">
+        <source>minutes</source>
+        <target state="final">minuti</target>
+      </trans-unit>
+      <trans-unit id="2" resname="BTCPay Server - Information">
+        <source>BTCPay Server - Information</source>
+        <target state="final">BTCPay Server - Informazioni</target>
+      </trans-unit>
+      <trans-unit id="3" resname="Rate">
+        <source>Rate</source>
+        <target state="final">Cambio</target>
+      </trans-unit>
+      <trans-unit id="4" resname="Invoice amount">
+        <source>Invoice amount</source>
+        <target state="final">Importo della fattura</target>
+      </trans-unit>
+      <trans-unit id="5" resname="Total amount paid in %s">
+        <source>Total amount paid in %s</source>
+        <target state="final">Totale pagato in %s</target>
+      </trans-unit>
+      <trans-unit id="6" resname="Date">
+        <source>Date</source>
+        <target state="final">Data</target>
+      </trans-unit>
+      <trans-unit id="7" resname="Amount">
+        <source>Amount</source>
+        <target state="final">Importo</target>
+      </trans-unit>
+      <trans-unit id="8" resname="Transaction">
+        <source>Transaction</source>
+        <target state="final">Transazione</target>
+      </trans-unit>
+      <trans-unit id="9" resname="Payment information">
+        <source>Payment information</source>
+        <target state="final">Dati del pagamento</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
