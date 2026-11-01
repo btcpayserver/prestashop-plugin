@@ -30,3 +30,7 @@ admin_btcpay_validate:
     _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::validateAPIKeyAction'
     _legacy_controller: AdminConfigureBTCPay
     _disable_module_prefix: true
+    # BTCPay redirects the browser back with a cross-site POST. Browsers do not send
+    # SameSite=Lax session cookies on such requests, so the CSRF token stored in the
+    # session cannot be validated. The API key in the POST body authenticates the call.
+    _anonymous_controller: true
