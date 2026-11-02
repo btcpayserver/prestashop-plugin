@@ -39,6 +39,7 @@ class ServerType extends TranslatorAwareType
 			->add('apiKey', TextType::class, [
 				'label'      => $this->trans('BTCPay Server API key', 'Modules.Btcpay.Admin'),
 				'attr'       => [
+					'autocomplete' => 'new-password',
 					'pattern'     => '[a-zA-Z0-9]+',
 					'placeholder' => empty($data->getApiKey())
 						? $this->trans('Keep blank to be redirected for authentication', 'Modules.Btcpay.Admin')
