@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file original="Modules.Btcpay.Admin" source-language="en-US" target-language="it-IT" datatype="plaintext">
+    <body>
+      <trans-unit id="1" resname="BTCPay Server">
+        <source>BTCPay Server</source>
+        <target state="final">BTCPay Server</target>
+      </trans-unit>
+      <trans-unit id="2" resname="Your BTCPay Server store has not yet been linked, payment option is unavailable.">
+        <source>Your BTCPay Server store has not yet been linked, payment option is unavailable.</source>
+        <target state="final">Il negozio BTCPay Server non è ancora collegato: il metodo di pagamento non è disponibile.</target>
+      </trans-unit>
+      <trans-unit id="4" resname="One (or more) coins are not yet synced, payment option will be unavailable until the sync has finished.">
+        <source>One (or more) coins are not yet synced, payment option will be unavailable until the sync has finished.</source>
+        <target state="final">Una o più criptovalute non sono ancora sincronizzate: il metodo di pagamento non sarà disponibile fino alla fine della sincronizzazione.</target>
+      </trans-unit>
+      <trans-unit id="5" resname="Your BTCPay Server store has no fallback rate provider. If the primary rate source fails, invoices cannot be created. Configure a fallback rate in BTCPay Server.">
+        <source>Your BTCPay Server store has no fallback rate provider. If the primary rate source fails, invoices cannot be created. Configure a fallback rate in BTCPay Server.</source>
+        <target state="final">Il negozio BTCPay Server non ha una fonte di cambio di riserva. Se la fonte principale non risponde, non si possono creare fatture. Configura una fonte di cambio di riserva in BTCPay Server.</target>
+      </trans-unit>
+      <trans-unit id="6" resname="Your BTCPay Server configuration is no longer valid, please setup module again.">
+        <source>Your BTCPay Server configuration is no longer valid, please setup module again.</source>
+        <target state="final">La configurazione di BTCPay Server non è più valida (chiave API rifiutata): configura di nuovo il modulo.</target>
+      </trans-unit>
+      <trans-unit id="8" resname="BTCPay Server Plugin: Settings have not changed.">
+        <source>BTCPay Server Plugin: Settings have not changed.</source>
+        <target state="final">BTCPay Server: le impostazioni non sono cambiate.</target>
+      </trans-unit>
+      <trans-unit id="9" resname="BTCPay Server Plugin: Could not remove webhook from the server. Please double check it is actually gone.">
+        <source>BTCPay Server Plugin: Could not remove webhook from the server. Please double check it is actually gone.</source>
+        <target state="final">BTCPay Server: non è stato possibile rimuovere il webhook dal server. Controlla che sia stato davvero eliminato.</target>
+      </trans-unit>
+      <trans-unit id="10" resname="BTCPay Server plugin: API key has been removed">
+        <source>BTCPay Server plugin: API key has been removed</source>
+        <target state="final">BTCPay Server: la chiave API è stata rimossa</target>
+      </trans-unit>
+      <trans-unit id="11" resname="BTCPay Server Plugin: Settings have been saved.">
+        <source>BTCPay Server Plugin: Settings have been saved.</source>
+        <target state="final">BTCPay Server: impostazioni salvate.</target>
+      </trans-unit>
+      <trans-unit id="12" resname="Did not receive data from BTCPay Server. If you received an &lt;strong&gt;Invalid Token&lt;/strong&gt; page, make sure to properly setup PrestaShop and BTCPay Server (publicly accessible and HTTPS enabled). Please try again once done or use the API key option.">
+        <source>Did not receive data from BTCPay Server. If you received an &lt;strong&gt;Invalid Token&lt;/strong&gt; page, make sure to properly setup PrestaShop and BTCPay Server (publicly accessible and HTTPS enabled). Please try again once done or use the API key option.</source>
+        <target state="final">Nessun dato ricevuto da BTCPay Server. Se hai visto la pagina &lt;strong&gt;Invalid Token&lt;/strong&gt;, verifica che PrestaShop e BTCPay Server siano configurati correttamente (raggiungibili pubblicamente e con HTTPS attivo), poi riprova oppure inserisci la chiave API a mano.</target>
+      </trans-unit>
+      <trans-unit id="13" resname="BTCPay server version is too low. Expected %s or higher, received %s.">
+        <source>BTCPay server version is too low. Expected %s or higher, received %s.</source>
+        <target state="final">La versione di BTCPay Server è troppo vecchia. Richiesta %s o successiva, trovata %s.</target>
+      </trans-unit>
+      <trans-unit id="14" resname="This plugin expects a payment method to have been setup for store '%s'.">
+        <source>This plugin expects a payment method to have been setup for store '%s'.</source>
+        <target state="final">Il modulo richiede che nel negozio '%s' sia configurato almeno un metodo di pagamento.</target>
+      </trans-unit>
+      <trans-unit id="15" resname="BTCPay Server plugin: %s">
+        <source>BTCPay Server plugin: %s</source>
+        <target state="final">BTCPay Server: %s</target>
+      </trans-unit>
+      <trans-unit id="16" resname="BTCPay Server plugin: Your store and server have been linked!">
+        <source>BTCPay Server plugin: Your store and server have been linked!</source>
+        <target state="final">BTCPay Server: negozio e server collegati.</target>
+      </trans-unit>
+      <trans-unit id="17" resname="Low">
+        <source>Low</source>
+        <target state="final">Bassa</target>
+      </trans-unit>
+      <trans-unit id="18" resname="Medium">
+        <source>Medium</source>
+        <target state="final">Media</target>
+      </trans-unit>
+      <trans-unit id="19" resname="High">
+        <source>High</source>
+        <target state="final">Alta</target>
+      </trans-unit>
+      <trans-unit id="20" resname="Transaction speed">
+        <source>Transaction speed</source>
+        <target state="final">Velocità della transazione</target>
+      </trans-unit>
+      <trans-unit id="21" resname="Determines the transaction fee that we recommend to the customer.">
+        <source>Determines the transaction fee that we recommend to the customer.</source>
+        <target state="final">Determina la commissione di rete consigliata al cliente.</target>
+      </trans-unit>
+      <trans-unit id="22" resname="Order before payment">
+        <source>Order before payment</source>
+        <target state="final">Ordine prima del pagamento</target>
+      </trans-unit>
+      <trans-unit id="23" resname="Order after payment">
+        <source>Order after payment</source>
+        <target state="final">Ordine dopo il pagamento</target>
+      </trans-unit>
+      <trans-unit id="24" resname="Order creation method">
+        <source>Order creation method</source>
+        <target state="final">Creazione dell'ordine</target>
+      </trans-unit>
+      <trans-unit id="25" resname="Will we create the order as soon as the user gets redirect to BTCPay Server or do we wait for the webhook.">
+        <source>Will we create the order as soon as the user gets redirect to BTCPay Server or do we wait for the webhook.</source>
+        <target state="final">Indica se l'ordine viene creato appena il cliente viene mandato a BTCPay Server oppure solo quando arriva la notifica (webhook) di pagamento.</target>
+      </trans-unit>
+      <trans-unit id="26" resname="Yes">
+        <source>Yes</source>
+        <target state="final">Sì</target>
+      </trans-unit>
+      <trans-unit id="27" resname="No">
+        <source>No</source>
+        <target state="final">No</target>
+      </trans-unit>
+      <trans-unit id="28" resname="Protect order status">
+        <source>Protect order status</source>
+        <target state="final">Proteggi lo stato dell'ordine</target>
+      </trans-unit>
+      <trans-unit id="29" resname='Will protect the order status from changing to "failed" if it already has a "paid" order state. This will protect an order from being cancelled via webhook, if it was paid via a different payment gateway.'>
+        <source>Will protect the order status from changing to "failed" if it already has a "paid" order state. This will protect an order from being cancelled via webhook, if it was paid via a different payment gateway.</source>
+        <target state="final">Impedisce che un ordine già in uno stato "pagato" passi a "non riuscito". Così un ordine pagato con un altro metodo non viene annullato da una notifica (webhook).</target>
+      </trans-unit>
+      <trans-unit id="30" resname="Send customer data to BTCPay Server">
+        <source>Send customer data to BTCPay Server</source>
+        <target state="final">Invia i dati del cliente a BTCPay Server</target>
+      </trans-unit>
+      <trans-unit id="31" resname="If you want customer email, address, etc. sent to BTCPay Server enable this option. By default for privacy and GDPR reasons this is disabled.">
+        <source>If you want customer email, address, etc. sent to BTCPay Server enable this option. By default for privacy and GDPR reasons this is disabled.</source>
+        <target state="final">Attiva questa opzione se vuoi inviare a BTCPay Server nome, indirizzo e telefono del cliente. Per privacy e GDPR è disattivata in modo predefinito (l'email del cliente viene comunque inviata).</target>
+      </trans-unit>
+      <trans-unit id="32" resname="BTCPay Server URL">
+        <source>BTCPay Server URL</source>
+        <target state="final">Indirizzo di BTCPay Server</target>
+      </trans-unit>
+      <trans-unit id="33" resname="The URL/host to your BTCPay Server instance. Make sure your node is reachable from the internet.">
+        <source>The URL/host to your BTCPay Server instance. Make sure your node is reachable from the internet.</source>
+        <target state="final">L'indirizzo (URL) della tua istanza BTCPay Server. Deve essere raggiungibile da internet.</target>
+      </trans-unit>
+      <trans-unit id="34" resname="BTCPay Server API key">
+        <source>BTCPay Server API key</source>
+        <target state="final">Chiave API di BTCPay Server</target>
+      </trans-unit>
+      <trans-unit id="35" resname="Keep blank to be redirected for authentication">
+        <source>Keep blank to be redirected for authentication</source>
+        <target state="final">Lascia vuoto per essere rimandato a BTCPay Server e creare la chiave</target>
+      </trans-unit>
+      <trans-unit id="36" resname="Removing the API key will disconnect your store">
+        <source>Removing the API key will disconnect your store</source>
+        <target state="final">Se rimuovi la chiave API il negozio viene scollegato</target>
+      </trans-unit>
+      <trans-unit id="37" resname='A new version of this module (%version%) has been released on GitHub. &lt;a href="%url%" class="alert-link" target="_blank" rel="noopener noreferrer nofollow"&gt;Click here to check it out.&lt;/a&gt;'>
+        <source>A new version of this module (%version%) has been released on GitHub. &lt;a href="%url%" class="alert-link" target="_blank" rel="noopener noreferrer nofollow"&gt;Click here to check it out.&lt;/a&gt;</source>
+        <target state="final">Su GitHub è stata pubblicata una nuova versione di questo modulo (%version%). &lt;a href="%url%" class="alert-link" target="_blank" rel="noopener noreferrer nofollow"&gt;Clicca qui per vederla.&lt;/a&gt;</target>
+      </trans-unit>
+      <trans-unit id="38" resname='Your BTCPay Server store has no fallback rate provider. If the primary rate source fails, invoices cannot be created. &lt;a href="%url%" class="alert-link" target="_blank" rel="noopener noreferrer nofollow"&gt;Configure a fallback rate in BTCPay Server&lt;/a&gt;.'>
+        <source>Your BTCPay Server store has no fallback rate provider. If the primary rate source fails, invoices cannot be created. &lt;a href="%url%" class="alert-link" target="_blank" rel="noopener noreferrer nofollow"&gt;Configure a fallback rate in BTCPay Server&lt;/a&gt;.</source>
+        <target state="final">Il negozio BTCPay Server non ha una fonte di cambio di riserva. Se la fonte principale non risponde, non si possono creare fatture. &lt;a href="%url%" class="alert-link" target="_blank" rel="noopener noreferrer nofollow"&gt;Configura una fonte di cambio di riserva in BTCPay Server&lt;/a&gt;.</target>
+      </trans-unit>
+      <trans-unit id="39" resname="BTCPay Server - Payment module - v%version%">
+        <source>BTCPay Server - Payment module - v%version%</source>
+        <target state="final">BTCPay Server - Modulo di pagamento - v%version%</target>
+      </trans-unit>
+      <trans-unit id="40" resname="BTCPay Server logo">
+        <source>BTCPay Server logo</source>
+        <target state="final">Logo di BTCPay Server</target>
+      </trans-unit>
+      <trans-unit id="41" resname='To be able to use this payment module you need to have a BTCPay Server instance, either &lt;a href="https://docs.btcpayserver.org/Deployment/" target="_blank" rel="noopener noreferrer nofollow"&gt;self-hosted&lt;/a&gt; or &lt;a href="https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/" target="_blank" rel="noopener noreferrer nofollow"&gt;hosted by a third-party&lt;/a&gt;.'>
+        <source>To be able to use this payment module you need to have a BTCPay Server instance, either &lt;a href="https://docs.btcpayserver.org/Deployment/" target="_blank" rel="noopener noreferrer nofollow"&gt;self-hosted&lt;/a&gt; or &lt;a href="https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/" target="_blank" rel="noopener noreferrer nofollow"&gt;hosted by a third-party&lt;/a&gt;.</source>
+        <target state="final">Per usare questo modulo serve un'istanza BTCPay Server, &lt;a href="https://docs.btcpayserver.org/Deployment/" target="_blank" rel="noopener noreferrer nofollow"&gt;installata in proprio&lt;/a&gt; oppure &lt;a href="https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/" target="_blank" rel="noopener noreferrer nofollow"&gt;ospitata da terzi&lt;/a&gt;.</target>
+      </trans-unit>
+      <trans-unit id="42" resname='Furthermore, you must have &lt;a href="https://docs.btcpayserver.org/RegisterAccount" target="_blank" rel="noopener noreferrer nofollow"&gt;a registered account on the instance&lt;/a&gt;, &lt;a href="https://docs.btcpayserver.org/CreateStore" target="_blank" rel="noopener noreferrer nofollow"&gt;an actual store on the instance&lt;/a&gt; and &lt;a href="https://docs.btcpayserver.org/WalletSetup" target="_blank" rel="noopener noreferrer nofollow"&gt;a wallet connected to your store&lt;/a&gt;.'>
+        <source>Furthermore, you must have &lt;a href="https://docs.btcpayserver.org/RegisterAccount" target="_blank" rel="noopener noreferrer nofollow"&gt;a registered account on the instance&lt;/a&gt;, &lt;a href="https://docs.btcpayserver.org/CreateStore" target="_blank" rel="noopener noreferrer nofollow"&gt;an actual store on the instance&lt;/a&gt; and &lt;a href="https://docs.btcpayserver.org/WalletSetup" target="_blank" rel="noopener noreferrer nofollow"&gt;a wallet connected to your store&lt;/a&gt;.</source>
+        <target state="final">Servono inoltre &lt;a href="https://docs.btcpayserver.org/RegisterAccount" target="_blank" rel="noopener noreferrer nofollow"&gt;un account registrato sull'istanza&lt;/a&gt;, &lt;a href="https://docs.btcpayserver.org/CreateStore" target="_blank" rel="noopener noreferrer nofollow"&gt;un negozio (store) sull'istanza&lt;/a&gt; e &lt;a href="https://docs.btcpayserver.org/WalletSetup" target="_blank" rel="noopener noreferrer nofollow"&gt;un portafoglio (wallet) collegato al negozio&lt;/a&gt;.</target>
+      </trans-unit>
+      <trans-unit id="43" resname='For additional information, check out &lt;a href="https://docs.btcpayserver.org/PrestaShop/" target="_blank" rel="noopener noreferrer nofollow"&gt;the documentation&lt;/a&gt;.'>
+        <source>For additional information, check out &lt;a href="https://docs.btcpayserver.org/PrestaShop/" target="_blank" rel="noopener noreferrer nofollow"&gt;the documentation&lt;/a&gt;.</source>
+        <target state="final">Per altre informazioni consulta &lt;a href="https://docs.btcpayserver.org/PrestaShop/" target="_blank" rel="noopener noreferrer nofollow"&gt;la documentazione&lt;/a&gt;.</target>
+      </trans-unit>
+      <trans-unit id="44" resname="Server">
+        <source>Server</source>
+        <target state="final">Server</target>
+      </trans-unit>
+      <trans-unit id="45" resname="Setup information">
+        <source>Setup information</source>
+        <target state="final">Istruzioni di configurazione</target>
+      </trans-unit>
+      <trans-unit id="46" resname="The quickest way to get the plugin working is to set the proper &lt;em&gt;BTCPay Server URL&lt;/em&gt; and press save. You will be redirected to your BTCPay Server where you will be guided through the API key creation process. Once the key is created, you'll be redirected back to PrestaShop.">
+        <source>The quickest way to get the plugin working is to set the proper &lt;em&gt;BTCPay Server URL&lt;/em&gt; and press save. You will be redirected to your BTCPay Server where you will be guided through the API key creation process. Once the key is created, you'll be redirected back to PrestaShop.</source>
+        <target state="final">Il modo più rapido per attivare il modulo è inserire l'&lt;em&gt;indirizzo di BTCPay Server&lt;/em&gt; e salvare. Verrai mandato al tuo BTCPay Server, che ti guiderà nella creazione della chiave API; poi tornerai su PrestaShop.</target>
+      </trans-unit>
+      <trans-unit id="47" resname="Redirecting back from BTCPay Server sometimes fails due to PrestaShop weirdness. If it does, you can still use this plugin by copying the API key from &lt;code&gt;/account/apikeys&lt;/code&gt; and pasting it in the form.">
+        <source>Redirecting back from BTCPay Server sometimes fails due to PrestaShop weirdness. If it does, you can still use this plugin by copying the API key from &lt;code&gt;/account/apikeys&lt;/code&gt; and pasting it in the form.</source>
+        <target state="final">A volte il ritorno da BTCPay Server a PrestaShop non riesce. In quel caso copia la chiave API da &lt;code&gt;/account/apikeys&lt;/code&gt; e incollala nel modulo.</target>
+      </trans-unit>
+      <trans-unit id="48" resname="If preferred, you can also make an API key yourself by pressing the button below (&lt;em&gt;make sure your BTCPay Server URL is correct, first&lt;/em&gt;) or by creating it at &lt;code&gt;/account/addapikey&lt;/code&gt;. If you are going to make an API key yourself, make sure that it has the following permissions for a &lt;em&gt;singular&lt;/em&gt; store:">
+        <source>If preferred, you can also make an API key yourself by pressing the button below (&lt;em&gt;make sure your BTCPay Server URL is correct, first&lt;/em&gt;) or by creating it at &lt;code&gt;/account/addapikey&lt;/code&gt;. If you are going to make an API key yourself, make sure that it has the following permissions for a &lt;em&gt;singular&lt;/em&gt; store:</source>
+        <target state="final">Puoi anche creare la chiave API da solo con il pulsante qui sotto (&lt;em&gt;prima controlla che l'indirizzo di BTCPay Server sia corretto&lt;/em&gt;) oppure da &lt;code&gt;/account/addapikey&lt;/code&gt;. In quel caso la chiave deve avere questi permessi su &lt;em&gt;un solo&lt;/em&gt; negozio:</target>
+      </trans-unit>
+      <trans-unit id="49" resname="Visit Dashboard">
+        <source>Visit Dashboard</source>
+        <target state="final">Apri BTCPay Server</target>
+      </trans-unit>
+      <trans-unit id="50" resname="Create API key">
+        <source>Create API key</source>
+        <target state="final">Crea la chiave API</target>
+      </trans-unit>
+      <trans-unit id="51" resname="Store Information">
+        <source>Store Information</source>
+        <target state="final">Dati del negozio</target>
+      </trans-unit>
+      <trans-unit id="52" resname="Linked Store">
+        <source>Linked Store</source>
+        <target state="final">Negozio collegato</target>
+      </trans-unit>
+      <trans-unit id="53" resname="Default speed policy">
+        <source>Default speed policy</source>
+        <target state="final">Velocità predefinita</target>
+      </trans-unit>
+      <trans-unit id="54" resname="Invoice expiration time">
+        <source>Invoice expiration time</source>
+        <target state="final">Scadenza della fattura</target>
+      </trans-unit>
+      <trans-unit id="55" resname="Invoice monitoring expiration time">
+        <source>Invoice monitoring expiration time</source>
+        <target state="final">Durata del controllo dei pagamenti</target>
+      </trans-unit>
+      <trans-unit id="56" resname="Default currency">
+        <source>Default currency</source>
+        <target state="final">Valuta predefinita</target>
+      </trans-unit>
+      <trans-unit id="57" resname="Fallback rate provider">
+        <source>Fallback rate provider</source>
+        <target state="final">Fonte di cambio di riserva</target>
+      </trans-unit>
+      <trans-unit id="58" resname="Configure in BTCPay Server">
+        <source>Configure in BTCPay Server</source>
+        <target state="final">Configura in BTCPay Server</target>
+      </trans-unit>
+      <trans-unit id="59" resname="Unable to check (requires BTCPay Server 2.1.2+)">
+        <source>Unable to check (requires BTCPay Server 2.1.2+)</source>
+        <target state="final">Impossibile verificare (serve BTCPay Server 2.1.2 o successivo)</target>
+      </trans-unit>
+      <trans-unit id="60" resname="Server Information">
+        <source>Server Information</source>
+        <target state="final">Dati del server</target>
+      </trans-unit>
+      <trans-unit id="61" resname="Version">
+        <source>Version</source>
+        <target state="final">Versione</target>
+      </trans-unit>
+      <trans-unit id="62" resname="Webhook">
+        <source>Webhook</source>
+        <target state="final">Webhook</target>
+      </trans-unit>
+      <trans-unit id="63" resname="Webhook has been disabled, re-enable it in your store">
+        <source>Webhook has been disabled, re-enable it in your store</source>
+        <target state="final">Il webhook è disattivato: riattivalo nel negozio BTCPay Server</target>
+      </trans-unit>
+      <trans-unit id="64" resname="Webhook is missing, retry the setup process">
+        <source>Webhook is missing, retry the setup process</source>
+        <target state="final">Il webhook manca: ripeti la configurazione</target>
+      </trans-unit>
+      <trans-unit id="65" resname="Node fully synced">
+        <source>Node fully synced</source>
+        <target state="final">Nodo sincronizzato</target>
+      </trans-unit>
+      <trans-unit id="66" resname="The payment option will not be available until the server is synced">
+        <source>The payment option will not be available until the server is synced</source>
+        <target state="final">Il metodo di pagamento non sarà disponibile finché il server non è sincronizzato</target>
+      </trans-unit>
+      <trans-unit id="67" resname="Supported payment methods">
+        <source>Supported payment methods</source>
+        <target state="final">Metodi di pagamento supportati</target>
+      </trans-unit>
+      <trans-unit id="68" resname="LNURL">
+        <source>LNURL</source>
+        <target state="final">LNURL</target>
+      </trans-unit>
+      <trans-unit id="69" resname="Lightning">
+        <source>Lightning</source>
+        <target state="final">Lightning</target>
+      </trans-unit>
+      <trans-unit id="70" resname="On-Chain">
+        <source>On-Chain</source>
+        <target state="final">On-chain</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
