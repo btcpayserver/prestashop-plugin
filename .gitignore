@@ -17,6 +17,7 @@ btcpay.zip
 /development/.env
 /development/docker-compose.override.yml
 docker-compose.override.yml
+/development/.bitcoin-cli-feerate
 
 # Ignore files in the module that are added via `make`
 /modules/btcpay/LICENSE

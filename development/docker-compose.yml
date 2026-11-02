@@ -104,6 +104,7 @@ services:
         whitelist=0.0.0.0/0
         maxmempool=500
         prune=50000
+        fallbackfee=0.00001
     ports: [ "18443:43782" ]
     volumes:
       - "bitcoin_datadir:/data"
