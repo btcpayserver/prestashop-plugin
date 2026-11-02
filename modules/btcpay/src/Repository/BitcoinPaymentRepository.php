@@ -107,9 +107,15 @@ class BitcoinPaymentRepository
 			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
 		}
 
-		if (false === ($object = $result->fetchObject(BitcoinPayment::class))) {
+		// Don't fetchObject() into ObjectModel: PDO sets columns before the
+		// constructor, and ObjectModel then overwrites them from $loaded_classes.
+		$row = $result->fetch(\PDO::FETCH_ASSOC);
+		if (false === $row) {
 			return null;
 		}
+
+		$object = new BitcoinPayment();
+		$object->hydrate($row);
 
 		return $object;
 	}
