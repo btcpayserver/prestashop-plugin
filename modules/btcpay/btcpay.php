@@ -486,6 +486,11 @@ class BTCPay extends PaymentModule
 
 	private function displayModuleWarnings(): void
 	{
+		// Remote warning checks belong in the back office only (module list / configure)
+		if (!\defined('_PS_ADMIN_DIR_') || Tools::isPHPCLI() || Tools::getIsset('ajax')) {
+			return;
+		}
+
 		// Try and create the client
 		$client = Client::createFromConfiguration($this->configuration);
 
