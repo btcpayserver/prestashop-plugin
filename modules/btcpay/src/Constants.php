@@ -41,6 +41,7 @@ class Constants
 	public const CONFIGURATION_BTCPAY_STORE_ID       = 'BTCPAY_STORE_ID';
 	public const CONFIGURATION_BTCPAY_WEBHOOK_ID     = 'BTCPAY_WEBHOOK_ID';
 	public const CONFIGURATION_BTCPAY_WEBHOOK_SECRET = 'BTCPAY_WEBHOOK_SECRET';
+	public const CONFIGURATION_BTCPAY_AUTH_CALLBACK  = 'BTCPAY_AUTH_CALLBACK';
 
 	// Default values
 	public const CONFIGURATION_DEFAULT_HOST = 'https://testnet.demo.btcpayserver.org';
