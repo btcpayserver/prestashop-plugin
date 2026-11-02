@@ -29,7 +29,6 @@ class GeneralType extends TranslatorAwareType
 					$this->trans('High', 'Modules.Btcpay.Admin')   => InvoiceCheckoutOptions::SPEED_HIGH,
 				],
 				'label'      => $this->trans('Transaction speed', 'Modules.Btcpay.Admin'),
-				'help'       => $this->trans('Determines the transaction fee that we recommend to the customer.', 'Modules.Btcpay.Admin'),
 				'empty_data' => InvoiceCheckoutOptions::SPEED_MEDIUM,
 			])
 			->add('orderMode', ChoiceType::class, [
