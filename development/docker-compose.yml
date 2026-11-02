@@ -59,7 +59,7 @@ services:
     command: [ "start", "--config", "/var/lib/ngrok/ngrok.yml", "btcpayserver" ]
 
   btcpayserver:
-    image: btcpayserver/btcpayserver:2.3.3
+    image: btcpayserver/btcpayserver:2.4.7
     platform: linux/amd64
     restart: unless-stopped
     env_file: [ btcpayserver/btcpayserver.env ]
@@ -86,8 +86,12 @@ services:
       - "nbxplorer_datadir:/root/.nbxplorer"
 
   bitcoind:
-    image: btcpayserver/bitcoin:29.1
+    image: btcpayserver/bitcoin:32.1
     platform: linux/amd64
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
     environment:
       BITCOIN_NETWORK: ${NBITCOIN_NETWORK:-regtest}
       CREATE_WALLET: "false"
@@ -111,7 +115,7 @@ services:
       timeout: 5s
 
   nbxplorer:
-    image: nicolasdorier/nbxplorer:2.5.30-1
+    image: nicolasdorier/nbxplorer:2.6.21
     platform: linux/amd64
     environment:
       NBXPLORER_NETWORK: ${NBITCOIN_NETWORK:-regtest}
@@ -132,10 +136,12 @@ services:
         condition: service_healthy
 
   postgres:
-    image: btcpayserver/postgres:13.18
+    image: btcpayserver/postgres:18.6
     platform: linux/amd64
+    shm_size: 256mb
+    command: [ "-c", "random_page_cost=1.0", "-c", "shared_preload_libraries=pg_stat_statements" ]
     environment: { POSTGRES_HOST_AUTH_METHOD: trust }
-    volumes: [ "postgres_datadir:/var/lib/postgresql/data" ]
+    volumes: [ "postgres_datadir:/var/lib/postgresql" ]
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
