@@ -18,6 +18,8 @@ class Constants
 	// Cache configuration
 	public const LASTEST_VERSION_CACHE_KEY        = 'BTCPAY_LATEST_VERSION';
 	public const LASTEST_VERSION_CACHE_EXPIRATION = 60 * 60 * 24 * 7; // 7 days
+	public const CACHE_IS_VALID                   = 'BTCPAY_IS_VALID';
+	public const CACHE_SERVER_INFO                = 'BTCPAY_SERVER_INFO';
 	public const CACHE_UNREACHABLE                = 'BTCPAY_UNREACHABLE';
 
 	// GitHub API endpoint for releases

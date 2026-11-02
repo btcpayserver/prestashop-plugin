@@ -412,7 +412,7 @@ class BTCPay extends PaymentModule
 
 		try {
 			// If the server is not fully synced, do not show the option
-			if (!$client->server()->getInfo()->isFullySynced()) {
+			if (!$client->serverInfo()->isFullySynced()) {
 				return [];
 			}
 
@@ -498,7 +498,7 @@ class BTCPay extends PaymentModule
 			// Show warning if API key is missing or if we're not yet fully synced
 			if (null === $client || empty($this->configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY))) {
 				$this->warning = $this->trans('Your BTCPay Server store has not yet been linked, payment option is unavailable.', [], 'Modules.Btcpay.Admin');
-			} elseif (!$client->server()->getInfo()->isFullySynced()) {
+			} elseif (!$client->serverInfo()->isFullySynced()) {
 				$this->warning = $this->trans('One (or more) coins are not yet synced, payment option will be unavailable until the sync has finished.', [], 'Modules.Btcpay.Admin');
 			} elseif (!empty($storeId = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))
 				&& RateFallbackStatus::resolve($client->storeRate(), (string) $storeId)->isMissing()) {
