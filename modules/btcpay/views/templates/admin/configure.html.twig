@@ -104,7 +104,20 @@
 
             <div class="card-body">
               <div class="card-text">
-                {{ form_row(general_form.speed) }}
+                {% set speedHelp %}
+                  {{- 'Controls the confirmations required for on-chain payments.'|trans({}, 'Modules.Btcpay.Admin') -}}
+                  <div class="collapse mt-1" id="btcpay-transaction-speed-help">
+                    <span class="d-block mb-1">{{ 'High accepts eligible payments with 0 confirmations; BTCPay Server waits for 1 confirmation when a transaction is flagged for Replace-By-Fee (RBF).'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                    <span class="d-block mb-1">{{ 'Unconfirmed payments can still be replaced or double-spent, including via full RBF. Shipping goods or automatically delivering digital products before confirmation risks fulfilling unpaid orders.'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                    <span class="d-block">{{ 'Choose Medium or Low to require confirmations.'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                  </div>
+                  <div class="read-more-container">
+                    <button type="button" class="read-more btn-link" data-toggle="collapse" data-target="#btcpay-transaction-speed-help" aria-expanded="false" aria-controls="btcpay-transaction-speed-help">
+                      {{ 'Read more'|trans({}, 'Admin.Actions') }}
+                    </button>
+                  </div>
+                {% endset %}
+                {{ form_row(general_form.speed, {help: speedHelp}) }}
                 {{ form_row(general_form.orderMode) }}
                 {{ form_row(general_form.protectOrders) }}
                 {{ form_row(general_form.shareMetadata) }}
