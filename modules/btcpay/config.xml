@@ -2,7 +2,7 @@
 <module>
     <name>btcpay</name>
     <displayName><![CDATA[BTCPay Server]]></displayName>
-    <version><![CDATA[6.1.0]]></version>
+    <version><![CDATA[6.3.4]]></version>
     <description><![CDATA[Accept crypto payments via BTCPay Server.]]></description>
     <author><![CDATA[BTCPay Server]]></author>
     <tab><![CDATA[payments_gateways]]></tab>
