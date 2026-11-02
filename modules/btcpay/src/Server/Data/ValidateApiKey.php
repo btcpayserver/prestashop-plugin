@@ -30,7 +30,9 @@ class ValidateApiKey
 	public function __construct(ParameterBag $request)
 	{
 		$this->apiKey      = $request->get('apiKey');
-		$this->permissions = $request->get('permissions', []);
+		$this->permissions = \version_compare(\_PS_VERSION_, '9.0.0', '>=')
+			? ($request->all()['permissions'] ?? [])
+			: $request->get('permissions', []);
 	}
 
 	public function getApiKey(): ?string
