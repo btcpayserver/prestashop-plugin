@@ -7,6 +7,7 @@ use BTCPay\Constants;
 use BTCPay\Form\Data\General;
 use BTCPay\Form\Data\Server;
 use BTCPay\Github\Versioning;
+use BTCPay\Server\AuthorizationToken;
 use BTCPay\Server\Client;
 use BTCPay\Server\Data\ValidateApiKey;
 use BTCPay\Server\RateFallbackStatus;
@@ -227,6 +228,13 @@ class ConfigureController extends FrameworkBundleAdminController
 	 */
 	public function validateAPIKeyAction(Request $request): Response
 	{
+		// Anonymous callbacks may only change configuration for a pending authorization.
+		$token = $request->query->all()['btcpay_state'] ?? null;
+		if (!$request->isMethod('POST') || !\is_string($token)
+			|| !(new AuthorizationToken($this->getConfiguration()))->consume($token)) {
+			return new Response('Invalid or expired BTCPay authorization callback.', Response::HTTP_FORBIDDEN);
+		}
+
 		// If we received an empty post we probably hit the PrestaShop security check
 		if (empty($request->request->all())) {
 			$this->addFlash('error', 'Did not receive data from BTCPay Server. If you received an <strong>Invalid Token</strong> page, make sure to properly setup PrestaShop and BTCPay Server (publicly accessible and HTTPS enabled). Please try again once done or use the API key option.');
@@ -400,7 +408,11 @@ class ConfigureController extends FrameworkBundleAdminController
 	{
 		// Get the store name and build the redirect URL
 		$storeName   = $this->getContext()->shop->name;
-		$redirectUrl = $this->getAdminLink('btcpay', ['route' => 'admin_btcpay_validate'], true);
+		$token = (new AuthorizationToken($this->getConfiguration()))->issue();
+		$redirectUrl = $this->getAdminLink('btcpay', [
+			'route'        => 'admin_btcpay_validate',
+			'btcpay_state' => $token,
+		], true);
 
 		// Create the authorization URL (with redirect)
 		$authorizeUrl = ApiKey::getAuthorizeUrl($configuration->getHost(), Constants::BTCPAY_PERMISSIONS, $storeName, true, true, $redirectUrl, $storeName);

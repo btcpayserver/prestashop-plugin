@@ -32,5 +32,6 @@ admin_btcpay_validate:
     _disable_module_prefix: true
     # BTCPay redirects the browser back with a cross-site POST. Browsers do not send
     # SameSite=Lax session cookies on such requests, so the CSRF token stored in the
-    # session cannot be validated. The API key in the POST body authenticates the call.
+    # session cannot be validated. A single-use, expiring btcpay_state query token
+    # authorizes configuration changes before the posted API key is validated.
     _anonymous_controller: true
