@@ -30,3 +30,15 @@ admin_btcpay_validate:
     _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::validateAPIKeyAction'
     _legacy_controller: AdminConfigureBTCPay
     _disable_module_prefix: true
+    # Cross-site BTCPay POST omits SameSite=Lax admin cookies; btcpay_state authorizes the callback.
+    _anonymous_controller: true
+
+# GET after the anonymous POST so SameSite=Lax restores the admin session before flashes/redirect.
+admin_btcpay_authorization_complete:
+  path: /btcpay/api-key/complete
+  methods: [GET]
+  defaults:
+    _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::completeAuthorizationAction'
+    _legacy_controller: AdminConfigureBTCPay
+    _disable_module_prefix: true
+    _anonymous_controller: true

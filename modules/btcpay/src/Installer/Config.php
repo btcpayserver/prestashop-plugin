@@ -61,6 +61,7 @@ class Config
 			|| !$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_STORE_ID)
 			|| !$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID)
 			|| !$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET)
+			|| !$this->configuration->remove(Constants::CONFIGURATION_BTCPAY_AUTH_CALLBACK)
 			|| !$this->configuration->remove(Constants::CONFIGURATION_SHARE_METADATA)) {
 			return [
 				[
