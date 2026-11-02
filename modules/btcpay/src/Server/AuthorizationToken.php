@@ -22,30 +22,49 @@ class AuthorizationToken
 
 	public function issue(): string
 	{
+		return $this->store('authorize', \time() + self::LIFETIME);
+	}
+
+	/**
+	 * @param list<array{type: string, message: string}> $messages
+	 */
+	public function complete(array $messages, int $expires): string
+	{
+		return $this->store('complete', $expires, $messages);
+	}
+
+	/**
+	 * @param list<array{type: string, message: string}> $messages
+	 */
+	private function store(string $purpose, int $expires, array $messages = []): string
+	{
 		$token = \bin2hex(\random_bytes(32));
 		$this->configuration->set(Constants::CONFIGURATION_BTCPAY_AUTH_CALLBACK, \json_encode([
-			'hash'    => \hash('sha256', $token),
-			'expires' => \time() + self::LIFETIME,
-			'host'    => $this->configuration->get(Constants::CONFIGURATION_BTCPAY_HOST),
+			'hash' => \hash('sha256', $token),
+			'expires' => $expires,
+			'purpose' => $purpose,
+			'messages' => $messages,
+			'host' => $this->configuration->get(Constants::CONFIGURATION_BTCPAY_HOST),
 		], \JSON_THROW_ON_ERROR));
 
 		return $token;
 	}
 
-	public function consume(string $token): bool
+	public function consume(string $token, string $purpose = 'authorize'): ?array
 	{
 		if (1 !== \preg_match('/\A[a-f0-9]{64}\z/', $token)) {
-			return false;
+			return null;
 		}
 
 		$stored = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_AUTH_CALLBACK);
 		$data = \is_string($stored) ? \json_decode($stored, true) : null;
-		if (!\is_array($data) || !isset($data['hash'], $data['expires'], $data['host'])
+		if (!\is_array($data) || !isset($data['hash'], $data['expires'], $data['host'], $data['purpose'], $data['messages'])
+			|| $data['purpose'] !== $purpose || !\is_array($data['messages'])
 			|| !\is_string($data['hash']) || !\is_int($data['expires'])
 			|| $data['expires'] <= \time() || $data['expires'] > \time() + self::LIFETIME
 			|| $data['host'] !== $this->configuration->get(Constants::CONFIGURATION_BTCPAY_HOST)
 			|| !\hash_equals($data['hash'], \hash('sha256', $token))) {
-			return false;
+			return null;
 		}
 
 		// Compare and clear in the database: concurrent callbacks must not both win.
@@ -58,6 +77,10 @@ class AuthorizationToken
 			\pSQL($stored)
 		);
 
-		return $db->execute($sql) && 1 === (int) $db->Affected_Rows();
+		if (!$db->execute($sql) || 1 !== (int) $db->Affected_Rows()) {
+			return null;
+		}
+
+		return $data;
 	}
 }

@@ -231,21 +231,20 @@ class ConfigureController extends FrameworkBundleAdminController
 		// Anonymous callbacks may only change configuration for a pending authorization.
 		$token = $request->query->all()['btcpay_state'] ?? null;
 		if (!$request->isMethod('POST') || !\is_string($token)
-			|| !(new AuthorizationToken($this->getConfiguration()))->consume($token)) {
+			|| null === ($authorization = (new AuthorizationToken($this->getConfiguration()))->consume($token))) {
 			return new Response('Invalid or expired BTCPay authorization callback.', Response::HTTP_FORBIDDEN);
 		}
 
-		// If we received an empty post we probably hit the PrestaShop security check
+		// Keep flash messages out of the cross-site POST's anonymous session.
+		$messages = [];
+
+		// Reject a callback without authorization data
 		if (empty($request->request->all())) {
-			$this->addFlash('error', 'Did not receive data from BTCPay Server. If you received an <strong>Invalid Token</strong> page, make sure to properly setup PrestaShop and BTCPay Server (publicly accessible and HTTPS enabled). Please try again once done or use the API key option.');
+			$messages[] = ['type' => 'error', 'message' => 'Did not receive data from BTCPay Server. If you received an <strong>Invalid Token</strong> page, make sure to properly setup PrestaShop and BTCPay Server (publicly accessible and HTTPS enabled). Please try again once done or use the API key option.'];
 
-			// Make sure to reset the API key, but only for POST requests. This route is
-			// anonymous, so a plain GET should not wipe an already configured API key.
-			if ($request->isMethod('POST')) {
-				$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
-			}
+			$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
 
-			return $this->redirectToRoute('admin_btcpay_configure');
+			return $this->redirectAfterAuthorization($messages, $authorization['expires']);
 		}
 
 		// Validate incoming request and return any errors we encounter
@@ -253,13 +252,13 @@ class ConfigureController extends FrameworkBundleAdminController
 		if (0 !== \count($errors = $this->validator->validate($validateRequest))) {
 			/** @var ConstraintViolationInterface $error */
 			foreach ($errors as $error) {
-				$this->addFlash('error', $error->getMessage());
+				$messages[] = ['type' => 'error', 'message' => $error->getMessage()];
 			}
 
 			// Make sure to reset the API key
 			$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
 
-			return $this->redirectToRoute('admin_btcpay_configure');
+			return $this->redirectAfterAuthorization($messages, $authorization['expires']);
 		}
 
 		// Build the client
@@ -271,42 +270,80 @@ class ConfigureController extends FrameworkBundleAdminController
 		try {
 			// Ensure we have a valid BTCPay Server version
 			if (null !== ($info = $client->server()->getInfo()) && \version_compare($info->getVersion(), Constants::MINIMUM_BTCPAY_VERSION, '<')) {
-				$this->addFlash('error', \sprintf('BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()));
+				$messages[] = ['type' => 'error', 'message' => \sprintf('BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion())];
 				PrestaShopLogger::addLog(\sprintf('[ERROR] BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				// Make sure to reset the API key
 				$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
 
-				return $this->redirectToRoute('admin_btcpay_configure');
+				return $this->redirectAfterAuthorization($messages, $authorization['expires']);
 			}
 
 			// Ensure we have a payment methods setup
 			if (empty($client->payment()->getPaymentMethods($storeId))) {
-				$this->addFlash('error', \sprintf("This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')));
+				$messages[] = ['type' => 'error', 'message' => \sprintf("This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name'))];
 				PrestaShopLogger::addLog(\sprintf("[ERROR] This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				// Make sure to reset the API key
 				$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
 
-				return $this->redirectToRoute('admin_btcpay_configure');
+				return $this->redirectAfterAuthorization($messages, $authorization['expires']);
 			}
 
 			// Ensure we have a webhook
 			$client->webhook()->ensureWebhook($storeId);
 		} catch (Throwable $throwable) {
-			$this->addFlash('error', \sprintf('BTCPay Server plugin: %s', $throwable->getMessage()));
+			$messages[] = ['type' => 'error', 'message' => \sprintf('BTCPay Server plugin: %s', $throwable->getMessage())];
 			PrestaShopLogger::addLog(\sprintf('[ERROR] An error occurred during configuration validation: %s', $throwable), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, $throwable->getCode());
 
-			return $this->redirectToRoute('admin_btcpay_configure');
+			return $this->redirectAfterAuthorization($messages, $authorization['expires']);
 		}
 
 		// Store the API key and store ID we received
 		$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, $validateRequest->getApiKey());
 		$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_STORE_ID, $storeId);
 
-		$this->addFlash('success', 'BTCPay Server plugin: Your store and server have been linked!');
+		$messages[] = ['type' => 'success', 'message' => 'BTCPay Server plugin: Your store and server have been linked!'];
 
-		return $this->redirectToRoute('admin_btcpay_configure');
+		return $this->redirectAfterAuthorization($messages, $authorization['expires']);
+	}
+
+	/**
+	 * Finish on a GET so SameSite=Lax cookies restore the original admin session.
+	 */
+	public function completeAuthorizationAction(Request $request): Response
+	{
+		$token = $request->query->all()['btcpay_state'] ?? null;
+		if (!$request->isMethod('GET') || !\is_string($token)
+			|| null === ($authorization = (new AuthorizationToken($this->getConfiguration()))->consume($token, 'complete'))) {
+			return new Response('Invalid or expired BTCPay authorization result.', Response::HTTP_FORBIDDEN);
+		}
+
+		foreach ($authorization['messages'] as $message) {
+			$this->addFlash($message['type'], $message['message']);
+		}
+
+		$response = $this->redirectToRoute('admin_btcpay_configure', [], Response::HTTP_SEE_OTHER);
+		$response->headers->set('Cache-Control', 'no-store');
+		$response->headers->set('Referrer-Policy', 'no-referrer');
+
+		return $response;
+	}
+
+	/**
+	 * @param list<array{type: string, message: string}> $messages
+	 */
+	private function redirectAfterAuthorization(array $messages, int $expires): RedirectResponse
+	{
+		$token = (new AuthorizationToken($this->getConfiguration()))->complete($messages, $expires);
+		// Bypass the tokenized router only for this anonymous, separately guarded route.
+		// Older PrestaShop versions would start a session even to generate its URL.
+		$url = $this->get('router')->getGenerator()->generate('admin_btcpay_authorization_complete', ['btcpay_state' => $token]);
+		$response = $this->redirect($url, Response::HTTP_SEE_OTHER);
+		$response->headers->set('Cache-Control', 'no-store');
+		$response->headers->set('Referrer-Policy', 'no-referrer');
+
+		return $response;
 	}
 
 	protected function getConfiguration(): ShopConfigurationInterface

@@ -35,3 +35,14 @@ admin_btcpay_validate:
     # session cannot be validated. A single-use, expiring btcpay_state query token
     # authorizes configuration changes before the posted API key is validated.
     _anonymous_controller: true
+
+# No session is written on the cross-site POST. This GET restores the browser's
+# admin session before adding flash messages and generating the settings URL.
+admin_btcpay_authorization_complete:
+  path: /btcpay/api-key/complete
+  methods: [GET]
+  defaults:
+    _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::completeAuthorizationAction'
+    _legacy_controller: AdminConfigureBTCPay
+    _disable_module_prefix: true
+    _anonymous_controller: true
