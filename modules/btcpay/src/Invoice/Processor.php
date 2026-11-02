@@ -348,7 +348,7 @@ class Processor
 	private function acquireOrderCreationLock(int $cartId): bool
 	{
 		$lockName = \sprintf('btcpay_order_cart_%d', $cartId);
-		$acquired = \Db::getInstance()->getValue(\sprintf("SELECT GET_LOCK('%s', %d)", $lockName, self::ORDER_CREATION_LOCK_TIMEOUT_SECONDS), false);
+		$acquired = \Db::getInstance()->getValue(\sprintf("SELECT GET_LOCK('%s', %d)", \pSQL($lockName), self::ORDER_CREATION_LOCK_TIMEOUT_SECONDS), false);
 
 		if ('1' === (string) $acquired) {
 			return true;
@@ -362,7 +362,7 @@ class Processor
 	private function releaseOrderCreationLock(int $cartId): void
 	{
 		$lockName = \sprintf('btcpay_order_cart_%d', $cartId);
-		\Db::getInstance()->getValue(\sprintf("SELECT RELEASE_LOCK('%s')", $lockName), false);
+		\Db::getInstance()->getValue(\sprintf("SELECT RELEASE_LOCK('%s')", \pSQL($lockName)), false);
 	}
 
 	/**
