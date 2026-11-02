@@ -29,7 +29,7 @@ class GeneralType extends TranslatorAwareType
 					$this->trans('High', 'Modules.Btcpay.Admin')   => InvoiceCheckoutOptions::SPEED_HIGH,
 				],
 				'label'      => $this->trans('Transaction speed', 'Modules.Btcpay.Admin'),
-				'help'       => $this->trans('Determines the transaction fee that we recommend to the customer.', 'Modules.Btcpay.Admin'),
+				'help'       => $this->trans('Controls the confirmations required for on-chain payments. High accepts eligible payments with 0 confirmations; BTCPay Server waits for 1 confirmation when a transaction is flagged for Replace-By-Fee (RBF). Unconfirmed payments can still be replaced or double-spent, including via full RBF. Shipping goods or automatically delivering digital products before confirmation risks fulfilling unpaid orders. Choose Medium or Low to require confirmations.', 'Modules.Btcpay.Admin'),
 				'empty_data' => InvoiceCheckoutOptions::SPEED_MEDIUM,
 			])
 			->add('orderMode', ChoiceType::class, [
