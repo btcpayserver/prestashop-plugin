@@ -2,9 +2,11 @@
 
 use BTCPay\Constants;
 use BTCPay\Server\Client;
+use BTCPay\Server\CurlAdapter;
 use BTCPay\Server\WebhookHandler;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 if (!defined('_PS_VERSION_')) {
 	exit;
@@ -29,16 +31,6 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 	 */
 	private $configuration;
 
-	/**
-	 * @var Client|null
-	 */
-	private $client;
-
-	/**
-	 * @var WebhookHandler
-	 */
-	private $handler;
-
 	public function __construct()
 	{
 		// Webhook responses must not render the shop theme
@@ -48,8 +40,6 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 		parent::__construct();
 
 		$this->configuration = new Configuration();
-		$this->client        = Client::createFromConfiguration($this->configuration);
-		$this->handler       = new WebhookHandler($this->module, $this->context, $this->client);
 	}
 
 	/**
@@ -63,67 +53,77 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 	}
 
 	/**
+	 * Status codes:
+	 * - 405 not a POST request;
+	 * - 400 module inactive/not configured, or signature header missing;
+	 * - 401 wrong signature;
+	 * - 503 signature valid but BTCPay Server not reachable/valid: BTCPay redelivers later;
+	 * - 500 processing error (logged);
+	 * - 200 processed, ignored or test delivery.
+	 *
 	 * {@inheritdoc}
 	 *
 	 * @throws Exception
 	 */
 	public function postProcess(): void
 	{
-		// Create the request
 		$request = Request::createFromGlobals();
 
-		// BTCPay webhooks are POST-only, reject anything else
-		if (!$request->isMethod('POST')) {
-			header('HTTP/1.1 405 Method Not Allowed');
-			exit;
+		if (!$request->isMethod(Request::METHOD_POST)) {
+			$this->respond(Response::HTTP_METHOD_NOT_ALLOWED, 'Method Not Allowed');
 		}
 
-		// If the module is inactive, or we don't receive a signature, or we don't have the webhook secret, just return
-		if (!$this->module->active
-			|| null === ($signature = $request->headers->get(Constants::BTCPAY_HEADER_SIG))
-			|| false === ($secret = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET))) {
-			header('HTTP/1.1 400 Bad Request');
-			exit;
+		$signature = (string) $request->headers->get(Constants::BTCPAY_HEADER_SIG, '');
+		$secret    = (string) $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET);
+
+		if (!$this->module->active || '' === $signature || '' === $secret) {
+			$this->respond(Response::HTTP_BAD_REQUEST, 'Bad Request');
 		}
 
-		// Grab the body of the request
 		$body = $request->getContent();
 
-		// Validate the HMAC first, log the error and return a 401 error if the signature does not match
-		if (false === $this->client->webhook()->isIncomingWebhookRequestValid($request->getContent(), $signature, $secret)) {
+		if (!self::isSignatureValid($body, $signature, $secret)) {
 			\PrestaShopLogger::addLog(
 				'Invalid BTCPay Server payment notification message received - signature did not match.',
 				\PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING
 			);
-			header('HTTP/1.1 401 Unauthorized');
-			exit;
+			$this->respond(Response::HTTP_UNAUTHORIZED, 'Unauthorized');
 		}
 
-		// Ensure our webhook is actually valid
-		if (null === $this->client || false === $this->client->isValid()) {
+		$data = \json_decode($body, true);
+		if (\is_array($data) && isset($data['invoiceId']) && \is_string($data['invoiceId']) && \str_contains($data['invoiceId'], '__test__')) {
+			\PrestaShopLogger::addLog('[INFO] Received BTCPay Server test webhook');
+			$this->respond(Response::HTTP_OK, 'OK');
+		}
+
+		// A correctly signed delivery means BTCPay is up again: close the unreachable pause and try once
+		CurlAdapter::resume();
+		$client = Client::createFromConfiguration($this->configuration);
+		if (null === $client || false === $client->isValid()) {
 			\PrestaShopLogger::addLog(
-				'[ERROR] A signed BTCPay webhook was received but the module could not create a valid BTCPay Server client. Check that the store is still linked and the API key is valid.',
+				'[ERROR] A signed BTCPay webhook was received but BTCPay Server could not be queried. BTCPay Server will redeliver it.',
 				\PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR
 			);
-			header('HTTP/1.1 400 Bad Request');
-			exit;
+			$this->respond(Response::HTTP_SERVICE_UNAVAILABLE, 'Service Unavailable');
 		}
 
-		// Try to process the webhook
 		try {
-			$this->handler->process($request);
+			(new WebhookHandler($this->module, $this->context, $client))->process($request);
 		} catch (\Throwable $throwable) {
 			\PrestaShopLogger::addLog(
 				\sprintf('[ERROR] Webhook processing failed: %s', $throwable->getMessage()),
 				\PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR,
 				$throwable->getCode()
 			);
-			header('HTTP/1.1 500 Internal Server Error');
-			exit;
+			$this->respond(Response::HTTP_INTERNAL_SERVER_ERROR, 'Internal Server Error');
 		}
 
-		echo 'OK';
-		exit;
+		$this->respond(Response::HTTP_OK, 'OK');
+	}
+
+	public static function isSignatureValid(string $body, string $signature, string $secret): bool
+	{
+		return \BTCPayServer\Client\Webhook::isIncomingWebhookRequestValid($body, trim($signature), $secret);
 	}
 
 	/**
@@ -131,5 +131,13 @@ class BTCPayWebhookModuleFrontController extends \ModuleFrontController
 	 */
 	protected function displayMaintenancePage(): void
 	{
+	}
+
+	private function respond(int $code, string $text): void
+	{
+		\http_response_code($code);
+		header('Content-Type: text/plain; charset=utf-8');
+		echo $text;
+		exit;
 	}
 }
