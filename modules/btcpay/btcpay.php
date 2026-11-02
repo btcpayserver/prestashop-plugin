@@ -40,6 +40,11 @@ class BTCPay extends PaymentModule
 	];
 
 	/**
+	 * @var bool
+	 */
+	public $is_eu_compatible = true;
+
+	/**
 	 * @var Configuration
 	 */
 	private $configuration;
