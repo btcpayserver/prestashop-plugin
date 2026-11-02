@@ -80,6 +80,12 @@ In the back office, open **Advanced Parameters -> Logs** and ensure:
 
 With that enabled, open the log entry from the alert mail under **Advanced Parameters -> Logs** for the full message. Invalid webhook signature probes are logged as **Warning** so they do not flood your inbox.
 
+## ⏱️ When BTCPay Server is unreachable
+
+If BTCPay Server is slow or down, the module uses short timeouts and will pause further remote calls for a couple of minutes so the shop does not hang on every page. Your host, API key and store id are only cleared when BTCPay returns 401/403 (revoked key), not on network errors.
+
+While it is unreachable the payment option is hidden. A signed webhook that cannot be processed because BTCPay cannot be queried gets a `503`, so BTCPay can redeliver it later.
+
 ## 🧑‍💻 Versioning
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [releases within this repository](https://github.com/btcpayserver/prestashop-plugin/releases).
