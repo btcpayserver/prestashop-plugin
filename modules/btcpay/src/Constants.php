@@ -16,11 +16,12 @@ class Constants
 	public const MINIMUM_PHP_VERSION    = '8.0.0';
 
 	// Cache configuration
-	public const LASTEST_VERSION_CACHE_KEY        = 'BTCPAY_LATEST_VERSION';
-	public const LASTEST_VERSION_CACHE_EXPIRATION = 60 * 60 * 24 * 7; // 7 days
-	public const CACHE_IS_VALID                   = 'BTCPAY_IS_VALID';
-	public const CACHE_SERVER_INFO                = 'BTCPAY_SERVER_INFO';
-	public const CACHE_UNREACHABLE                = 'BTCPAY_UNREACHABLE';
+	public const LASTEST_VERSION_CACHE_KEY          = 'BTCPAY_LATEST_VERSION';
+	public const LASTEST_VERSION_CACHE_EXPIRATION   = 60 * 60 * 24 * 7; // 7 days
+	public const LASTEST_VERSION_FAILURE_EXPIRATION = 60 * 60 * 24; // 1 day
+	public const CACHE_IS_VALID                     = 'BTCPAY_IS_VALID';
+	public const CACHE_SERVER_INFO                  = 'BTCPAY_SERVER_INFO';
+	public const CACHE_UNREACHABLE                  = 'BTCPAY_UNREACHABLE';
 
 	// GitHub API endpoint for releases
 	public const GITHUB_API_LATEST_ENDPOINT = 'https://api.github.com/repos/btcpayserver/prestashop-plugin/releases/latest';
