@@ -86,6 +86,10 @@ If BTCPay Server is slow or down, the module uses short timeouts and will pause 
 
 While it is unreachable the payment option is hidden. A signed webhook that cannot be processed because BTCPay cannot be queried gets a `503`, so BTCPay can redeliver it later.
 
+## 🧾 Expired or invalid invoices
+
+Expired or invalid invoices move the order to **Crypto transaction failed** and then to PrestaShop's **Canceled** state (stock is restored and the customer gets the cancellation email). If the invoice was only partially paid before it expired, a warning is added on the order so you can refund or complete it manually.
+
 ## 🧑‍💻 Versioning
 
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [releases within this repository](https://github.com/btcpayserver/prestashop-plugin/releases).

@@ -152,10 +152,11 @@ class OrderStates
 	{
 		$order_state              = new OrderState();
 		$order_state->name        = [];
-		$order_state->send_email  = true;
-		$order_state->template    = 'payment_error';
+		// No email here: failure is followed by PrestaShop "Canceled", which emails the customer
+		$order_state->send_email  = false;
 		$order_state->color       = '#EC2E15';
-		$order_state->logable     = true;
+		// Not a sale: a failed/expired invoice must not count in the statistics
+		$order_state->logable     = false;
 		$order_state->unremovable = true;
 		$order_state->module_name = $this->moduleName;
 
