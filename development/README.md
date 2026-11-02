@@ -129,7 +129,13 @@ docker run --rm -v "$PWD:/app" -w /app php:8.1-cli bash -c 'make lint'
 ./bitcoin-cli.sh COMMAND [ARGS]
 ```
 
-Runs in the `bitcoind` container (regtest). Useful: `getnewaddress`, `generatetoaddress`, `generate`, `sendtoaddress`, `getbalance`, `listtransactions`.
+Runs in the `bitcoind` container (regtest). Detects bitcoind capabilities:
+
+- Wallet: legacy single-wallet Core is used as-is; multiwallet Core loads/creates `default` (or `BITCOIND_WALLET`) when nothing is loaded.
+- `settxfee`: native RPC when present; otherwise BTC/kB is converted to sat/vB and applied on `sendtoaddress`.
+- `generate`: uses the `generate` RPC on older Core, otherwise `-generate`.
+
+Useful: `getnewaddress`, `generatetoaddress`, `generate`, `settxfee`, `sendtoaddress`, `getbalance`, `listtransactions`.
 
 ## License
 
