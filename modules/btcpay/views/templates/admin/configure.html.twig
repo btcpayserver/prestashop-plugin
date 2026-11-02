@@ -84,7 +84,7 @@
             <div class="card-body">
               <div class="card-text">
                 {{ form_row(server_form.host) }}
-                {{ form_row(server_form.apiKey) }}
+                {{ form_row(server_form.apiKey, {'type': 'password'}) }}
                 {{ form_rest(server_form) }}
               </div>
             </div>
