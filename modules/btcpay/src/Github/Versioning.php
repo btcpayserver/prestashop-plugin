@@ -4,6 +4,7 @@ namespace BTCPay\Github;
 
 use BTCPay\Constants;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\HttpFoundation\Request;
 
 if (!\defined('_PS_VERSION_')) {
@@ -20,6 +21,27 @@ class Versioning
 	public function __construct()
 	{
 		$this->cache = new FilesystemAdapter();
+	}
+
+	/**
+	 * Peek at the GitHub version cache without fetching.
+	 *
+	 * @return array{state: 'ok'|'failure'|'empty', remaining: ?int}
+	 */
+	public function cacheStatus(): array
+	{
+		$item = $this->cache->getItem(Constants::LASTEST_VERSION_CACHE_KEY);
+		if (!$item->isHit()) {
+			return ['state' => 'empty', 'remaining' => null];
+		}
+
+		$data      = $item->get();
+		$expiresAt = $item->getMetadata()[CacheItem::METADATA_EXPIRY] ?? null;
+
+		return [
+			'state'     => \is_array($data) && !empty($data) ? 'ok' : 'failure',
+			'remaining' => null !== $expiresAt ? \max(0, (int) \ceil($expiresAt - \microtime(true))) : null,
+		];
 	}
 
 	public function latest(): ?Latest

@@ -1,0 +1,99 @@
+/* BTCPay configure — keep inside PrestaShop BO Bootstrap */
+.btcpay-configure .btcpay-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+}
+
+.btcpay-configure .btcpay-status-strip .badge {
+  font-weight: 500;
+  font-size: 0.85rem;
+  padding: 0.35em 0.65em;
+}
+
+.btcpay-configure .btcpay-intro-logo {
+  max-width: 120px;
+}
+
+.btcpay-configure .nav-tabs {
+  margin-bottom: 0;
+  border-bottom: 1px solid #bbcdd2;
+}
+
+.btcpay-configure .nav-tabs .nav-link {
+  border: 1px solid transparent;
+  color: #6c868e;
+}
+
+.btcpay-configure .nav-tabs .nav-link.active {
+  color: #363a41;
+  background-color: #fff;
+  border-color: #bbcdd2 #bbcdd2 #fff;
+}
+
+.btcpay-configure .tab-content > .tab-pane {
+  padding-top: 1rem;
+}
+
+.btcpay-configure .btcpay-diag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.btcpay-configure .btcpay-diag-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem;
+  border: 1px solid #bbcdd2;
+  border-radius: 4px;
+  background: #fafbfc;
+}
+
+.btcpay-configure .btcpay-diag-item .btcpay-diag-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #6c868e;
+  margin: 0;
+}
+
+.btcpay-configure .btcpay-pay-methods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.btcpay-configure .btcpay-pay-methods li {
+  margin: 0;
+}
+
+.btcpay-configure .card-deck {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -0.5rem;
+  margin-left: -0.5rem;
+}
+
+.btcpay-configure .card-deck > .card {
+  flex: 1 0 0%;
+  margin: 0 0.5rem 1rem;
+  min-width: 280px;
+}
+
+.btcpay-configure dl.btcpay-meta dt {
+  margin-top: 0.5rem;
+}
+
+.btcpay-configure dl.btcpay-meta dt:first-child {
+  margin-top: 0;
+}
+
+.btcpay-configure dl.btcpay-meta dd {
+  margin-bottom: 0;
+}

@@ -9,6 +9,7 @@ use BTCPay\Form\Data\Server;
 use BTCPay\Github\Versioning;
 use BTCPay\Server\AuthorizationToken;
 use BTCPay\Server\Client;
+use BTCPay\Server\CurlAdapter;
 use BTCPay\Server\Data\ValidateApiKey;
 use BTCPay\Server\RateFallbackStatus;
 use BTCPayServer\Client\ApiKey;
@@ -512,13 +513,16 @@ class ConfigureController extends FrameworkBundleAdminController
 			}
 		}
 
+		// latest() may warm the GitHub cache; read statuses after client work so the page shows the current state
+		$latestVersion = $this->versioning->latest();
+
 		return $this->render('@Modules/btcpay/views/templates/admin/configure.html.twig', [
 			'server_form'        => $serverForm->createView(),
 			'general_form'       => $generalForm->createView(),
 			'help_link'          => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
 			'storeId'            => $storeId,
 			'webhookId'          => $webhookId,
-			'latestVersion'      => $this->versioning->latest(),
+			'latestVersion'      => $latestVersion,
 			'moduleVersion'      => $this->module->version,
 			'authorizeUrl'       => $authorizeUrl,
 			'client'             => $client,
@@ -527,6 +531,17 @@ class ConfigureController extends FrameworkBundleAdminController
 			'webhook'            => $webhook,
 			'paymentMethods'     => $paymentMethods,
 			'rateFallbackStatus' => $rateFallbackStatus,
+			'cacheStatuses'      => [
+				'unreachable' => CurlAdapter::unreachableStatus(),
+				'github'      => $this->versioning->cacheStatus(),
+				'isValid'     => [
+					'stored' => \Cache::isStored(Constants::CACHE_IS_VALID),
+					'value'  => \Cache::isStored(Constants::CACHE_IS_VALID) ? (bool) \Cache::retrieve(Constants::CACHE_IS_VALID) : null,
+				],
+				'serverInfo'  => [
+					'stored' => \Cache::isStored(Constants::CACHE_SERVER_INFO),
+				],
+			],
 			'enableSidebar'      => true,
 		]);
 	}
