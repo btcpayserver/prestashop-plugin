@@ -311,7 +311,7 @@ class Processor
 				}
 
 				// Add the payment
-				$order->addOrderPayment(\bcmul($payment->getValue(), $paymentMethod->getRate()), null, $payment->getTransactionId());
+				$order->addOrderPayment(\bcmul($payment->getValue(), $paymentMethod->getRate(), 8), null, $payment->getTransactionId());
 			}
 		}
 	}
