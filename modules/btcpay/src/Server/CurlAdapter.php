@@ -8,6 +8,7 @@ use BTCPayServer\Http\CurlClient;
 use BTCPayServer\Http\ResponseInterface;
 use STS\Backoff\Backoff;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\HttpFoundation\Request;
 
 if (!\defined('_PS_VERSION_')) {
@@ -90,9 +91,27 @@ class CurlAdapter extends CurlClient
 		self::cache()->deleteItem(Constants::CACHE_UNREACHABLE);
 	}
 
-	private static function isPaused(): bool
+	public static function isPaused(): bool
 	{
-		return self::cache()->getItem(Constants::CACHE_UNREACHABLE)->isHit();
+		return self::unreachableStatus()['active'];
+	}
+
+	/**
+	 * @return array{active: bool, remaining: ?int}
+	 */
+	public static function unreachableStatus(): array
+	{
+		$item = self::cache()->getItem(Constants::CACHE_UNREACHABLE);
+		if (!$item->isHit()) {
+			return ['active' => false, 'remaining' => null];
+		}
+
+		$expiresAt = $item->getMetadata()[CacheItem::METADATA_EXPIRY] ?? null;
+
+		return [
+			'active'    => true,
+			'remaining' => null !== $expiresAt ? \max(0, (int) \ceil($expiresAt - \microtime(true))) : null,
+		];
 	}
 
 	private static function pause(string $reason): void
