@@ -27,7 +27,7 @@ class Server
 	 */
 	private $apiKey;
 
-	public function __construct(string $host, string $apiKey = null)
+	public function __construct(string $host, ?string $apiKey = null)
 	{
 		$this->host          = $host;
 		$this->apiKey        = $apiKey;

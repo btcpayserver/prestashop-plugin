@@ -133,15 +133,31 @@ class Processor
 			$orderStatus = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED);
 		}
 
-		// If nothing changed, return
-		if ((string) $order->current_state === $orderStatus) {
+		// If nothing changed, return (an order already cancelled after a failure is not touched again)
+		$failedState   = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED);
+		$canceledState = (string) $this->configuration->get('PS_OS_CANCELED');
+		if ((string) $order->current_state === $orderStatus
+			|| ($orderStatus === $failedState && (string) $order->current_state === $canceledState)) {
 			\PrestaShopLogger::addLog('[INFO] The state is the same as the one received', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
 
 			return;
 		}
 
 		// Update the status
-		$this->updateOrderStatus($bitcoinPayment, $orderStatus, $invoice);
+		if (!$this->updateOrderStatus($bitcoinPayment, $orderStatus, $invoice)) {
+			return;
+		}
+
+		// Failed/expired crypto payment: cancel so PrestaShop restocks and emails the customer
+		if ($orderStatus === $failedState && '' !== $canceledState && $canceledState !== $failedState) {
+			$this->addHistory((int) $bitcoinPayment->getOrderId(), $canceledState, true);
+			$note = \sprintf("BTCPay Server: invoice '%s' expired or invalid, order cancelled and products put back in stock.", $invoice->getId());
+			if ($invoice->isPartiallyPaid()) {
+				$note .= ' WARNING: the invoice was PARTIALLY PAID before expiring; the amount received must be refunded or the order completed manually.';
+				\PrestaShopLogger::addLog(\sprintf("[WARNING] Invoice '%s' expired after a partial payment: refund or complete the order manually", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', (int) $bitcoinPayment->getOrderId());
+			}
+			CustomerMessage::addToOrder($this->context->shop, new \Order($bitcoinPayment->getOrderId()), $note);
+		}
 	}
 
 	/**
@@ -228,8 +244,14 @@ class Processor
 					continue;
 				}
 
+				// Use order currency precision
+				$precision = (int) \Currency::getCurrencyInstance((int) $order->id_currency)->precision;
+
+				// Ensure proper rounded payment amount
+				$paymentAmount = \Tools::ps_round((float) \bcmul($payment->getValue(), $paymentMethod->getRate(), $precision), $precision);
+
 				// Add the payment
-				$order->addOrderPayment(\bcmul($payment->getValue(), $paymentMethod->getRate(), 8), null, $payment->getTransactionId());
+				$order->addOrderPayment($paymentAmount, null, $payment->getTransactionId());
 			}
 		}
 	}
@@ -366,10 +388,12 @@ class Processor
 	}
 
 	/**
+	 * @return bool true when the order status was changed
+	 *
 	 * @throws \PrestaShopDatabaseException
 	 * @throws \PrestaShopException
 	 */
-	private function updateOrderStatus(BitcoinPayment $bitcoinPayment, string $orderStatus, Invoice $invoice): void
+	private function updateOrderStatus(BitcoinPayment $bitcoinPayment, string $orderStatus, Invoice $invoice): bool
 	{
 		$order = new \Order($bitcoinPayment->getOrderId());
 
@@ -381,14 +405,14 @@ class Processor
 			\PrestaShopLogger::addLog(\sprintf("[WARN] Refusing to move paid order to state '%s'", $orderStatus), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', $order->id);
 			CustomerMessage::addToOrder($this->context->shop, $order, \sprintf("BTCPay Server: ignored a status change to '%s' because the order is already paid.", $orderStatus));
 
-			return;
+			return false;
 		}
 
 		// Verify the invoice still matches the checkout snapshot before marking paid
 		if ($targetPaid && false === $this->checkoutValueHolds($bitcoinPayment, $invoice, null, $order)) {
 			\PrestaShopLogger::addLog(\sprintf("[ERROR] Refusing to mark order paid; invoice '%s' amount/currency does not match the checkout snapshot", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'Order', $order->id);
 
-			return;
+			return false;
 		}
 
 		// Set the status
@@ -402,13 +426,29 @@ class Processor
 			throw new \RuntimeException($error);
 		}
 
-		// Add the order change to the order history table
-		$orderHistory           = new \OrderHistory();
-		$orderHistory->id_order = $bitcoinPayment->getOrderId();
+		$this->addHistory((int) $bitcoinPayment->getOrderId(), $orderStatus, true);
 
-		// Store the change and make sure to create an invoice using existing payments (in case the status is changed to 'paid with crypto')
-		$orderHistory->changeIdOrderState($orderStatus, $bitcoinPayment->getOrderId(), true);
-		$orderHistory->add();
+		return true;
+	}
+
+	/**
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \PrestaShopException
+	 */
+	private function addHistory(int $orderId, string $orderStatus, bool $withEmail): void
+	{
+		$orderHistory           = new \OrderHistory();
+		$orderHistory->id_order = $orderId;
+
+		// Third arg: reuse existing payments when moving to a paid state (PrestaShop invoice generation)
+		$orderHistory->changeIdOrderState((int) $orderStatus, $orderId, true);
+
+		// addWithemail() is PrestaShop's real method name; add() alone never notifies the customer
+		if ($withEmail) {
+			$orderHistory->addWithemail(true);
+		} else {
+			$orderHistory->add();
+		}
 	}
 
 	private function statusFromInvoice(Invoice $invoice, string $default): string

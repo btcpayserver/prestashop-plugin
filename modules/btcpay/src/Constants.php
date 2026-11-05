@@ -16,8 +16,12 @@ class Constants
 	public const MINIMUM_PHP_VERSION    = '8.0.0';
 
 	// Cache configuration
-	public const LASTEST_VERSION_CACHE_KEY        = 'BTCPAY_LATEST_VERSION';
-	public const LASTEST_VERSION_CACHE_EXPIRATION = 60 * 60 * 24 * 7; // 7 days
+	public const LASTEST_VERSION_CACHE_KEY          = 'BTCPAY_LATEST_VERSION';
+	public const LASTEST_VERSION_CACHE_EXPIRATION   = 60 * 60 * 24 * 7; // 7 days
+	public const LASTEST_VERSION_FAILURE_EXPIRATION = 60 * 60 * 24; // 1 day
+	public const CACHE_IS_VALID                     = 'BTCPAY_IS_VALID';
+	public const CACHE_SERVER_INFO                  = 'BTCPAY_SERVER_INFO';
+	public const CACHE_UNREACHABLE                  = 'BTCPAY_UNREACHABLE';
 
 	// GitHub API endpoint for releases
 	public const GITHUB_API_LATEST_ENDPOINT = 'https://api.github.com/repos/btcpayserver/prestashop-plugin/releases/latest';
@@ -45,6 +49,14 @@ class Constants
 
 	// Default values
 	public const CONFIGURATION_DEFAULT_HOST = 'https://testnet.demo.btcpayserver.org';
+
+	// Network robustness: never wait more than this for BTCPay Server
+	public const HTTP_CONNECT_TIMEOUT = 3;  // seconds to open the connection
+	public const HTTP_TIMEOUT         = 10; // seconds for the whole request
+	public const HTTP_MAX_ATTEMPTS    = 2;  // only for idempotent GET requests
+
+	// After a connection failure/timeout, remote calls are paused for this many seconds
+	public const UNREACHABLE_WINDOW = 120;
 
 	// Order (creation) related configuration
 	public const CONFIGURATION_ORDER_MODE = 'BTCPAY_ORDERMODE';
