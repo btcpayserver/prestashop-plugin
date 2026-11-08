@@ -89,6 +89,23 @@ class OrderStates
 		return $errors;
 	}
 
+	public function localizeExisting(OrderState $orderState): void
+	{
+		foreach (Language::getLanguages(true) as $language) {
+			$id      = (int) $language['id_lang'];
+			$current = (string) ($orderState->name[$id] ?? '');
+			if (!\in_array($current, [
+				'Awaiting crypto payment',
+				'Waiting for confirmations',
+				'Crypto transaction failed',
+				'Paid with crypto',
+			], true)) {
+				continue;
+			}
+			$orderState->name[$id] = $this->translate($current, $language['locale']);
+		}
+	}
+
 	/**
 	 * @throws \PrestaShopException
 	 * @throws \PrestaShopDatabaseException
@@ -102,7 +119,7 @@ class OrderStates
 		$order_state->module_name = $this->moduleName;
 		$order_state->name        = [];
 		foreach (Language::getLanguages(true) as $language) {
-			$order_state->name[(int) $language['id_lang']] = $this->translate('Awaiting crypto payment', (string) ($language['locale'] ?? ''));
+			$order_state->name[(int) $language['id_lang']] = $this->translate('Awaiting crypto payment', $language['locale']);
 		}
 
 		if (false === $order_state->add()) {
@@ -128,7 +145,7 @@ class OrderStates
 		$order_state->module_name = $this->moduleName;
 		$order_state->name        = [];
 		foreach (Language::getLanguages(true) as $language) {
-			$order_state->name[(int) $language['id_lang']] = $this->translate('Waiting for confirmations', (string) ($language['locale'] ?? ''));
+			$order_state->name[(int) $language['id_lang']] = $this->translate('Waiting for confirmations', $language['locale']);
 		}
 
 		if (false === $order_state->add()) {
@@ -158,7 +175,7 @@ class OrderStates
 		$order_state->module_name = $this->moduleName;
 		$order_state->name        = [];
 		foreach (Language::getLanguages(true) as $language) {
-			$order_state->name[(int) $language['id_lang']] = $this->translate('Crypto transaction failed', (string) ($language['locale'] ?? ''));
+			$order_state->name[(int) $language['id_lang']] = $this->translate('Crypto transaction failed', $language['locale']);
 		}
 
 		if (false === $order_state->add()) {
@@ -190,7 +207,7 @@ class OrderStates
 		$order_state->module_name = $this->moduleName;
 		$order_state->name        = [];
 		foreach (Language::getLanguages(true) as $language) {
-			$order_state->name[(int) $language['id_lang']] = $this->translate('Paid with crypto', (string) ($language['locale'] ?? ''));
+			$order_state->name[(int) $language['id_lang']] = $this->translate('Paid with crypto', $language['locale']);
 		}
 
 		if (false === $order_state->add()) {
@@ -210,36 +227,8 @@ class OrderStates
 		\copy($source, $destination);
 	}
 
-	/**
-	 * Replace a stock English name with that language's translation. A name that no longer matches the English source is left as written.
-	 */
-	public function localizeExisting(OrderState $orderState): void
-	{
-		if (!\is_array($orderState->name)) {
-			return;
-		}
-
-		foreach (Language::getLanguages(true) as $language) {
-			$id      = (int) $language['id_lang'];
-			$current = (string) ($orderState->name[$id] ?? '');
-			if (!\in_array($current, [
-				'Awaiting crypto payment',
-				'Waiting for confirmations',
-				'Crypto transaction failed',
-				'Paid with crypto',
-			], true)) {
-				continue;
-			}
-			$orderState->name[$id] = $this->translate($current, (string) ($language['locale'] ?? ''));
-		}
-	}
-
 	private function translate(string $message, string $locale): string
 	{
-		if ($locale === '') {
-			return $message;
-		}
-
-		return (string) \Context::getContext()->getTranslator()->trans($message, [], 'Modules.Btcpay.Admin', $locale);
+		return \Context::getContext()->getTranslator()->trans($message, [], 'Modules.Btcpay.Admin', $locale);
 	}
 }
