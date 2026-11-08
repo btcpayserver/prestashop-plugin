@@ -13,7 +13,7 @@ if (!defined('_PS_VERSION_')) {
  * @throws PrestaShopDatabaseException
  * @throws PrestaShopException
  */
-function upgrade_module_6_3_5(mixed $module): bool
+function upgrade_module_6_3_6(mixed $module): bool
 {
 	if (!$module instanceof BTCPay) {
 		throw new LogicException('Received invalid module');
@@ -24,7 +24,9 @@ function upgrade_module_6_3_5(mixed $module): bool
 	if (\Validate::isLoadedObject($orderState)) {
 		$orderState->logable    = false;
 		$orderState->send_email = false;
-		$orderState->save();
+		if (!$orderState->save()) {
+			return false;
+		}
 	}
 
 	return true;
