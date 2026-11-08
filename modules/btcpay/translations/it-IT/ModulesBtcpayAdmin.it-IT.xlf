@@ -274,6 +274,22 @@
         <source>On-Chain</source>
         <target state="final">On-chain</target>
       </trans-unit>
+      <trans-unit id="71" resname="Awaiting crypto payment">
+        <source>Awaiting crypto payment</source>
+        <target state="final">In attesa di pagamento in criptovaluta</target>
+      </trans-unit>
+      <trans-unit id="72" resname="Waiting for confirmations">
+        <source>Waiting for confirmations</source>
+        <target state="final">In attesa di conferme</target>
+      </trans-unit>
+      <trans-unit id="73" resname="Crypto transaction failed">
+        <source>Crypto transaction failed</source>
+        <target state="final">Pagamento in criptovaluta non riuscito</target>
+      </trans-unit>
+      <trans-unit id="74" resname="Paid with crypto">
+        <source>Paid with crypto</source>
+        <target state="final">Pagato in criptovaluta</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
