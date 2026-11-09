@@ -132,17 +132,33 @@ class Client extends AbstractClient
 
 	public function isValid(): bool
 	{
-		try {
-			// Test the server connection
-			$this->server()->getInfo();
-
-			// Test the store connection
-			$this->store()->getStore($this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))->getName();
-		} catch (\Throwable) {
-			return false;
+		if (\Cache::isStored(Constants::CACHE_IS_VALID)) {
+			return (bool) \Cache::retrieve(Constants::CACHE_IS_VALID);
 		}
 
-		return true;
+		try {
+			$this->serverInfo();
+			$this->store()->getStore($this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))->getName();
+			$valid = true;
+		} catch (\Throwable) {
+			$valid = false;
+		}
+
+		\Cache::store(Constants::CACHE_IS_VALID, $valid);
+
+		return $valid;
+	}
+
+	/**
+	 * Server information, fetched at most once per request.
+	 */
+	public function serverInfo(): \BTCPayServer\Result\ServerInfo
+	{
+		if (!\Cache::isStored(Constants::CACHE_SERVER_INFO)) {
+			\Cache::store(Constants::CACHE_SERVER_INFO, $this->server()->getInfo());
+		}
+
+		return \Cache::retrieve(Constants::CACHE_SERVER_INFO);
 	}
 
 	/**

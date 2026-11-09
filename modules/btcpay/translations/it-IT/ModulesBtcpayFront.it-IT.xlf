@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file original="Modules.Btcpay.Front" source-language="en-US" target-language="it-IT" datatype="plaintext">
+    <body>
+      <trans-unit id="1" resname="Accept crypto payments via BTCPay Server.">
+        <source>Accept crypto payments via BTCPay Server.</source>
+        <target state="final">Accetta pagamenti in criptovaluta tramite BTCPay Server.</target>
+      </trans-unit>
+      <trans-unit id="2" resname="Are you sure that you want to uninstall this module? Past purchases and order states will be kept, but your configuration will be removed.">
+        <source>Are you sure that you want to uninstall this module? Past purchases and order states will be kept, but your configuration will be removed.</source>
+        <target state="final">Vuoi davvero disinstallare questo modulo? Gli ordini passati e i loro stati restano, ma la configurazione viene cancellata.</target>
+      </trans-unit>
+      <trans-unit id="3" resname="Pay with BTCPay Server">
+        <source>Pay with BTCPay Server</source>
+        <target state="final">Paga in criptovaluta con BTCPay Server</target>
+      </trans-unit>
+      <trans-unit id="4" resname="Payment method has not yet been setup properly. Please try again or contact us.">
+        <source>Payment method has not yet been setup properly. Please try again or contact us.</source>
+        <target state="final">Il metodo di pagamento non è ancora configurato. Riprova più tardi o contattaci.</target>
+      </trans-unit>
+      <trans-unit id="5" resname="We could not create a payment request via BTCPay Server. Please try again or contact us.">
+        <source>We could not create a payment request via BTCPay Server. Please try again or contact us.</source>
+        <target state="final">Non è stato possibile creare la richiesta di pagamento su BTCPay Server. Riprova o contattaci.</target>
+      </trans-unit>
+      <trans-unit id="6" resname="We are having issues with our BTCPay Server backend. Please try again or contact us.">
+        <source>We are having issues with our BTCPay Server backend. Please try again or contact us.</source>
+        <target state="final">Il servizio di pagamento BTCPay Server al momento non risponde. Riprova più tardi o contattaci.</target>
+      </trans-unit>
+      <trans-unit id="7" resname="This payment method is not available.">
+        <source>This payment method is not available.</source>
+        <target state="final">Questo metodo di pagamento non è disponibile.</target>
+      </trans-unit>
+      <trans-unit id="8" resname="The passed invoice reference is not valid.">
+        <source>The passed invoice reference is not valid.</source>
+        <target state="final">Il riferimento della fattura non è valido.</target>
+      </trans-unit>
+      <trans-unit id="9" resname="There is no order that we can process.">
+        <source>There is no order that we can process.</source>
+        <target state="final">Non c'è nessun ordine da elaborare.</target>
+      </trans-unit>
+      <trans-unit id="10" resname="We have not received a payment yet.">
+        <source>We have not received a payment yet.</source>
+        <target state="final">Non abbiamo ancora ricevuto il pagamento.</target>
+      </trans-unit>
+      <trans-unit id="11" resname="Please pay the exact amount (including transaction fees when paying on-chain).">
+        <source>Please pay the exact amount (including transaction fees when paying on-chain).</source>
+        <target state="final">Paga l'importo esatto (comprese le commissioni di rete se paghi on-chain).</target>
+      </trans-unit>
+      <trans-unit id="12" resname="Your order has been paid for.">
+        <source>Your order has been paid for.</source>
+        <target state="final">Il tuo ordine risulta pagato.</target>
+      </trans-unit>
+      <trans-unit id="13" resname="We will ship out your order as soon as we're able to.">
+        <source>We will ship out your order as soon as we're able to.</source>
+        <target state="final">Spediremo il tuo ordine il prima possibile.</target>
+      </trans-unit>
+      <trans-unit id="14" resname="If you have questions, comments or concerns, please contact our">
+        <source>If you have questions, comments or concerns, please contact our</source>
+        <target state="final">Per domande o dubbi contatta il nostro</target>
+      </trans-unit>
+      <trans-unit id="15" resname="expert customer support team.">
+        <source>expert customer support team.</source>
+        <target state="final">servizio clienti.</target>
+      </trans-unit>
+      <trans-unit id="16" resname="The invoice was not succesfully paid. Either because the invoice expired or your transaction never confirmed.">
+        <source>The invoice was not succesfully paid. Either because the invoice expired or your transaction never confirmed.</source>
+        <target state="final">Il pagamento non è andato a buon fine: la fattura è scaduta oppure la transazione non è mai stata confermata.</target>
+      </trans-unit>
+      <trans-unit id="17" resname="If you think this is an error, feel free to contact our">
+        <source>If you think this is an error, feel free to contact our</source>
+        <target state="final">Se pensi che sia un errore, contatta il nostro</target>
+      </trans-unit>
+      <trans-unit id="18" resname="Your order is awaiting payment. If you haven't paid yet, you can &lt;a href='%s' title='Go to the payment page' target='_blank'&gt;click here to go back to the payment page&lt;/a&gt;.">
+        <source>Your order is awaiting payment. If you haven't paid yet, you can &lt;a href='%s' title='Go to the payment page' target='_blank'&gt;click here to go back to the payment page&lt;/a&gt;.</source>
+        <target state="final">Il tuo ordine è in attesa di pagamento. Se non hai ancora pagato, puoi &lt;a href='%s' title='Vai alla pagina di pagamento' target='_blank'&gt;cliccare qui per tornare alla pagina di pagamento&lt;/a&gt;.</target>
+      </trans-unit>
+      <trans-unit id="19" resname="Your order is awaiting confirmations.">
+        <source>Your order is awaiting confirmations.</source>
+        <target state="final">Il tuo ordine è in attesa delle conferme sulla rete.</target>
+      </trans-unit>
+      <trans-unit id="20" resname="Your order will be processed as soon as your payment is confirmed by the relevant crypto network.">
+        <source>Your order will be processed as soon as your payment is confirmed by the relevant crypto network.</source>
+        <target state="final">L'ordine verrà lavorato appena il pagamento sarà confermato dalla rete della criptovaluta.</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

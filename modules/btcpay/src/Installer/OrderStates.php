@@ -89,6 +89,23 @@ class OrderStates
 		return $errors;
 	}
 
+	public function localizeExisting(OrderState $orderState): void
+	{
+		foreach (Language::getLanguages(true) as $language) {
+			$id      = (int) $language['id_lang'];
+			$current = (string) ($orderState->name[$id] ?? '');
+			if (!\in_array($current, [
+				'Awaiting crypto payment',
+				'Waiting for confirmations',
+				'Crypto transaction failed',
+				'Paid with crypto',
+			], true)) {
+				continue;
+			}
+			$orderState->name[$id] = $this->translate($current, $language['locale']);
+		}
+	}
+
 	/**
 	 * @throws \PrestaShopException
 	 * @throws \PrestaShopDatabaseException
@@ -97,13 +114,12 @@ class OrderStates
 	private function installAwaiting(): bool
 	{
 		$order_state              = new OrderState();
-		$order_state->name        = [];
 		$order_state->color       = '#FF8C00';
 		$order_state->unremovable = true;
 		$order_state->module_name = $this->moduleName;
-
-		foreach (Language::getLanguages(true, false, true) as $languageId) {
-			$order_state->name[$languageId] = 'Awaiting crypto payment';
+		$order_state->name        = [];
+		foreach (Language::getLanguages(true) as $language) {
+			$order_state->name[(int) $language['id_lang']] = $this->translate('Awaiting crypto payment', $language['locale']);
 		}
 
 		if (false === $order_state->add()) {
@@ -124,13 +140,12 @@ class OrderStates
 	private function installConfirming(): bool
 	{
 		$order_state              = new OrderState();
-		$order_state->name        = [];
 		$order_state->color       = '#4169E1';
 		$order_state->unremovable = true;
 		$order_state->module_name = $this->moduleName;
-
-		foreach (Language::getLanguages(true, false, true) as $languageId) {
-			$order_state->name[$languageId] = 'Waiting for confirmations';
+		$order_state->name        = [];
+		foreach (Language::getLanguages(true) as $language) {
+			$order_state->name[(int) $language['id_lang']] = $this->translate('Waiting for confirmations', $language['locale']);
 		}
 
 		if (false === $order_state->add()) {
@@ -151,16 +166,16 @@ class OrderStates
 	private function installFailed(): bool
 	{
 		$order_state              = new OrderState();
-		$order_state->name        = [];
-		$order_state->send_email  = true;
-		$order_state->template    = 'payment_error';
+		// No email here: failure is followed by PrestaShop "Canceled", which emails the customer
+		$order_state->send_email  = false;
 		$order_state->color       = '#EC2E15';
-		$order_state->logable     = true;
+		// Not a sale: a failed/expired invoice must not count in the statistics
+		$order_state->logable     = false;
 		$order_state->unremovable = true;
 		$order_state->module_name = $this->moduleName;
-
-		foreach (Language::getLanguages(true, false, true) as $languageId) {
-			$order_state->name[$languageId] = 'Crypto transaction failed';
+		$order_state->name        = [];
+		foreach (Language::getLanguages(true) as $language) {
+			$order_state->name[(int) $language['id_lang']] = $this->translate('Crypto transaction failed', $language['locale']);
 		}
 
 		if (false === $order_state->add()) {
@@ -181,7 +196,6 @@ class OrderStates
 	private function installPaid(): bool
 	{
 		$order_state              = new OrderState();
-		$order_state->name        = [];
 		$order_state->paid        = true;
 		$order_state->pdf_invoice = true;
 		$order_state->send_email  = true;
@@ -191,9 +205,9 @@ class OrderStates
 		$order_state->unremovable = true;
 		$order_state->invoice     = true;
 		$order_state->module_name = $this->moduleName;
-
-		foreach (Language::getLanguages(true, false, true) as $languageId) {
-			$order_state->name[$languageId] = 'Paid with crypto';
+		$order_state->name        = [];
+		foreach (Language::getLanguages(true) as $language) {
+			$order_state->name[(int) $language['id_lang']] = $this->translate('Paid with crypto', $language['locale']);
 		}
 
 		if (false === $order_state->add()) {
@@ -211,5 +225,10 @@ class OrderStates
 		$source      = \_PS_MODULE_DIR_ . $this->moduleName . '/views/images/' . $image_name;
 		$destination = \_PS_ROOT_DIR_ . '/img/os/' . (int) $order_state->id . '.gif';
 		\copy($source, $destination);
+	}
+
+	private function translate(string $message, string $locale): string
+	{
+		return \Context::getContext()->getTranslator()->trans($message, [], 'Modules.Btcpay.Admin', $locale);
 	}
 }

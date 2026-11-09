@@ -3,6 +3,12 @@
 {% set invalidApiKey = client is defined and client is null %}
 {% set storeAvailable = storeInfo is defined and storeInfo is not null and serverInfo is defined and serverInfo is not null %}
 {% set hasNewerVersion = latestVersion is defined and latestVersion != null and latestVersion.newer(moduleVersion) %}
+
+{% block stylesheets %}
+  {{ parent() }}
+  <link rel="stylesheet" href="{{ asset('../modules/btcpay/views/css/admin/configure.css') }}" type="text/css" media="all">
+{% endblock %}
+
 {% block content_header %}
   {% if app.session.flashbag.peek('error')|length or app.session.flashbag.peek('failure')|length or app.session.flashbag.peek('success')|length or app.session.flashbag.peek('warning')|length or app.session.flashbag.peek('info')|length %}
   <div class="row ps17">
@@ -14,12 +20,13 @@
 {% endblock %}
 
 {% block content %}
+<div class="btcpay-configure">
   {% if hasNewerVersion %}
   <div class="row ps17">
     <div class="col-12 col-md-10 col-lg-10 offset-md-1 offset-lg-1">
       <div class="alert alert-warning alert-dismissible fade show" role="alert">
         <p>{{ 'A new version of this module (%version%) has been released on GitHub. <a href="%url%" class="alert-link" target="_blank" rel="noopener noreferrer nofollow">Click here to check it out.</a>'|trans({'%version%': latestVersion.tagName, '%url%': latestVersion.url}, 'Modules.Btcpay.Admin')|raw }}</p>
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <button type="button" class="close" data-dismiss="alert" data-bs-dismiss="alert" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -32,7 +39,7 @@
     <div class="col-12 col-md-10 col-lg-10 offset-md-1 offset-lg-1">
       <div class="alert alert-warning alert-dismissible fade show" role="alert">
         <p>{{ 'Your BTCPay Server store has no fallback rate provider. If the primary rate source fails, invoices cannot be created. <a href="%url%" class="alert-link" target="_blank" rel="noopener noreferrer nofollow">Configure a fallback rate in BTCPay Server</a>.'|trans({'%url%': client.baseUrl ~ '/stores/' ~ storeId ~ '/rates'}, 'Modules.Btcpay.Admin')|raw }}</p>
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <button type="button" class="close" data-dismiss="alert" data-bs-dismiss="alert" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
@@ -40,29 +47,33 @@
   </div>
   {% endif %}
 
+  {# Intro #}
   <div class="row ps17">
     <div class="col-12 col-md-10 col-lg-10 offset-md-1 offset-lg-1">
       <div class="card">
         <div class="card-header">
-          <i class="material-icons">extension</i>
+          <i class="material-icons" aria-hidden="true">extension</i>
           {{ 'BTCPay Server - Payment module - v%version%'|trans({'%version%': moduleVersion}, 'Modules.Btcpay.Admin') }}
         </div>
         <div class="card-body">
-          <div class="row">
-            <div class="col-12 col-md-4 col-lg-3 col-xl-2">
+          <div class="row align-items-center">
+            <div class="col-12 col-md-3 col-lg-2 mb-3 mb-md-0">
               <a href="https://btcpayserver.org/" target="_blank" rel="noopener noreferrer nofollow">
-                <img src="{{ asset('../modules/btcpay/views/images/btcpay-plugin.png') }}" class="img-fluid" alt="{{ 'BTCPay Server logo'|trans({}, 'Modules.Btcpay.Admin') }}"/>
+                <img src="{{ asset('../modules/btcpay/views/images/btcpay-plugin.png') }}" class="img-fluid btcpay-intro-logo" alt="{{ 'BTCPay Server logo'|trans({}, 'Modules.Btcpay.Admin') }}"/>
               </a>
             </div>
-            <div class="col-12 col-md-8 col-lg-9 col-xl-10">
-              <div class="card-text">
+            <div class="col-12 col-md-9 col-lg-10">
+              {% if storeAvailable %}
+                <p class="mb-2">{{ 'This shop is linked to BTCPay Server. Use the tabs below to change settings, review connection health, or inspect caches.'|trans({}, 'Modules.Btcpay.Admin') }}</p>
+                <p class="mb-0">{{ 'For additional information, check out <a href="https://docs.btcpayserver.org/PrestaShop/" target="_blank" rel="noopener noreferrer nofollow">the documentation</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
+              {% else %}
                 <p>
                   {{ 'To be able to use this payment module you need to have a BTCPay Server instance, either <a href="https://docs.btcpayserver.org/Deployment/" target="_blank" rel="noopener noreferrer nofollow">self-hosted</a> or <a href="https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/" target="_blank" rel="noopener noreferrer nofollow">hosted by a third-party</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}<br/>
                   {{ 'Furthermore, you must have <a href="https://docs.btcpayserver.org/RegisterAccount" target="_blank" rel="noopener noreferrer nofollow">a registered account on the instance</a>, <a href="https://docs.btcpayserver.org/CreateStore" target="_blank" rel="noopener noreferrer nofollow">an actual store on the instance</a> and <a href="https://docs.btcpayserver.org/WalletSetup" target="_blank" rel="noopener noreferrer nofollow">a wallet connected to your store</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}
                 </p>
                 <hr class="mt-0 mb-3" />
-                <p>{{ 'For additional information, check out <a href="https://docs.btcpayserver.org/PrestaShop/" target="_blank" rel="noopener noreferrer nofollow">the documentation</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
-              </div>
+                <p class="mb-0">{{ 'For additional information, check out <a href="https://docs.btcpayserver.org/PrestaShop/" target="_blank" rel="noopener noreferrer nofollow">the documentation</a>.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -70,82 +81,310 @@
     </div>
   </div>
 
+  {# Connection status strip #}
   <div class="row ps17">
     <div class="col-12 col-md-10 col-lg-10 offset-md-1 offset-lg-1">
-      <div class="row">
-        <div class="{% if invalidApiKey %}col-12 col-lg-6{% else %}col-12{% endif %}">
-          <div class="card">
-            {{ form_start(server_form, {'action': url('admin_btcpay_configure_server_process'), 'attr': {'class': 'form', 'id': 'server-form'}}) }}
-            <h3 class="card-header">
-              <i class="material-icons">mode_edit</i>
-              {{ 'Server'|trans({}, 'Admin.Global') }}
-            </h3>
-
-            <div class="card-body">
-              <div class="card-text">
-                {{ form_row(server_form.host) }}
-                {{ form_row(server_form.apiKey) }}
-                {{ form_rest(server_form) }}
-              </div>
-            </div>
-
-            <div class="card-footer text-right">
-              <button class="btn btn-primary" type="submit">{{ 'Save'|trans({}, 'Admin.Actions') }}</button>
-            </div>
-            {{ form_end(server_form) }}
+      <div class="card">
+        <div class="card-body py-3">
+          <div class="btcpay-status-strip" role="status" aria-label="{{ 'Connection status'|trans({}, 'Modules.Btcpay.Admin') }}">
+            {% if storeAvailable %}
+              <span class="badge badge-success">
+                {{ 'Linked'|trans({}, 'Admin.Global') }}:
+                <a class="text-white" href="{{ client.baseUrl }}/stores/{{ storeInfo.id }}" target="_blank" rel="noopener noreferrer nofollow">{{ storeInfo.name }}</a>
+              </span>
+              {% if webhook is not null and webhook.enabled is defined and webhook.enabled %}
+                <span class="badge badge-success">{{ 'Webhook'|trans({}, 'Modules.Btcpay.Admin') }}: {{ 'Enabled'|trans({}, 'Admin.Global') }}</span>
+              {% elseif webhook is not null and webhook.enabled is defined and not webhook.enabled %}
+                <span class="badge badge-warning">{{ 'Webhook'|trans({}, 'Modules.Btcpay.Admin') }}: {{ 'Disabled'|trans({}, 'Admin.Global') }}</span>
+              {% else %}
+                <span class="badge badge-warning">{{ 'Webhook'|trans({}, 'Modules.Btcpay.Admin') }}: {{ 'Missing'|trans({}, 'Admin.Global') }}</span>
+              {% endif %}
+              {% if serverInfo.fullySynced %}
+                <span class="badge badge-success">{{ 'Node synced'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+              {% else %}
+                <span class="badge badge-warning" title="{{ 'The payment option will not be available until the server is synced'|trans({}, 'Modules.Btcpay.Admin') }}">{{ 'Node not synced'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+              {% endif %}
+              {% if rateFallbackStatus is defined and rateFallbackStatus is not null and rateFallbackStatus.status == 'configured' %}
+                <span class="badge badge-success">{{ 'Fallback rate'|trans({}, 'Modules.Btcpay.Admin') }}{% if rateFallbackStatus.source %}: {{ rateFallbackStatus.source }}{% endif %}</span>
+              {% elseif rateFallbackStatus is defined and rateFallbackStatus is not null and rateFallbackStatus.status == 'missing' %}
+                <span class="badge badge-warning">{{ 'Fallback rate missing'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+              {% else %}
+                <span class="badge badge-secondary">{{ 'Fallback rate unknown'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+              {% endif %}
+            {% else %}
+              <span class="badge badge-warning">{{ 'Not linked'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+              <span class="text-muted">{{ 'Save a BTCPay Server URL and API key in the Configuration tab.'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+            {% endif %}
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-          <div class="card">
-            {{ form_start(general_form, {'action': url('admin_btcpay_configure_general_process'), 'attr': {'class': 'form', 'id': 'general-form'}}) }}
-            <h3 class="card-header">
-              <i class="material-icons">settings</i>
-              {{ 'General'|trans({}, 'Admin.Global') }}
-            </h3>
+  {# Tabs: dual data-toggle / data-bs-toggle for PS8 (BS4) and PS9 (BS5) #}
+  <div class="row ps17">
+    <div class="col-12 col-md-10 col-lg-10 offset-md-1 offset-lg-1">
+      <ul class="nav nav-tabs" id="btcpay-configure-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <a class="nav-link active" id="btcpay-tab-config" href="#btcpay-pane-config" data-toggle="tab" data-bs-toggle="tab" role="tab" aria-controls="btcpay-pane-config" aria-selected="true">
+            {{ 'Configuration'|trans({}, 'Admin.Global') }}
+          </a>
+        </li>
+        {% if storeAvailable %}
+        <li class="nav-item" role="presentation">
+          <a class="nav-link" id="btcpay-tab-connection" href="#btcpay-pane-connection" data-toggle="tab" data-bs-toggle="tab" role="tab" aria-controls="btcpay-pane-connection" aria-selected="false">
+            {{ 'Connection'|trans({}, 'Modules.Btcpay.Admin') }}
+          </a>
+        </li>
+        {% endif %}
+        {% if cacheStatuses is defined %}
+        <li class="nav-item" role="presentation">
+          <a class="nav-link" id="btcpay-tab-diagnostics" href="#btcpay-pane-diagnostics" data-toggle="tab" data-bs-toggle="tab" role="tab" aria-controls="btcpay-pane-diagnostics" aria-selected="false">
+            {{ 'Diagnostics'|trans({}, 'Modules.Btcpay.Admin') }}
+          </a>
+        </li>
+        {% endif %}
+      </ul>
 
-            <div class="card-body">
-              <div class="card-text">
-                {{ form_row(general_form.speed) }}
-                {{ form_row(general_form.orderMode) }}
-                {{ form_row(general_form.protectOrders) }}
-                {{ form_row(general_form.shareMetadata) }}
-                {{ form_rest(general_form) }}
+      <div class="tab-content" id="btcpay-configure-tab-content">
+        {# Configuration #}
+        <div class="tab-pane fade show active" id="btcpay-pane-config" role="tabpanel" aria-labelledby="btcpay-tab-config">
+          <div class="row">
+            <div class="{% if invalidApiKey %}col-12 col-lg-6{% else %}col-12{% endif %}">
+              <div class="card">
+                {{ form_start(server_form, {'action': url('admin_btcpay_configure_server_process'), 'attr': {'class': 'form', 'id': 'server-form'}}) }}
+                <h3 class="card-header">
+                  <i class="material-icons" aria-hidden="true">mode_edit</i>
+                  {{ 'Server'|trans({}, 'Admin.Global') }}
+                </h3>
+                <div class="card-body">
+                  <div class="card-text">
+                    {{ form_row(server_form.host) }}
+                    {{ form_row(server_form.apiKey, {'type': 'password'}) }}
+                    {{ form_rest(server_form) }}
+                  </div>
+                </div>
+                <div class="card-footer text-right">
+                  <button class="btn btn-primary" type="submit">{{ 'Save'|trans({}, 'Admin.Actions') }}</button>
+                </div>
+                {{ form_end(server_form) }}
+              </div>
+
+              <div class="card">
+                {{ form_start(general_form, {'action': url('admin_btcpay_configure_general_process'), 'attr': {'class': 'form', 'id': 'general-form'}}) }}
+                <h3 class="card-header">
+                  <i class="material-icons" aria-hidden="true">settings</i>
+                  {{ 'General'|trans({}, 'Admin.Global') }}
+                </h3>
+                <div class="card-body">
+                  <div class="card-text">
+                    {% set speedHelp %}
+                      {{- 'Controls the confirmations required for on-chain payments.'|trans({}, 'Modules.Btcpay.Admin') -}}
+                      <div class="collapse mt-1" id="btcpay-transaction-speed-help">
+                        <span class="d-block mb-1">{{ 'High accepts eligible payments with 0 confirmations; BTCPay Server waits for 1 confirmation when a transaction is flagged for Replace-By-Fee (RBF).'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                        <span class="d-block mb-1">{{ 'Unconfirmed payments can still be replaced or double-spent, including via full RBF. Shipping goods or automatically delivering digital products before confirmation risks fulfilling unpaid orders.'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                        <span class="d-block">{{ 'Choose Medium or Low to require confirmations.'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                      </div>
+                      <div class="read-more-container">
+                        <button type="button" class="read-more btn-link" data-toggle="collapse" data-bs-toggle="collapse" data-target="#btcpay-transaction-speed-help" data-bs-target="#btcpay-transaction-speed-help" aria-expanded="false" aria-controls="btcpay-transaction-speed-help">
+                          {{ 'Read more'|trans({}, 'Admin.Actions') }}
+                        </button>
+                      </div>
+                    {% endset %}
+                    {{ form_row(general_form.speed, {help: speedHelp}) }}
+                    {{ form_row(general_form.orderMode) }}
+                    {{ form_row(general_form.protectOrders) }}
+                    {{ form_row(general_form.shareMetadata) }}
+                    {{ form_rest(general_form) }}
+                  </div>
+                </div>
+                <div class="card-footer text-right">
+                  <button class="btn btn-primary" type="submit">{{ 'Save'|trans({}, 'Admin.Actions') }}</button>
+                </div>
+                {{ form_end(general_form) }}
               </div>
             </div>
 
-            <div class="card-footer text-right">
-              <button class="btn btn-primary" type="submit">{{ 'Save'|trans({}, 'Admin.Actions') }}</button>
+            {% if invalidApiKey %}
+            <div class="col-12 col-lg-6">
+              <div class="card">
+                <h3 class="card-header">
+                  <i class="material-icons" aria-hidden="true">info</i>
+                  {{ 'Setup information'|trans({}, 'Admin.Global') }}
+                </h3>
+                <div class="card-body">
+                  <div class="card-text">
+                    <p>{{ 'The quickest way to get the plugin working is to set the proper <em>BTCPay Server URL</em> and press save. You will be redirected to your BTCPay Server where you will be guided through the API key creation process. Once the key is created, you\'ll be redirected back to PrestaShop.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
+                    <p>{{ 'Redirecting back from BTCPay Server sometimes fails due to PrestaShop weirdness. If it does, you can still use this plugin by copying the API key from <code>/account/apikeys</code> and pasting it in the form.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
+                    <hr/>
+                    <p>{{ 'If preferred, you can also make an API key yourself by pressing the button below (<em>make sure your BTCPay Server URL is correct, first</em>) or by creating it at <code>/account/addapikey</code>. If you are going to make an API key yourself, make sure that it has the following permissions for a <em>singular</em> store:'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
+                    <ul>
+                      {% for permission in constant('\\BTCPay\\Constants::BTCPAY_PERMISSIONS') %}
+                        <li>{{ permission }}</li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+                <div class="card-footer text-right">
+                  {% if server_form.vars.value.host %}
+                    <a href="{{ server_form.vars.value.host }}" class="btn btn-outline-secondary" target="_blank" rel="noopener noreferrer nofollow">{{ 'Visit Dashboard'|trans({}, 'Admin.Actions') }}</a>
+                  {% endif %}
+                  <a href="{{ authorizeUrl }}" class="btn btn-primary">{{ 'Create API key'|trans({}, 'Admin.Actions') }}</a>
+                </div>
+              </div>
             </div>
-            {{ form_end(general_form) }}
+            {% endif %}
           </div>
         </div>
 
-        {% if invalidApiKey %}
-        <div class="col-12 col-lg-6">
-          <div class="card">
-            <h3 class="card-header">
-              <i class="material-icons">info_outline</i>
-              {{ 'Setup information'|trans({}, 'Admin.Global') }}
-            </h3>
+        {# Connection health #}
+        {% if storeAvailable %}
+        <div class="tab-pane fade" id="btcpay-pane-connection" role="tabpanel" aria-labelledby="btcpay-tab-connection">
+          <div class="card-deck">
+            <div class="card">
+              <h3 class="card-header">{{ 'Store Information'|trans({}, 'Admin.Actions') }}</h3>
+              <div class="card-body">
+                <dl class="btcpay-meta">
+                  <dt><span class="text-muted"><strong>{{ 'Linked Store'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
+                  <dd><a href="{{ client.baseUrl }}/stores/{{ storeInfo.id }}" target="_blank" rel="noopener noreferrer nofollow">{{ storeInfo.name }}</a></dd>
 
-            <div class="card-body">
-              <div class="card-text">
-                <p>{{ 'The quickest way to get the plugin working is to set the proper <em>BTCPay Server URL</em> and press save. You will be redirected to your BTCPay Server where you will be guided through the API key creation process. Once the key is created, you\'ll be redirected back to PrestaShop.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
-                <p>{{ 'Redirecting back from BTCPay Server sometimes fails due to PrestaShop weirdness. If it does, you can still use this plugin by copying the API key from <code>/account/apikeys</code> and pasting it in the form.'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
-                <hr/>
-                <p>{{ 'If preferred, you can also make an API key yourself by pressing the button below (<em>make sure your BTCPay Server URL is correct, first</em>) or by creating it at <code>/account/addapikey</code>. If you are going to make an API key yourself, make sure that it has the following permissions for a <em>singular</em> store:'|trans({}, 'Modules.Btcpay.Admin')|raw }}</p>
-                <ul>
-                  {% for permission in constant('\\BTCPay\\Constants::BTCPAY_PERMISSIONS') %}
-                    <li>{{ permission }}</li>
-                  {% endfor %}
-                </ul>
+                  <dt><span class="text-muted"><strong>{{ 'Default speed policy'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
+                  <dd>{{ storeInfo.speedPolicy }}</dd>
+
+                  <dt><span class="text-muted"><strong>{{ 'Invoice expiration time'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
+                  <dd>{{ (storeInfo.invoiceExpiration / 60)|round(0, 'floor') }} {{ 'minutes'|trans({}, 'Modules.Btcpay.Global') }}</dd>
+
+                  <dt><span class="text-muted"><strong>{{ 'Invoice monitoring expiration time'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
+                  <dd>{{ (storeInfo.monitoringExpiration / 60)|round(0, 'floor') }} {{ 'minutes'|trans({}, 'Modules.Btcpay.Global') }}</dd>
+
+                  <dt><span class="text-muted"><strong>{{ 'Default currency'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
+                  <dd>{% if storeInfo.defaultCurrency is empty %}{{ 'None'|trans({}, 'Admin.Global') }}{% else %}{{ storeInfo.defaultCurrency }}{% endif %}</dd>
+
+                  <dt><span class="text-muted"><strong>{{ 'Fallback rate provider'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
+                  <dd>
+                    {% if rateFallbackStatus is defined and rateFallbackStatus is not null and rateFallbackStatus.status == 'configured' %}
+                      <span class="badge badge-success">{{ 'Yes'|trans({}, 'Admin.Global') }}{% if rateFallbackStatus.source %} ({{ rateFallbackStatus.source }}){% endif %}</span>
+                    {% elseif rateFallbackStatus is defined and rateFallbackStatus is not null and rateFallbackStatus.status == 'missing' %}
+                      <span class="badge badge-warning">{{ 'No'|trans({}, 'Admin.Global') }}</span>
+                      — <a href="{{ client.baseUrl }}/stores/{{ storeId }}/rates" target="_blank" rel="noopener noreferrer nofollow">{{ 'Configure in BTCPay Server'|trans({}, 'Modules.Btcpay.Admin') }}</a>
+                    {% else %}
+                      <span class="badge badge-secondary">{{ 'Unable to check (requires BTCPay Server 2.1.2+)'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                    {% endif %}
+                  </dd>
+                </dl>
               </div>
             </div>
 
-            <div class="card-footer text-right">
-              {% if server_form.vars.value.host %}
-                <a href="{{ server_form.vars.value.host }}" class="btn btn-outline-secondary" target="_blank" rel="noopener noreferrer nofollow">{{ 'Visit Dashboard'|trans({}, 'Admin.Actions') }}</a>
-              {% endif %}
-              <a href="{{ authorizeUrl }}" class="btn btn-primary">{{ 'Create API key'|trans({}, 'Admin.Actions') }}</a>
+            <div class="card">
+              <h3 class="card-header">{{ 'Server Information'|trans({}, 'Admin.Actions') }}</h3>
+              <div class="card-body">
+                <dl class="btcpay-meta">
+                  <dt><span class="text-muted"><strong>{{ 'Version'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
+                  <dd><a href="https://github.com/btcpayserver/btcpayserver/releases" target="_blank" rel="noopener noreferrer nofollow">{{ serverInfo.version }}</a></dd>
+
+                  <dt><span class="text-muted"><strong>{{ 'Webhook'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
+                  <dd>
+                    {% if webhook is not null and webhook.enabled is defined and webhook.enabled %}
+                      <span class="badge badge-success">{{ 'Enabled'|trans({}, 'Admin.Global') }}</span>
+                    {% elseif webhook is not null and webhook.enabled is defined and not webhook.enabled %}
+                      <span class="badge badge-warning">{{ 'Webhook has been disabled, re-enable it in your store'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                    {% else %}
+                      <span class="badge badge-warning">{{ 'Webhook is missing, retry the setup process'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                    {% endif %}
+                  </dd>
+
+                  <dt><span class="text-muted"><strong>{{ 'Node fully synced'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
+                  <dd>
+                    {% if serverInfo.fullySynced %}
+                      <span class="badge badge-success">{{ 'Yes'|trans({}, 'Admin.Global') }}</span>
+                    {% else %}
+                      <span class="badge badge-warning" title="{{ 'The payment option will not be available until the server is synced'|trans({}, 'Modules.Btcpay.Admin') }}">{{ 'No'|trans({}, 'Admin.Global') }}</span>
+                    {% endif %}
+                  </dd>
+
+                  <dt><span class="text-muted"><strong>{{ 'Supported payment methods'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
+                  <dd>
+                    <ul class="btcpay-pay-methods">
+                      {% for paymentMethod in paymentMethods %}
+                        <li>
+                          <span class="badge badge-secondary">
+                            {{ paymentMethod.cryptoCode }}
+                            {% if paymentMethod.type == 'LNURL' %}
+                              ({{ 'LNURL'|trans({}, 'Modules.Btcpay.Admin') }})
+                            {% elseif paymentMethod.type == 'Lightning' %}
+                              ({{ 'Lightning'|trans({}, 'Modules.Btcpay.Admin') }})
+                            {% else %}
+                              ({{ 'On-Chain'|trans({}, 'Modules.Btcpay.Admin') }})
+                            {% endif %}
+                          </span>
+                        </li>
+                      {% else %}
+                        <li><span class="badge badge-secondary">{{ 'None'|trans({}, 'Admin.Global') }}</span></li>
+                      {% endfor %}
+                    </ul>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {# Diagnostics #}
+        {% if cacheStatuses is defined %}
+        <div class="tab-pane fade" id="btcpay-pane-diagnostics" role="tabpanel" aria-labelledby="btcpay-tab-diagnostics">
+          <div class="card">
+            <h3 class="card-header">{{ 'Cache status'|trans({}, 'Modules.Btcpay.Admin') }}</h3>
+            <div class="card-body">
+              <div class="btcpay-diag-grid">
+                <div class="btcpay-diag-item">
+                  <p class="btcpay-diag-label">{{ 'BTCPay unreachable pause'|trans({}, 'Modules.Btcpay.Admin') }}</p>
+                  {% if cacheStatuses.unreachable.active %}
+                    <span class="badge badge-warning">
+                      {% if cacheStatuses.unreachable.remaining is not null %}
+                        {{ 'Active (~%seconds%s left)'|trans({'%seconds%': cacheStatuses.unreachable.remaining}, 'Modules.Btcpay.Admin') }}
+                      {% else %}
+                        {{ 'Active'|trans({}, 'Admin.Global') }}
+                      {% endif %}
+                    </span>
+                  {% else %}
+                    <span class="badge badge-success">{{ 'Inactive'|trans({}, 'Admin.Global') }}</span>
+                  {% endif %}
+                </div>
+
+                <div class="btcpay-diag-item">
+                  <p class="btcpay-diag-label">{{ 'GitHub version check'|trans({}, 'Modules.Btcpay.Admin') }}</p>
+                  {% if cacheStatuses.github.state == 'ok' %}
+                    <span class="badge badge-success">{{ 'Release cached'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                  {% elseif cacheStatuses.github.state == 'failure' %}
+                    <span class="badge badge-warning">{{ 'Last check failed (cached)'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                  {% else %}
+                    <span class="badge badge-secondary">{{ 'Not cached'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                  {% endif %}
+                </div>
+
+                <div class="btcpay-diag-item">
+                  <p class="btcpay-diag-label">{{ 'Request: store valid'|trans({}, 'Modules.Btcpay.Admin') }}</p>
+                  {% if cacheStatuses.isValid.stored %}
+                    {% if cacheStatuses.isValid.value %}
+                      <span class="badge badge-success">{{ 'Cached (valid)'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                    {% else %}
+                      <span class="badge badge-warning">{{ 'Cached (invalid)'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="badge badge-secondary">{{ 'Not cached'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                  {% endif %}
+                </div>
+
+                <div class="btcpay-diag-item">
+                  <p class="btcpay-diag-label">{{ 'Request: server info'|trans({}, 'Modules.Btcpay.Admin') }}</p>
+                  {% if cacheStatuses.serverInfo.stored %}
+                    <span class="badge badge-success">{{ 'Cached'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                  {% else %}
+                    <span class="badge badge-secondary">{{ 'Not cached'|trans({}, 'Modules.Btcpay.Admin') }}</span>
+                  {% endif %}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -153,101 +392,5 @@
       </div>
     </div>
   </div>
-
-  {% if storeAvailable %}
-    <div class="row ps17">
-      <div class="col-12 col-md-10 col-lg-10 offset-md-1 offset-lg-1">
-        <div class="card-deck">
-          <div class="card">
-            <h3 class="card-header">
-              {{ 'Store Information'|trans({}, 'Admin.Actions') }}
-            </h3>
-
-            <div class="card-body">
-              <div class="card-text">
-                <dl>
-                  <dt><span class="text-muted mb-0"><strong>{{ 'Linked Store'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                  <dd><span class="px-1"><a href="{{ client.baseUrl }}/stores/{{ storeInfo.id }}" target="_blank" rel="noopener noreferrer nofollow">{{ storeInfo.name }}</a></span></dd>
-
-                  <dt><span class="text-muted mb-0"><strong>{{ 'Default speed policy'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                  <dd><span class="px-1">{{ storeInfo.speedPolicy }}</span></dd>
-
-                  <dt><span class="text-muted mb-0"><strong>{{ 'Invoice expiration time'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                  <dd><span class="px-1">{{ (storeInfo.invoiceExpiration / 60)|round(0, 'floor') }} {{ 'minutes'|trans({}, 'Modules.Btcpay.Global') }}</span></dd>
-
-                  <dt><span class="text-muted mb-0"><strong>{{ 'Invoice monitoring expiration time'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                  <dd><span class="px-1">{{ (storeInfo.monitoringExpiration / 60)|round(0, 'floor') }} {{ 'minutes'|trans({}, 'Modules.Btcpay.Global') }}</span></dd>
-
-                  <dt><span class="text-muted mb-0"><strong>{{ 'Default currency'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                  <dd><span class="px-1">{% if storeInfo.defaultCurrency is empty %}{{ 'None'|trans({}, 'Admin.Global') }}{% else %}{{ storeInfo.defaultCurrency }}{% endif %}</span></dd>
-
-                  <dt><span class="text-muted mb-0"><strong>{{ 'Fallback rate provider'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                  <dd>
-                    {% if rateFallbackStatus is defined and rateFallbackStatus is not null and rateFallbackStatus.status == 'configured' %}
-                      <span class="text-success px-1">{{ 'Yes'|trans({}, 'Admin.Global') }}{% if rateFallbackStatus.source %} ({{ rateFallbackStatus.source }}){% endif %}</span>
-                    {% elseif rateFallbackStatus is defined and rateFallbackStatus is not null and rateFallbackStatus.status == 'missing' %}
-                      <span class="text-warning px-1">{{ 'No'|trans({}, 'Admin.Global') }} - <a href="{{ client.baseUrl }}/stores/{{ storeId }}/rates" target="_blank" rel="noopener noreferrer nofollow">{{ 'Configure in BTCPay Server'|trans({}, 'Modules.Btcpay.Admin') }}</a></span>
-                    {% else %}
-                      <span class="text-muted px-1">{{ 'Unable to check (requires BTCPay Server 2.1.2+)'|trans({}, 'Modules.Btcpay.Admin') }}</span>
-                    {% endif %}
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-
-          <div class="card">
-            <h3 class="card-header">
-              {{ 'Server Information'|trans({}, 'Admin.Actions') }}
-            </h3>
-
-            <div class="card-body">
-              <dl>
-                <dt><span class="text-muted mb-0"><strong>{{ 'Version'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                <dd><span class="px-1"><a href="https://github.com/btcpayserver/btcpayserver/releases" target="_blank" rel="noopener noreferrer nofollow">{{ serverInfo.version }}</a></span></dd>
-
-                <dt><span class="text-muted mb-0"><strong>{{ 'Webhook'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                {% if webhook is not null and webhook.enabled is defined and webhook.enabled %}
-                  <dd><span class="text-success px-1">{{ 'Enabled'|trans({}, 'Admin.Global') }}</span></dd>
-                {% elseif webhook is not null and webhook.enabled is defined and not webhook.enabled %}
-                  <dd><span class="text-warning px-1">{{ 'Webhook has been disabled, re-enable it in your store'|trans({}, 'Modules.Btcpay.Admin') }}</span></dd>
-                {% else %}
-                  <dd><span class="text-warning px-1">{{ 'Webhook is missing, retry the setup process'|trans({}, 'Modules.Btcpay.Admin') }}</span></dd>
-                {% endif %}
-
-                <dt><span class="text-muted mb-0"><strong>{{ 'Node fully synced'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                <dd>
-                  {% if serverInfo.fullySynced %}
-                    <span class="text-success px-1">{{ 'Yes'|trans({}, 'Admin.Global') }}</span>
-                  {% else %}
-                    <span class="text-warning px-1" title="{{ 'The payment option will not be available until the server is synced'|trans({}, 'Modules.Btcpay.Admin') }}">{{ 'No'|trans({}, 'Admin.Global') }}</span>
-                  {% endif %}
-                </dd>
-
-                <dt><span class="text-muted mb-0"><strong>{{ 'Supported payment methods'|trans({}, 'Modules.Btcpay.Admin') }}</strong></span></dt>
-                <dd>
-                  <ul>
-                    {% for paymentMethod in paymentMethods %}
-                      <li>
-                        {{ paymentMethod.cryptoCode }}
-                        {% if paymentMethod.type == 'LNURL' %}
-                          ({{ 'LNURL'|trans({}, 'Modules.Btcpay.Admin') }})
-                        {% elseif paymentMethod.type == 'Lightning' %}
-                          ({{ 'Lightning'|trans({}, 'Modules.Btcpay.Admin') }})
-                        {% else %}
-                          ({{ 'On-Chain'|trans({}, 'Modules.Btcpay.Admin') }})
-                        {% endif %}
-                      </li>
-                    {% else %}
-                      <li class="text-muted">{{ 'None'|trans({}, 'Admin.Global') }}</li>
-                    {% endfor %}
-                  </ul>
-                </dd>
-              </dl>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  {% endif %}
+</div>
 {% endblock %}

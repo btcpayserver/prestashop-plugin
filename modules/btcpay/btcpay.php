@@ -40,6 +40,11 @@ class BTCPay extends PaymentModule
 	];
 
 	/**
+	 * @var bool
+	 */
+	public $is_eu_compatible = true;
+
+	/**
 	 * @var Configuration
 	 */
 	private $configuration;
@@ -53,7 +58,7 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '6.3.2';
+		$this->version                = '6.4.1';
 		$this->author                 = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
 		$this->controllers            = ['payment', 'validation', 'webhook'];
@@ -412,7 +417,7 @@ class BTCPay extends PaymentModule
 
 		try {
 			// If the server is not fully synced, do not show the option
-			if (!$client->server()->getInfo()->isFullySynced()) {
+			if (!$client->serverInfo()->isFullySynced()) {
 				return [];
 			}
 
@@ -486,6 +491,11 @@ class BTCPay extends PaymentModule
 
 	private function displayModuleWarnings(): void
 	{
+		// Remote warning checks belong in the back office only (module list / configure)
+		if (!\defined('_PS_ADMIN_DIR_') || Tools::isPHPCLI() || Tools::getIsset('ajax')) {
+			return;
+		}
+
 		// Try and create the client
 		$client = Client::createFromConfiguration($this->configuration);
 
@@ -493,7 +503,7 @@ class BTCPay extends PaymentModule
 			// Show warning if API key is missing or if we're not yet fully synced
 			if (null === $client || empty($this->configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY))) {
 				$this->warning = $this->trans('Your BTCPay Server store has not yet been linked, payment option is unavailable.', [], 'Modules.Btcpay.Admin');
-			} elseif (!$client->server()->getInfo()->isFullySynced()) {
+			} elseif (!$client->serverInfo()->isFullySynced()) {
 				$this->warning = $this->trans('One (or more) coins are not yet synced, payment option will be unavailable until the sync has finished.', [], 'Modules.Btcpay.Admin');
 			} elseif (!empty($storeId = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))
 				&& RateFallbackStatus::resolve($client->storeRate(), (string) $storeId)->isMissing()) {
