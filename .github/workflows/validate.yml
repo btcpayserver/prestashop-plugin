@@ -16,14 +16,14 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        php-versions: [ '8.0', '8.1' ]
+        php-versions: [ '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
     steps:
       - name: "Checkout"
-        uses: "actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5" # v6.0.0
+        uses: "actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5" # v6.0.1
         with:
           persist-credentials: false
       - name: "Setup PHP, with composer and extensions"
-        uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # v2.37.2
+        uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # 2.37.2
         with:
           php-version: "${{ matrix.php-versions }}"
           extensions: "mbstring, xml, ctype, iconv, intl, gd"
@@ -44,5 +44,48 @@ jobs:
         run: "composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader"
 
       # Ensure our code looks proper
+      # PHP_CS_FIXER_IGNORE_ENV is required because the pinned PHP-CS-Fixer
+      # only declares support up to PHP 8.1 but works fine on newer versions.
       - name: "Lint the code"
         run: "make lint"
+        env:
+          PHP_CS_FIXER_IGNORE_ENV: 1
+
+  tests:
+    name: "Tests (PHP ${{ matrix.php-versions }})"
+    runs-on: "ubuntu-latest"
+    strategy:
+      matrix:
+        php-versions: [ '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
+    defaults:
+      run:
+        working-directory: "modules/btcpay"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5" # v6.0.1
+        with:
+          persist-credentials: false
+      - name: "Setup PHP, with composer and extensions"
+        uses: "shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240" # 2.37.2
+        with:
+          php-version: "${{ matrix.php-versions }}"
+          extensions: "mbstring, xml, ctype, iconv, intl, gd"
+          tools: "composer:v2"
+      - name: "Get composer cache directory"
+        id: "composer-cache"
+        run: 'echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT'
+      - name: "Cache composer dependencies"
+        uses: "actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9" # v6.1.0
+        with:
+          path: "${{ steps.composer-cache.outputs.dir }}"
+          key: "${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}"
+          restore-keys: "${{ runner.os }}-composer-"
+          lookup-only: true
+      - name: "Validate composer"
+        run: "composer validate"
+      - name: "Install Composer dependencies"
+        run: "composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader"
+
+      # Run the module's PHPUnit test suite
+      - name: "Run the tests"
+        run: "vendor/bin/phpunit"
