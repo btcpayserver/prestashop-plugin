@@ -1,6 +1,7 @@
 <?php
 
 use BTCPay\Constants;
+use BTCPay\Exception\OrderCreationBusyException;
 use BTCPay\Invoice\CheckoutGuard;
 use BTCPay\Invoice\Processor;
 use BTCPay\Repository\BitcoinPaymentRepository;
@@ -120,9 +121,15 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 			}
 
 			// User was quicker than the callback, so we deal with the actual invoice now.
-			// A busy lock must not fall through: the cart redirect below deletes the payment row on cart save.
 			$processor = new Processor($this->module, $this->context, $this->configuration, $client);
-			$processor->paymentReceivedCreateAfter($bitcoinPayment);
+			try {
+				$processor->paymentReceivedCreateAfter($bitcoinPayment);
+			} catch (OrderCreationBusyException) {
+				// Reloading stays on this URL. A cart redirect would save the cart and delete the payment row.
+				$this->setTemplate('module:btcpay/views/templates/front/order-pending.tpl');
+
+				return;
+			}
 
 			// Grab the (now existing) order
 			$order = Order::getByCartId($bitcoinPayment->getCartId());

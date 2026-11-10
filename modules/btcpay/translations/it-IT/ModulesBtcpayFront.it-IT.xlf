@@ -82,6 +82,10 @@
         <source>Your order will be processed as soon as your payment is confirmed by the relevant crypto network.</source>
         <target state="final">L'ordine verrà lavorato appena il pagamento sarà confermato dalla rete della criptovaluta.</target>
       </trans-unit>
+      <trans-unit id="21" resname="Your payment is being confirmed. This page will refresh automatically.">
+        <source>Your payment is being confirmed. This page will refresh automatically.</source>
+        <target state="final">Il pagamento è in fase di conferma. Questa pagina si aggiorna da sola.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
