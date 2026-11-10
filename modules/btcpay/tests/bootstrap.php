@@ -8,6 +8,8 @@ require \dirname(__DIR__) . '/vendor/autoload.php';
 
 // Test doubles for the PrestaShop globals used by the repository layer.
 require_once __DIR__ . '/stubs/Db.php';
+require_once __DIR__ . '/stubs/Cache.php';
+require_once __DIR__ . '/stubs/OrderInvoice.php';
 require_once __DIR__ . '/stubs/PrestaShopLogger.php';
 require_once __DIR__ . '/stubs/FrameworkBundleAdminController.php';
 require_once __DIR__ . '/stubs/functions.php';

@@ -14,6 +14,15 @@ class Db
 	/** When true, every query throws, simulating an unavailable database. */
 	public bool $unavailable = false;
 
+	/** When true, insert() returns false without throwing. */
+	public bool $insertFails = false;
+
+	/** @var array<int, array<string, mixed>>|null rows returned by executeS */
+	public ?array $executeSResult = null;
+
+	/** @var list<array{table: string, data: array<string, mixed>}> */
+	public array $inserts = [];
+
 	/** @var string[] delivery ids currently stored in the fake table */
 	private array $deliveryIds = [];
 
@@ -60,6 +69,40 @@ class Db
 	public function Affected_Rows(): int
 	{
 		return $this->affectedRows;
+	}
+
+	/**
+	 * @return array<int, array<string, mixed>>|false
+	 */
+	public function executeS(string $sql)
+	{
+		$this->queries[] = $sql;
+
+		if ($this->unavailable) {
+			throw new \RuntimeException('database unavailable');
+		}
+
+		return $this->executeSResult ?? [];
+	}
+
+	/**
+	 * @param array<string, mixed> $data
+	 */
+	public function insert(string $table, array $data): bool
+	{
+		$this->queries[] = 'INSERT ' . $table;
+		$this->inserts[] = ['table' => $table, 'data' => $data];
+
+		if ($this->unavailable) {
+			throw new \RuntimeException('database unavailable');
+		}
+
+		return false === $this->insertFails;
+	}
+
+	public function getMsgError(): string
+	{
+		return true === $this->insertFails ? 'insert failed' : '';
 	}
 
 	public static function reset(): void
