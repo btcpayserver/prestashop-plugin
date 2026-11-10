@@ -426,6 +426,10 @@ class Processor
 			throw new \RuntimeException($error);
 		}
 
+		if ($targetPaid) {
+			$this->paymentSettled($bitcoinPayment);
+		}
+
 		$this->addHistory((int) $bitcoinPayment->getOrderId(), $orderStatus, true);
 
 		return true;
