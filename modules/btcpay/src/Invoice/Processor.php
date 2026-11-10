@@ -241,10 +241,7 @@ class Processor
 
 		$precision = (int) \Currency::getCurrencyInstance((int) $order->id_currency)->precision;
 		$scale     = \max($precision + 8, 8);
-		$booked    = OrderPaymentRepository::amountsByTransactionId($order);
-		$allRaws   = [];
-		$pending   = [];
-		$already   = '0';
+		$settled   = [];
 
 		foreach ($paymentMethods as $paymentMethod) {
 			foreach ($paymentMethod->getPayments() as $payment) {
@@ -252,21 +249,28 @@ class Processor
 					continue;
 				}
 
-				$raw           = \bcmul($payment->getValue(), $paymentMethod->getRate(), $scale);
-				$transactionId = (string) $payment->getTransactionId();
-				$allRaws[]     = $raw;
-
-				if (isset($booked[$transactionId])) {
-					$already = \bcadd($already, $booked[$transactionId], $precision);
-
-					continue;
-				}
-
-				$pending[] = [
-					'transactionId' => $transactionId,
-					'raw'           => $raw,
+				$settled[] = [
+					'transactionId' => (string) $payment->getTransactionId(),
+					'raw'           => \bcmul($payment->getValue(), $paymentMethod->getRate(), $scale),
 				];
 			}
+		}
+
+		$booked  = OrderPaymentRepository::amountsByTransactionId($order);
+		$allRaws = [];
+		$pending = [];
+		$already = '0';
+
+		foreach ($settled as $item) {
+			$allRaws[] = $item['raw'];
+
+			if (isset($booked[$item['transactionId']])) {
+				$already = \bcadd($already, $booked[$item['transactionId']], $precision);
+
+				continue;
+			}
+
+			$pending[] = $item;
 		}
 
 		$amounts = PaymentAmounts::allocateRoundedAmounts(
@@ -295,8 +299,7 @@ class Processor
 				$bitcoinPayment->update(true);
 			}
 
-			// Snapshot before paymentReceived. A waiting order that this call marks paid
-			// is booked inside that status change; booking again would double-count.
+			// paymentReceived books when it marks paid; only book here if already paid
 			$wasAlreadyPaid = $this->orderStateIsPaid((string) $existing->current_state);
 
 			// We already have an order, so process as normal
@@ -347,8 +350,11 @@ class Processor
 			return;
 		}
 
-		// Set an initial state
-		$orderStatus = $this->statusFromInvoice($invoice, (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_WAITING));
+		// validateOrder into paid inserts an empty payment; create confirming then transition
+		$targetStatus = $this->statusFromInvoice($invoice, (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_WAITING));
+		$createStatus = $this->orderStateIsPaid($targetStatus)
+			? (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING)
+			: $targetStatus;
 
 		// Grab the secure key
 		$secureKey = $invoiceData['metadata']['posData'];
@@ -362,7 +368,7 @@ class Processor
 
 		$this->module->validateOrder(
 			$bitcoinPayment->getCartId(),
-			$orderStatus,
+			$createStatus,
 			$bitcoinPayment->getAmount(),
 			$this->module->displayName,
 			null,
@@ -383,7 +389,7 @@ class Processor
 
 		// Store the new order ID and set the proper status
 		$bitcoinPayment->setOrderId($order->id);
-		$bitcoinPayment->setStatus($orderStatus);
+		$bitcoinPayment->setStatus($createStatus);
 
 		// Update the object
 		if (false === $bitcoinPayment->update(true)) {
@@ -393,8 +399,8 @@ class Processor
 			throw new \RuntimeException($error);
 		}
 
-		if ($this->orderStateIsPaid($orderStatus)) {
-			$this->bookAndLink($bitcoinPayment, $order);
+		if ($createStatus !== $targetStatus) {
+			$this->updateOrderStatus($bitcoinPayment, $targetStatus, $invoice);
 		}
 	}
 
@@ -617,18 +623,12 @@ class Processor
 		return true;
 	}
 
-	/**
-	 * Book settled payments, then link any that are still missing from the invoice.
-	 */
 	private function bookAndLink(BitcoinPayment $bitcoinPayment, \Order $order): void
 	{
 		$this->paymentSettled($bitcoinPayment);
 		$this->linkOrderPayments($order);
 	}
 
-	/**
-	 * First invoice only — one cart, one invoice, payments attach to index 0.
-	 */
 	private function orderInvoice(\Order $order): ?\OrderInvoice
 	{
 		$invoices = $order->getInvoicesCollection()->getResults();
