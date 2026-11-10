@@ -1,16 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
 namespace BTCPay\Repository;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-/**
- * Attaches order payments that are not yet on the invoice.
- */
 class OrderInvoicePaymentLinker
 {
 	/**
