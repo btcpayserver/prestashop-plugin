@@ -229,7 +229,6 @@ class ConfigureController extends FrameworkBundleAdminController
 	 *
 	 * @throws Exception
 	 */
-	// Fully qualified so the docblock annotation keeps resolving to the PS8 annotation class.
 	#[\PrestaShopBundle\Security\Attribute\AdminSecurity("request.get('_anonymous_controller') or is_granted('update', request.get('_legacy_controller'))", message: 'Access denied.')]
 	public function validateAPIKeyAction(Request $request): Response
 	{
