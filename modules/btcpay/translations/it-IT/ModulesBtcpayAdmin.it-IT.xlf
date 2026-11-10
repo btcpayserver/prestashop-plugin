@@ -290,6 +290,118 @@
         <source>Paid with crypto</source>
         <target state="final">Pagato in criptovaluta</target>
       </trans-unit>
+      <trans-unit id="75" resname="There is a new version available for this plugin: %s.">
+        <source>There is a new version available for this plugin: %s.</source>
+        <target state="final">È disponibile una nuova versione di questo modulo: %s.</target>
+      </trans-unit>
+      <trans-unit id="76" resname="This shop is linked to BTCPay Server. Use the tabs below to change settings, review connection health, or inspect caches.">
+        <source>This shop is linked to BTCPay Server. Use the tabs below to change settings, review connection health, or inspect caches.</source>
+        <target state="final">Questo negozio è collegato a BTCPay Server. Usa le schede qui sotto per modificare le impostazioni, controllare lo stato della connessione o ispezionare le cache.</target>
+      </trans-unit>
+      <trans-unit id="77" resname="Connection status">
+        <source>Connection status</source>
+        <target state="final">Stato della connessione</target>
+      </trans-unit>
+      <trans-unit id="78" resname="Node synced">
+        <source>Node synced</source>
+        <target state="final">Nodo sincronizzato</target>
+      </trans-unit>
+      <trans-unit id="79" resname="Node not synced">
+        <source>Node not synced</source>
+        <target state="final">Nodo non sincronizzato</target>
+      </trans-unit>
+      <trans-unit id="80" resname="Fallback rate">
+        <source>Fallback rate</source>
+        <target state="final">Cambio di riserva</target>
+      </trans-unit>
+      <trans-unit id="81" resname="Fallback rate missing">
+        <source>Fallback rate missing</source>
+        <target state="final">Cambio di riserva mancante</target>
+      </trans-unit>
+      <trans-unit id="82" resname="Fallback rate unknown">
+        <source>Fallback rate unknown</source>
+        <target state="final">Cambio di riserva sconosciuto</target>
+      </trans-unit>
+      <trans-unit id="83" resname="Not linked">
+        <source>Not linked</source>
+        <target state="final">Non collegato</target>
+      </trans-unit>
+      <trans-unit id="84" resname="Save a BTCPay Server URL and API key in the Configuration tab.">
+        <source>Save a BTCPay Server URL and API key in the Configuration tab.</source>
+        <target state="final">Salva l'indirizzo di BTCPay Server e la chiave API nella scheda Configurazione.</target>
+      </trans-unit>
+      <trans-unit id="85" resname="Connection">
+        <source>Connection</source>
+        <target state="final">Connessione</target>
+      </trans-unit>
+      <trans-unit id="86" resname="Diagnostics">
+        <source>Diagnostics</source>
+        <target state="final">Diagnostica</target>
+      </trans-unit>
+      <trans-unit id="87" resname="Controls the confirmations required for on-chain payments.">
+        <source>Controls the confirmations required for on-chain payments.</source>
+        <target state="final">Controlla le conferme richieste per i pagamenti on-chain.</target>
+      </trans-unit>
+      <trans-unit id="88" resname="High accepts eligible payments with 0 confirmations; BTCPay Server waits for 1 confirmation when a transaction is flagged for Replace-By-Fee (RBF).">
+        <source>High accepts eligible payments with 0 confirmations; BTCPay Server waits for 1 confirmation when a transaction is flagged for Replace-By-Fee (RBF).</source>
+        <target state="final">Alta accetta i pagamenti idonei con 0 conferme; BTCPay Server attende 1 conferma se la transazione è segnalata come Replace-By-Fee (RBF).</target>
+      </trans-unit>
+      <trans-unit id="89" resname="Unconfirmed payments can still be replaced or double-spent, including via full RBF. Shipping goods or automatically delivering digital products before confirmation risks fulfilling unpaid orders.">
+        <source>Unconfirmed payments can still be replaced or double-spent, including via full RBF. Shipping goods or automatically delivering digital products before confirmation risks fulfilling unpaid orders.</source>
+        <target state="final">I pagamenti non confermati possono ancora essere sostituiti o spesi due volte, anche tramite full RBF. Spedire merce o consegnare prodotti digitali prima della conferma rischia di evadere ordini non pagati.</target>
+      </trans-unit>
+      <trans-unit id="90" resname="Choose Medium or Low to require confirmations.">
+        <source>Choose Medium or Low to require confirmations.</source>
+        <target state="final">Scegli Media o Bassa per richiedere le conferme.</target>
+      </trans-unit>
+      <trans-unit id="91" resname="Cache status">
+        <source>Cache status</source>
+        <target state="final">Stato della cache</target>
+      </trans-unit>
+      <trans-unit id="92" resname="BTCPay unreachable pause">
+        <source>BTCPay unreachable pause</source>
+        <target state="final">Pausa BTCPay irraggiungibile</target>
+      </trans-unit>
+      <trans-unit id="93" resname="Active (~%seconds%s left)">
+        <source>Active (~%seconds%s left)</source>
+        <target state="final">Attiva (circa %seconds%s rimasti)</target>
+      </trans-unit>
+      <trans-unit id="94" resname="GitHub version check">
+        <source>GitHub version check</source>
+        <target state="final">Controllo versione su GitHub</target>
+      </trans-unit>
+      <trans-unit id="95" resname="Release cached">
+        <source>Release cached</source>
+        <target state="final">Release in cache</target>
+      </trans-unit>
+      <trans-unit id="96" resname="Last check failed (cached)">
+        <source>Last check failed (cached)</source>
+        <target state="final">Ultimo controllo non riuscito (in cache)</target>
+      </trans-unit>
+      <trans-unit id="97" resname="Not cached">
+        <source>Not cached</source>
+        <target state="final">Non in cache</target>
+      </trans-unit>
+      <trans-unit id="98" resname="Request: store valid">
+        <source>Request: store valid</source>
+        <target state="final">Richiesta: negozio valido</target>
+      </trans-unit>
+      <trans-unit id="99" resname="Cached (valid)">
+        <source>Cached (valid)</source>
+        <target state="final">In cache (valido)</target>
+      </trans-unit>
+      <trans-unit id="100" resname="Cached (invalid)">
+        <source>Cached (invalid)</source>
+        <target state="final">In cache (non valido)</target>
+      </trans-unit>
+      <trans-unit id="101" resname="Request: server info">
+        <source>Request: server info</source>
+        <target state="final">Richiesta: info server</target>
+      </trans-unit>
+      <trans-unit id="102" resname="Cached">
+        <source>Cached</source>
+        <target state="final">In cache</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
