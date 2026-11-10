@@ -4,6 +4,7 @@ namespace BTCPay\Invoice;
 
 use BTCPay\Constants;
 use BTCPay\Entity\BitcoinPayment;
+use BTCPay\Exception\OrderCreationBusyException;
 use BTCPay\Factory\CustomerMessage;
 use BTCPay\Repository\OrderInvoicePaymentLinker;
 use BTCPay\Repository\OrderPaymentRepository;
@@ -153,15 +154,13 @@ class Processor
 			return;
 		}
 
-		// Failed/expired crypto payment: cancel so PrestaShop restocks and emails the customer
-		if ($orderStatus === $failedState && '' !== $canceledState && $canceledState !== $failedState) {
+		// A partial payment stays failed so cancelling does not restock goods that were paid for
+		if ($orderStatus === $failedState && $invoice->isPartiallyPaid()) {
+			\PrestaShopLogger::addLog(\sprintf("[WARNING] Invoice '%s' expired after a partial payment: refund or complete the order manually", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', (int) $bitcoinPayment->getOrderId());
+			CustomerMessage::addToOrder($this->context->shop, new \Order($bitcoinPayment->getOrderId()), \sprintf("BTCPay Server: invoice '%s' expired or invalid. WARNING: the invoice was PARTIALLY PAID before expiring; the amount received must be refunded or the order completed manually.", $invoice->getId()));
+		} elseif ($orderStatus === $failedState && '' !== $canceledState && $canceledState !== $failedState) {
 			$this->addHistory((int) $bitcoinPayment->getOrderId(), $canceledState, true);
-			$note = \sprintf("BTCPay Server: invoice '%s' expired or invalid, order cancelled and products put back in stock.", $invoice->getId());
-			if ($invoice->isPartiallyPaid()) {
-				$note .= ' WARNING: the invoice was PARTIALLY PAID before expiring; the amount received must be refunded or the order completed manually.';
-				\PrestaShopLogger::addLog(\sprintf("[WARNING] Invoice '%s' expired after a partial payment: refund or complete the order manually", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', (int) $bitcoinPayment->getOrderId());
-			}
-			CustomerMessage::addToOrder($this->context->shop, new \Order($bitcoinPayment->getOrderId()), $note);
+			CustomerMessage::addToOrder($this->context->shop, new \Order($bitcoinPayment->getOrderId()), \sprintf("BTCPay Server: invoice '%s' expired or invalid, order cancelled and products put back in stock.", $invoice->getId()));
 		}
 	}
 
@@ -196,6 +195,7 @@ class Processor
 	}
 
 	/**
+	 * @throws OrderCreationBusyException
 	 * @throws \JsonException
 	 * @throws \PrestaShopDatabaseException
 	 * @throws \PrestaShopException
@@ -206,7 +206,7 @@ class Processor
 
 		// Serialize creation so the webhook and customer return cannot both create an order
 		if (false === $this->acquireOrderCreationLock($cartId)) {
-			return;
+			throw new OrderCreationBusyException(\sprintf("Could not acquire order creation lock for cart '%d'", $cartId));
 		}
 
 		try {

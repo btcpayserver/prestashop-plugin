@@ -119,7 +119,8 @@ class BTCPayValidationModuleFrontController extends ModuleFrontController
 				throw new RuntimeException('Expected the client to be available');
 			}
 
-			// User was quicker than the callback, so we deal with the actual invoice now
+			// User was quicker than the callback, so we deal with the actual invoice now.
+			// A busy lock must not fall through: the cart redirect below deletes the payment row on cart save.
 			$processor = new Processor($this->module, $this->context, $this->configuration, $client);
 			$processor->paymentReceivedCreateAfter($bitcoinPayment);
 
