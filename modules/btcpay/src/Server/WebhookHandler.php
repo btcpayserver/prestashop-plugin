@@ -3,6 +3,7 @@
 namespace BTCPay\Server;
 
 use BTCPay\Constants;
+use BTCPay\Entity\BitcoinPayment;
 use BTCPay\Factory\CustomerMessage;
 use BTCPay\Invoice\Processor;
 use BTCPay\Repository\BitcoinPaymentRepository;
@@ -172,15 +173,9 @@ class WebhookHandler
 	 */
 	private function paymentReceived(array $data): void
 	{
-		$invoiceId = (string) $data['invoiceId'];
-		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment received for invoice %s', $invoiceId));
+		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment received for invoice %s', (string) $data['invoiceId']));
 
-		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByInvoiceID($invoiceId))) {
-			$error = \sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId);
-			\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
-
-			// Don't bother retrying
+		if (null === ($bitcoinPayment = $this->bitcoinPayment($data))) {
 			return;
 		}
 
@@ -194,19 +189,12 @@ class WebhookHandler
 	 */
 	private function paymentReceivedDelayedOrder(array $data): void
 	{
-		$invoiceId = (string) $data['invoiceId'];
-		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment received for invoice %s', $invoiceId));
+		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment received for invoice %s', (string) $data['invoiceId']));
 
-		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByInvoiceID($invoiceId))) {
-			$error = \sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId);
-			\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
-
-			// Don't bother retrying
+		if (null === ($bitcoinPayment = $this->bitcoinPayment($data))) {
 			return;
 		}
 
-		// Deal with the actual invoice now
 		$this->processor->paymentReceivedCreateAfter($bitcoinPayment);
 	}
 
@@ -217,19 +205,16 @@ class WebhookHandler
 	 */
 	private function paymentSettled(array $data): void
 	{
-		$invoiceId = (string) $data['invoiceId'];
-		\PrestaShopLogger::addLog(\sprintf('[INFO] One of the payments has settled for invoice %s', $invoiceId));
+		\PrestaShopLogger::addLog(\sprintf('[INFO] One of the payments has settled for invoice %s', (string) $data['invoiceId']));
 
-		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByInvoiceID($invoiceId))) {
-			$error = \sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId);
-			\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
-
-			// Don't bother retrying
+		if (null === ($bitcoinPayment = $this->bitcoinPayment($data))) {
 			return;
 		}
 
-		// Deal with the actual invoice now
+		if (false === $bitcoinPayment->hasOrder()) {
+			return;
+		}
+
 		$this->processor->paymentSettled($bitcoinPayment);
 	}
 
@@ -240,15 +225,9 @@ class WebhookHandler
 	 */
 	private function invoiceFailed(array $data): void
 	{
-		$invoiceId = (string) $data['invoiceId'];
-		\PrestaShopLogger::addLog(\sprintf("[INFO] Invoice '%s' failed, either because it wasn't paid, it expired or it was marked as invalid", $invoiceId));
+		\PrestaShopLogger::addLog(\sprintf("[INFO] Invoice '%s' failed, either because it wasn't paid, it expired or it was marked as invalid", (string) $data['invoiceId']));
 
-		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByInvoiceID($invoiceId))) {
-			$error = \sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId);
-			\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
-
-			// Don't bother retrying
+		if (null === ($bitcoinPayment = $this->bitcoinPayment($data))) {
 			return;
 		}
 
@@ -292,15 +271,9 @@ class WebhookHandler
 	 */
 	private function invoiceSettled(array $data): void
 	{
-		$invoiceId = (string) $data['invoiceId'];
-		\PrestaShopLogger::addLog(\sprintf("[INFO] Invoice '%s' has been settled and thus fully paid", $invoiceId));
+		\PrestaShopLogger::addLog(\sprintf("[INFO] Invoice '%s' has been settled and thus fully paid", (string) $data['invoiceId']));
 
-		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByInvoiceID($invoiceId))) {
-			$error = \sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId);
-			\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
-
-			// Don't bother retrying
+		if (null === ($bitcoinPayment = $this->bitcoinPayment($data))) {
 			return;
 		}
 
@@ -310,5 +283,26 @@ class WebhookHandler
 		}
 
 		$this->processor->invoiceSettled($bitcoinPayment);
+	}
+
+	/**
+	 * Stored invoice row for this delivery, or null when none exists.
+	 *
+	 * @throws \JsonException
+	 * @throws \PrestaShopDatabaseException
+	 * @throws \PrestaShopException
+	 */
+	private function bitcoinPayment(array $data): ?BitcoinPayment
+	{
+		$invoiceId      = (string) $data['invoiceId'];
+		$bitcoinPayment = BitcoinPaymentRepository::getOneByInvoiceID($invoiceId);
+		if (null !== $bitcoinPayment) {
+			return $bitcoinPayment;
+		}
+
+		\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+		\PrestaShopLogger::addLog(\sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
+
+		return null;
 	}
 }

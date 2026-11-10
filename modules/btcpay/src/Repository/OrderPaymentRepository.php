@@ -2,7 +2,6 @@
 
 namespace BTCPay\Repository;
 
-use BTCPayServer\Result\InvoicePayment;
 use PrestaShopCollection;
 
 if (!\defined('_PS_VERSION_')) {
@@ -12,14 +11,25 @@ if (!\defined('_PS_VERSION_')) {
 class OrderPaymentRepository
 {
 	/**
+	 * @return array<string, string> transaction_id => amount
+	 *
 	 * @throws \PrestaShopException
 	 */
-	public static function hasPayment(\Order $order, InvoicePayment $payment): bool
+	public static function amountsByTransactionId(\Order $order): array
 	{
 		$order_payments = new PrestaShopCollection(\OrderPayment::class);
 		$order_payments->where('order_reference', '=', $order->reference);
-		$order_payments->where('transaction_id', '=', $payment->getTransactionId());
 
-		return false === empty($order_payments->getResults());
+		$map = [];
+		foreach ($order_payments->getResults() as $orderPayment) {
+			$transactionId = (string) $orderPayment->transaction_id;
+			if ('' === $transactionId) {
+				continue;
+			}
+
+			$map[$transactionId] = (string) $orderPayment->amount;
+		}
+
+		return $map;
 	}
 }
