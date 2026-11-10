@@ -58,7 +58,7 @@ class BTCPay extends PaymentModule
 	{
 		$this->name                   = 'btcpay';
 		$this->tab                    = 'payments_gateways';
-		$this->version                = '6.4.2';
+		$this->version                = '6.4.3';
 		$this->author                 = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
 		$this->controllers            = ['payment', 'validation', 'webhook'];
@@ -541,7 +541,7 @@ class BTCPay extends PaymentModule
 
 		// Otherwise, add a warning on version upgrade
 		if (null !== ($latest = $this->versioning->latest()) && $latest->newer($this->version)) {
-			$this->warning = $this->trans(\sprintf('There is a new version available for this plugin: %s.', $latest->getTagName()), [], 'Modules.Btcpay.Admin');
+			$this->warning = $this->trans('There is a new version available for this plugin: %s.', [$latest->getTagName()], 'Modules.Btcpay.Admin');
 		}
 	}
 }
