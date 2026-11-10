@@ -5,6 +5,7 @@ namespace BTCPay\Invoice;
 use BTCPay\Constants;
 use BTCPay\Entity\BitcoinPayment;
 use BTCPay\Factory\CustomerMessage;
+use BTCPay\Repository\OrderInvoicePaymentLinker;
 use BTCPay\Repository\OrderPaymentRepository;
 use BTCPay\Server\Client;
 use BTCPayServer\Result\Invoice;
@@ -90,6 +91,10 @@ class Processor
 		// If nothing changed, return
 		if ((string) $order->current_state === $orderStatus) {
 			\PrestaShopLogger::addLog('[INFO] The state is the same as the one received', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
+
+			if ($this->orderStateIsPaid($orderStatus)) {
+				$this->bookAndLink($bitcoinPayment, $order);
+			}
 
 			return;
 		}
@@ -220,6 +225,13 @@ class Processor
 	{
 		// Get the order
 		$order = new \Order($bitcoinPayment->getOrderId());
+		if (false === \Validate::isLoadedObject($order)) {
+			\PrestaShopLogger::addLog(\sprintf("[ERROR] Could not load order '%s' for settled payment", $bitcoinPayment->getOrderId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
+
+			return;
+		}
+
+		$orderInvoice = $this->orderInvoice($order);
 
 		// Get the store ID
 		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
@@ -227,32 +239,45 @@ class Processor
 		// Grab the payments from the server
 		$paymentMethods = $this->client->invoice()->getPaymentMethods($storeID, $bitcoinPayment->getInvoiceId());
 
-		// Process all payments
-		foreach ($paymentMethods as $paymentMethod) {
-			// Grab all payments per payment method
-			$payments = $paymentMethod->getPayments();
+		$precision = (int) \Currency::getCurrencyInstance((int) $order->id_currency)->precision;
+		$scale     = \max($precision + 8, 8);
+		$booked    = OrderPaymentRepository::amountsByTransactionId($order);
+		$allRaws   = [];
+		$pending   = [];
+		$already   = '0';
 
-			// Process all payments
-			foreach ($payments as $payment) {
-				// Payment is not yet settled, continue
+		foreach ($paymentMethods as $paymentMethod) {
+			foreach ($paymentMethod->getPayments() as $payment) {
 				if (Invoice::STATUS_SETTLED !== $payment->getStatus()) {
 					continue;
 				}
 
-				// Payment is known, continue
-				if (OrderPaymentRepository::hasPayment($order, $payment)) {
+				$raw           = \bcmul($payment->getValue(), $paymentMethod->getRate(), $scale);
+				$transactionId = (string) $payment->getTransactionId();
+				$allRaws[]     = $raw;
+
+				if (isset($booked[$transactionId])) {
+					$already = \bcadd($already, $booked[$transactionId], $precision);
+
 					continue;
 				}
 
-				// Use order currency precision
-				$precision = (int) \Currency::getCurrencyInstance((int) $order->id_currency)->precision;
-
-				// Ensure proper rounded payment amount
-				$paymentAmount = \Tools::ps_round((float) \bcmul($payment->getValue(), $paymentMethod->getRate(), $precision), $precision);
-
-				// Add the payment
-				$order->addOrderPayment($paymentAmount, null, $payment->getTransactionId());
+				$pending[] = [
+					'transactionId' => $transactionId,
+					'raw'           => $raw,
+				];
 			}
+		}
+
+		$amounts = PaymentAmounts::allocateRoundedAmounts(
+			\array_column($pending, 'raw'),
+			$precision,
+			$allRaws,
+			$already
+		);
+
+		foreach ($pending as $index => $item) {
+			$order->addOrderPayment((float) $amounts[$index], null, $item['transactionId'], null, null, $orderInvoice);
 		}
 	}
 
@@ -270,8 +295,16 @@ class Processor
 				$bitcoinPayment->update(true);
 			}
 
+			// Snapshot before paymentReceived. A waiting order that this call marks paid
+			// is booked inside that status change; booking again would double-count.
+			$wasAlreadyPaid = $this->orderStateIsPaid((string) $existing->current_state);
+
 			// We already have an order, so process as normal
 			$this->paymentReceived($bitcoinPayment);
+
+			if ($wasAlreadyPaid) {
+				$this->bookAndLink($bitcoinPayment, $existing);
+			}
 
 			return;
 		}
@@ -359,6 +392,10 @@ class Processor
 
 			throw new \RuntimeException($error);
 		}
+
+		if ($this->orderStateIsPaid($orderStatus)) {
+			$this->bookAndLink($bitcoinPayment, $order);
+		}
 	}
 
 	/**
@@ -390,6 +427,7 @@ class Processor
 	/**
 	 * @return bool true when the order status was changed
 	 *
+	 * @throws \JsonException
 	 * @throws \PrestaShopDatabaseException
 	 * @throws \PrestaShopException
 	 */
@@ -427,10 +465,14 @@ class Processor
 		}
 
 		if ($targetPaid) {
-			$this->paymentSettled($bitcoinPayment);
+			$this->bookAndLink($bitcoinPayment, $order);
 		}
 
 		$this->addHistory((int) $bitcoinPayment->getOrderId(), $orderStatus, true);
+
+		if ($targetPaid) {
+			$this->linkOrderPayments($order);
+		}
 
 		return true;
 	}
@@ -573,5 +615,37 @@ class Processor
 		}
 
 		return true;
+	}
+
+	/**
+	 * Book settled payments, then link any that are still missing from the invoice.
+	 */
+	private function bookAndLink(BitcoinPayment $bitcoinPayment, \Order $order): void
+	{
+		$this->paymentSettled($bitcoinPayment);
+		$this->linkOrderPayments($order);
+	}
+
+	/**
+	 * First invoice only — one cart, one invoice, payments attach to index 0.
+	 */
+	private function orderInvoice(\Order $order): ?\OrderInvoice
+	{
+		$invoices = $order->getInvoicesCollection()->getResults();
+		if ([] === $invoices || !$invoices[0] instanceof \OrderInvoice) {
+			return null;
+		}
+
+		return $invoices[0];
+	}
+
+	private function linkOrderPayments(\Order $order): void
+	{
+		$invoice = $this->orderInvoice($order);
+		if (null === $invoice) {
+			return;
+		}
+
+		OrderInvoicePaymentLinker::linkUnlinkedPayments((int) $order->id, (int) $invoice->id);
 	}
 }
