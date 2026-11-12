@@ -6,6 +6,7 @@ use BTCPay\Constants;
 use Language;
 use OrderState;
 use PrestaShop\PrestaShop\Adapter\Configuration;
+use Symfony\Component\Translation\Loader\XliffFileLoader;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
@@ -102,7 +103,12 @@ class OrderStates
 			], true)) {
 				continue;
 			}
-			$orderState->name[$id] = $this->translate($current, $language['locale']);
+			$translated = $this->translate($current, $language['locale']);
+			if ($translated === $current) {
+				// During an upgrade the translator still holds the catalogue of the previous version
+				$translated = $this->translateFromModuleFile($current, (string) $language['locale']);
+			}
+			$orderState->name[$id] = $translated;
 		}
 	}
 
@@ -230,5 +236,25 @@ class OrderStates
 	private function translate(string $message, string $locale): string
 	{
 		return \Context::getContext()->getTranslator()->trans($message, [], 'Modules.Btcpay.Admin', $locale);
+	}
+
+	private function translateFromModuleFile(string $message, string $locale): string
+	{
+		if (!\Validate::isLanguageCode($locale)) {
+			return $message;
+		}
+
+		$file = \_PS_MODULE_DIR_ . $this->moduleName . '/translations/' . $locale . '/ModulesBtcpayAdmin.' . $locale . '.xlf';
+		if (!\is_file($file)) {
+			return $message;
+		}
+
+		try {
+			$catalogue = (new XliffFileLoader())->load($file, $locale, 'Modules.Btcpay.Admin');
+		} catch (\Throwable) {
+			return $message;
+		}
+
+		return $catalogue->has($message, 'Modules.Btcpay.Admin') ? $catalogue->get($message, 'Modules.Btcpay.Admin') : $message;
 	}
 }
