@@ -13,3 +13,5 @@ require_once __DIR__ . '/stubs/OrderInvoice.php';
 require_once __DIR__ . '/stubs/PrestaShopLogger.php';
 require_once __DIR__ . '/stubs/FrameworkBundleAdminController.php';
 require_once __DIR__ . '/stubs/functions.php';
+require_once __DIR__ . '/stubs/Configuration.php';
+require_once __DIR__ . '/stubs/Link.php';
