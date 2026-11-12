@@ -4,6 +4,7 @@ namespace BTCPay\Server;
 
 use BTCPay\Constants;
 use BTCPay\Exception\BTCPayException;
+use BTCPayServer\Exception\RequestException;
 use BTCPayServer\Http\ClientInterface;
 use PrestaShop\PrestaShop\Adapter\Configuration;
 use Symfony\Component\HttpFoundation\Response;
@@ -43,7 +44,14 @@ class Webhook extends \BTCPayServer\Client\Webhook
 
 		// A webhook without a stored secret cannot validate deliveries, so recreate it
 		if ('' === $secret && false === empty($webhookId)) {
-			$this->removeCurrent();
+			try {
+				$this->deleteWebhook($storeId, $webhookId);
+			} catch (RequestException $exception) {
+				// Only a missing webhook is safe to replace; other failures must be retried.
+				if (Response::HTTP_NOT_FOUND !== $exception->getCode()) {
+					throw $exception;
+				}
+			}
 		}
 
 		// Check if we have an existing webhook with a secret, if so, just cancel now (empty check is required).
