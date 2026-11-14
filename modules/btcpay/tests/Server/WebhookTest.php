@@ -212,6 +212,84 @@ class WebhookTest extends TestCase
 		$this->assertSame(['GET'], \array_column($this->httpClient->requests, 'method'));
 	}
 
+	/** @dataProvider invalidCreatedWebhookSecrets */
+	public function testRollsBackCreatedWebhookWhenItDoesNotValidate(array $overrides): void
+	{
+		// A webhook that is missing remotely forces the create path without a prior delete
+		$this->httpClient->webhooks            = [];
+		$this->httpClient->createdOverrides    = $overrides;
+		$configuration = Configuration::$values;
+
+		try {
+			$this->webhook->ensureWebhook('store-a');
+			$this->fail('ensureWebhook must reject an invalid created webhook');
+		} catch (BTCPayException $exception) {
+			$this->assertMatchesRegularExpression('/Webhook (wasn\'t created correctly|secret doesn\'t match our secret)\./', $exception->getMessage());
+		}
+
+		// The just-created webhook was removed again, so nothing outlives the failed setup
+		$this->assertSame([], $this->httpClient->webhooks);
+		$this->assertSame(['GET', 'POST', 'DELETE'], \array_column($this->httpClient->requests, 'method'));
+
+		// The failed setup saved nothing
+		$this->assertSame($configuration, Configuration::$values);
+	}
+
+	public function invalidCreatedWebhookSecrets(): array
+	{
+		return [
+			'empty secret'    => [['secret' => '']],
+			'secret mismatch' => [['secret' => 'wrong-secret']],
+		];
+	}
+
+	public function testDoesNotAttemptRollbackForCreatedWebhookWithoutId(): void
+	{
+		// A webhook that is missing remotely forces the create path without a prior delete
+		$this->httpClient->webhooks            = [];
+		$this->httpClient->createdOverrides    = ['id' => ''];
+		$configuration = Configuration::$values;
+
+		try {
+			$this->webhook->ensureWebhook('store-a');
+			$this->fail('ensureWebhook must reject an invalid created webhook');
+		} catch (BTCPayException $exception) {
+			$this->assertSame("Webhook wasn't created correctly.", $exception->getMessage());
+		}
+
+		// Without an ID there is nothing to address remotely, so no DELETE is attempted
+		$this->assertSame(['GET', 'POST'], \array_column($this->httpClient->requests, 'method'));
+
+		// The failed setup saved nothing
+		$this->assertSame($configuration, Configuration::$values);
+	}
+
+	public function testKeepsCreatedWebhookAndReportsWhenRollbackFails(): void
+	{
+		// A webhook that is missing remotely forces the create path without a prior delete
+		$this->httpClient->webhooks            = [];
+		$this->httpClient->createdOverrides    = ['secret' => 'wrong-secret'];
+		$this->httpClient->deleteStatus        = 403;
+		$configuration = Configuration::$values;
+
+		try {
+			$this->webhook->ensureWebhook('store-a');
+			$this->fail('ensureWebhook must reject an invalid created webhook');
+		} catch (BTCPayException $exception) {
+			// The original validation error is rethrown, not the rollback failure
+			$this->assertSame("Webhook secret doesn't match our secret.", $exception->getMessage());
+		}
+
+		// The rollback could not remove the webhook remotely; the log tells the merchant
+		$this->assertArrayHasKey(self::WEBHOOKS_URL . '/webhook-new', $this->httpClient->webhooks);
+		$warnings = \array_column(\PrestaShopLogger::$entries, 'message');
+		$rollbackWarnings = \array_filter($warnings, static fn (string $message) => \str_contains($message, "Could not remove webhook 'webhook-new' from store 'store-a' after a failed setup"));
+		$this->assertNotEmpty($rollbackWarnings);
+
+		// The failed setup saved nothing
+		$this->assertSame($configuration, Configuration::$values);
+	}
+
 	protected function setUp(): void
 	{
 		Configuration::$values = [
