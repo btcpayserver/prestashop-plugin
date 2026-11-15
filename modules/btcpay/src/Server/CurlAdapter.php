@@ -1,11 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Server;
 
 use BTCPay\Constants;
 use BTCPayServer\Exception\ConnectException;
 use BTCPayServer\Http\CurlClient;
 use BTCPayServer\Http\ResponseInterface;
+use Exception;
+use PrestaShopLogger;
 use STS\Backoff\Backoff;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\CacheItem;
@@ -53,16 +57,16 @@ class CurlAdapter extends CurlClient
 
 		$this->setCurlOptions([
 			\CURLOPT_CONNECTTIMEOUT => Constants::HTTP_CONNECT_TIMEOUT,
-			\CURLOPT_TIMEOUT        => Constants::HTTP_TIMEOUT,
+			\CURLOPT_TIMEOUT => Constants::HTTP_TIMEOUT,
 			// Avoid SIGALRM-based timeouts (broken with PHP-FPM / multi-request)
-			\CURLOPT_NOSIGNAL       => 1,
+			\CURLOPT_NOSIGNAL => 1,
 		]);
 	}
 
 	/**
 	 * GET may be retried (idempotent). POST/PUT/DELETE run once, then pause remote calls on ConnectException.
 	 *
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function request(string $method, string $url, array $headers = [], string $body = ''): ResponseInterface
 	{
@@ -109,7 +113,7 @@ class CurlAdapter extends CurlClient
 		$expiresAt = $item->getMetadata()[CacheItem::METADATA_EXPIRY] ?? null;
 
 		return [
-			'active'    => true,
+			'active' => true,
 			'remaining' => null !== $expiresAt ? \max(0, (int) \ceil($expiresAt - \microtime(true))) : null,
 		];
 	}
@@ -120,9 +124,9 @@ class CurlAdapter extends CurlClient
 			return;
 		}
 
-		\PrestaShopLogger::addLog(
+		PrestaShopLogger::addLog(
 			\sprintf('[WARNING] BTCPay Server unreachable, remote calls paused for %d seconds (configuration kept): %s', Constants::UNREACHABLE_WINDOW, $reason),
-			\PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING
+			PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING
 		);
 
 		$item = self::cache()->getItem(Constants::CACHE_UNREACHABLE);

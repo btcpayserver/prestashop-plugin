@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Installer;
 
 use BTCPay\Repository\TableRepository;
+use JsonException;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
@@ -21,7 +24,7 @@ class Tables
 	}
 
 	/**
-	 * @throws \JsonException
+	 * @throws JsonException
 	 * @throws \Doctrine\DBAL\Exception
 	 */
 	public function install(): array
@@ -30,7 +33,7 @@ class Tables
 	}
 
 	/**
-	 * @throws \JsonException
+	 * @throws JsonException
 	 * @throws \Doctrine\DBAL\Exception
 	 */
 	public function uninstall(): array

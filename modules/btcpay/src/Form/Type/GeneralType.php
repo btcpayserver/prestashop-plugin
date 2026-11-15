@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Form\Type;
 
 use BTCPay\Constants;
@@ -23,39 +25,39 @@ class GeneralType extends TranslatorAwareType
 	{
 		$builder
 			->add('speed', ChoiceType::class, [
-				'choices'    => [
-					$this->trans('Low', 'Modules.Btcpay.Admin')    => InvoiceCheckoutOptions::SPEED_LOW,
+				'choices' => [
+					$this->trans('Low', 'Modules.Btcpay.Admin') => InvoiceCheckoutOptions::SPEED_LOW,
 					$this->trans('Medium', 'Modules.Btcpay.Admin') => InvoiceCheckoutOptions::SPEED_MEDIUM,
-					$this->trans('High', 'Modules.Btcpay.Admin')   => InvoiceCheckoutOptions::SPEED_HIGH,
+					$this->trans('High', 'Modules.Btcpay.Admin') => InvoiceCheckoutOptions::SPEED_HIGH,
 				],
-				'label'      => $this->trans('Transaction speed', 'Modules.Btcpay.Admin'),
+				'label' => $this->trans('Transaction speed', 'Modules.Btcpay.Admin'),
 				'empty_data' => InvoiceCheckoutOptions::SPEED_MEDIUM,
 			])
 			->add('orderMode', ChoiceType::class, [
-				'choices'    => [
+				'choices' => [
 					$this->trans('Order before payment', 'Modules.Btcpay.Admin') => Constants::ORDER_MODE_BEFORE,
-					$this->trans('Order after payment', 'Modules.Btcpay.Admin')  => Constants::ORDER_MODE_AFTER,
+					$this->trans('Order after payment', 'Modules.Btcpay.Admin') => Constants::ORDER_MODE_AFTER,
 				],
-				'label'      => $this->trans('Order creation method', 'Modules.Btcpay.Admin'),
-				'help'       => $this->trans('Will we create the order as soon as the user gets redirect to BTCPay Server or do we wait for the webhook.', 'Modules.Btcpay.Admin'),
+				'label' => $this->trans('Order creation method', 'Modules.Btcpay.Admin'),
+				'help' => $this->trans('Will we create the order as soon as the user gets redirect to BTCPay Server or do we wait for the webhook.', 'Modules.Btcpay.Admin'),
 				'empty_data' => Constants::ORDER_MODE_BEFORE,
 			])
 			->add('protectOrders', ChoiceType::class, [
-				'choices'    => [
+				'choices' => [
 					$this->trans('Yes', 'Modules.Btcpay.Admin') => true,
-					$this->trans('No', 'Modules.Btcpay.Admin')  => false,
+					$this->trans('No', 'Modules.Btcpay.Admin') => false,
 				],
-				'label'      => $this->trans('Protect order status', 'Modules.Btcpay.Admin'),
-				'help'       => $this->trans('Will protect the order status from changing to "failed" if it already has a "paid" order state. This will protect an order from being cancelled via webhook, if it was paid via a different payment gateway.', 'Modules.Btcpay.Admin'),
+				'label' => $this->trans('Protect order status', 'Modules.Btcpay.Admin'),
+				'help' => $this->trans('Will protect the order status from changing to "failed" if it already has a "paid" order state. This will protect an order from being cancelled via webhook, if it was paid via a different payment gateway.', 'Modules.Btcpay.Admin'),
 				'empty_data' => true,
 			])
 			->add('shareMetadata', ChoiceType::class, [
-				'choices'    => [
+				'choices' => [
 					$this->trans('Yes', 'Modules.Btcpay.Admin') => true,
-					$this->trans('No', 'Modules.Btcpay.Admin')  => false,
+					$this->trans('No', 'Modules.Btcpay.Admin') => false,
 				],
-				'label'      => $this->trans('Send customer data to BTCPay Server', 'Modules.Btcpay.Admin'),
-				'help'       => $this->trans('If you want customer email, address, etc. sent to BTCPay Server enable this option. By default for privacy and GDPR reasons this is disabled.', 'Modules.Btcpay.Admin'),
+				'label' => $this->trans('Send customer data to BTCPay Server', 'Modules.Btcpay.Admin'),
+				'help' => $this->trans('If you want customer email, address, etc. sent to BTCPay Server enable this option. By default for privacy and GDPR reasons this is disabled.', 'Modules.Btcpay.Admin'),
 				'empty_data' => false,
 			]);
 	}

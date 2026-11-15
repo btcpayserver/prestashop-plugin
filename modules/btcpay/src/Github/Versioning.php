@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Github;
 
 use BTCPay\Constants;
+use PrestaShopLogger;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\CacheItem;
 use Symfony\Component\HttpFoundation\Request;
+use Throwable;
+use Tools;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
@@ -35,11 +40,11 @@ class Versioning
 			return ['state' => 'empty', 'remaining' => null];
 		}
 
-		$data      = $item->get();
+		$data = $item->get();
 		$expiresAt = $item->getMetadata()[CacheItem::METADATA_EXPIRY] ?? null;
 
 		return [
-			'state'     => \is_array($data) && !empty($data) ? 'ok' : 'failure',
+			'state' => \is_array($data) && !empty($data) ? 'ok' : 'failure',
 			'remaining' => null !== $expiresAt ? \max(0, (int) \ceil($expiresAt - \microtime(true))) : null,
 		];
 	}
@@ -57,16 +62,16 @@ class Versioning
 
 			$context = \stream_context_create([
 				'http' => [
-					'method'        => Request::METHOD_GET,
-					'header'        => "Accept: application/json\r\nContent-Type: application/json\r\nUser-Agent: btcpayserver/prestashop-plugin\r\n",
-					'timeout'       => Constants::HTTP_TIMEOUT,
+					'method' => Request::METHOD_GET,
+					'header' => "Accept: application/json\r\nContent-Type: application/json\r\nUser-Agent: btcpayserver/prestashop-plugin\r\n",
+					'timeout' => Constants::HTTP_TIMEOUT,
 					'ignore_errors' => true,
 				],
 			]);
 
-			$body = \Tools::file_get_contents(Constants::GITHUB_API_LATEST_ENDPOINT, false, $context, Constants::HTTP_TIMEOUT);
+			$body = Tools::file_get_contents(Constants::GITHUB_API_LATEST_ENDPOINT, false, $context, Constants::HTTP_TIMEOUT);
 			if (empty($body)) {
-				\PrestaShopLogger::addLog('[WARNING] Could not check for latest version, empty response from GitHub', \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
+				PrestaShopLogger::addLog('[WARNING] Could not check for latest version, empty response from GitHub', PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
 				$this->rememberFailure($cachedUpdate);
 
 				return null;
@@ -91,8 +96,8 @@ class Versioning
 
 			// Finally, return the data
 			return Latest::create($cachedUpdate->get());
-		} catch (\Throwable $exception) {
-			\PrestaShopLogger::addLog(\sprintf('[INFO] Could not check for latest version, caught exception: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, $exception->getCode());
+		} catch (Throwable $exception) {
+			PrestaShopLogger::addLog(\sprintf('[INFO] Could not check for latest version, caught exception: %s', $exception->getMessage()), PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, $exception->getCode());
 
 			if (isset($cachedUpdate)) {
 				$this->rememberFailure($cachedUpdate);
@@ -113,7 +118,7 @@ class Versioning
 			$item->expiresAfter(Constants::LASTEST_VERSION_FAILURE_EXPIRATION);
 			$item->set([]);
 			$this->cache->save($item);
-		} catch (\Throwable $exception) {
+		} catch (Throwable $exception) {
 			// Cache not writable: nothing else to do
 		}
 	}

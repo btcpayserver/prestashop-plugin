@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Server;
 
 use BTCPayServer\Exception\RequestException;
 use BTCPayServer\Result\StoreRateSettings;
+use Throwable;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
@@ -15,8 +18,8 @@ if (!\defined('_PS_VERSION_')) {
 class RateFallbackStatus
 {
 	public const CONFIGURED = 'configured';
-	public const MISSING    = 'missing';
-	public const UNKNOWN    = 'unknown';
+	public const MISSING = 'missing';
+	public const UNKNOWN = 'unknown';
 
 	/**
 	 * @var string
@@ -51,9 +54,9 @@ class RateFallbackStatus
 
 	public static function fromSettings(StoreRateSettings $settings): self
 	{
-		$data           = $settings->getData();
+		$data = $settings->getData();
 		$preferredSource = isset($data['preferredSource']) ? (string) $data['preferredSource'] : '';
-		$isCustomScript  = !empty($data['isCustomScript']);
+		$isCustomScript = !empty($data['isCustomScript']);
 
 		if ('' !== $preferredSource || $isCustomScript) {
 			return self::configured('' !== $preferredSource ? $preferredSource : 'custom script');
@@ -62,7 +65,7 @@ class RateFallbackStatus
 		return self::missing();
 	}
 
-	public static function fromThrowable(\Throwable $throwable): self
+	public static function fromThrowable(Throwable $throwable): self
 	{
 		if ($throwable instanceof RequestException && 404 === $throwable->getCode()) {
 			return self::missing();
@@ -78,7 +81,7 @@ class RateFallbackStatus
 	{
 		try {
 			return self::fromSettings($storeRate->getSettingsBySource($storeId, StoreRate::SOURCE_FALLBACK));
-		} catch (\Throwable $throwable) {
+		} catch (Throwable $throwable) {
 			return self::fromThrowable($throwable);
 		}
 	}

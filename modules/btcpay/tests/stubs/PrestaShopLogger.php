@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Test double for PrestaShop's PrestaShopLogger: collects log entries in memory.
  */
 class PrestaShopLogger
 {
 	public const LOG_SEVERITY_LEVEL_INFORMATIVE = 1;
-	public const LOG_SEVERITY_LEVEL_WARNING     = 3;
-	public const LOG_SEVERITY_LEVEL_ERROR       = 4;
+	public const LOG_SEVERITY_LEVEL_WARNING = 3;
+	public const LOG_SEVERITY_LEVEL_ERROR = 4;
 
 	/** @var array<int, array{severity: int, message: string}> */
 	public static array $entries = [];

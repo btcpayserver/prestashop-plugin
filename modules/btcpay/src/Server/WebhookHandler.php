@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Server;
 
 use BTCPay\Constants;
@@ -8,47 +10,42 @@ use BTCPay\Factory\CustomerMessage;
 use BTCPay\Invoice\Processor;
 use BTCPay\Repository\BitcoinPaymentRepository;
 use BTCPay\Repository\WebhookDeliveryRepository;
-use PrestaShop\PrestaShop\Adapter\Configuration;
+use Context;
+use JsonException;
+use Order;
+use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
+use PrestaShopDatabaseException;
+use PrestaShopException;
+use PrestaShopLogger;
 use Symfony\Component\HttpFoundation\Request;
+use Throwable;
+use Validate;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-class WebhookHandler
+final class WebhookHandler
 {
-	/**
-	 * @var \Context
-	 */
-	private $context;
-
-	/**
-	 * @var Configuration
-	 */
-	private $configuration;
-
-	/**
-	 * @var Processor
-	 */
-	private $processor;
-
-	public function __construct(\BTCPay $module, \Context $context, Client $client)
-	{
-		$this->context       = $context;
-		$this->configuration = new Configuration();
-		$this->processor     = new Processor($module, $context, $this->configuration, $client);
+	public function __construct(
+		private readonly Context $context,
+		private readonly ShopConfigurationInterface $configuration,
+		private readonly BitcoinPaymentRepository $payments,
+		private readonly WebhookDeliveryRepository $deliveries,
+		private readonly Processor $processor,
+	) {
 	}
 
 	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \JsonException
-	 * @throws \PrestaShopException
+	 * @throws PrestaShopDatabaseException
+	 * @throws JsonException
+	 * @throws PrestaShopException
 	 */
 	public function process(Request $request): void
 	{
 		$data = \json_decode($request->getContent(), true);
 		if (!\is_array($data)) {
-			\PrestaShopLogger::addLog('[WARNING] Ignoring webhook with invalid JSON', \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
+			PrestaShopLogger::addLog('[WARNING] Ignoring webhook with invalid JSON', PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
 
 			return;
 		}
@@ -64,26 +61,26 @@ class WebhookHandler
 		$eventType = isset($data['type']) && \is_scalar($data['type']) ? (string) $data['type'] : '';
 
 		// Claim the delivery before processing so retries and duplicates are only handled once
-		if (false === WebhookDeliveryRepository::claim($deliveryId, $invoiceId, $eventType)) {
-			\PrestaShopLogger::addLog(\sprintf('[INFO] Ignoring already processed webhook delivery %s', $deliveryId), \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE);
+		if (false === $this->deliveries->claim($deliveryId, $invoiceId, $eventType)) {
+			PrestaShopLogger::addLog(\sprintf('[INFO] Ignoring already processed webhook delivery %s', $deliveryId), PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE);
 
 			return;
 		}
 
 		try {
 			$this->dispatch($data);
-		} catch (\Throwable $throwable) {
+		} catch (Throwable $throwable) {
 			// Allow BTCPay to retry the delivery after a processing failure
-			WebhookDeliveryRepository::release($deliveryId);
+			$this->deliveries->release($deliveryId);
 
 			throw $throwable;
 		}
 	}
 
 	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \JsonException
-	 * @throws \PrestaShopException
+	 * @throws PrestaShopDatabaseException
+	 * @throws JsonException
+	 * @throws PrestaShopException
 	 */
 	private function dispatch(array $data): void
 	{
@@ -94,7 +91,7 @@ class WebhookHandler
 
 		// If it's a test, just accept it
 		if (\str_contains($data['invoiceId'], '__test__')) {
-			\PrestaShopLogger::addLog(\sprintf('[INFO] Received test IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+			PrestaShopLogger::addLog(\sprintf('[INFO] Received test IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
 
 			return;
 		}
@@ -102,7 +99,7 @@ class WebhookHandler
 		// Ignore deliveries that are not for this store
 		$configuredStoreId = (string) $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
 		if (isset($data['storeId']) && (string) $data['storeId'] !== $configuredStoreId) {
-			\PrestaShopLogger::addLog(\sprintf('[WARNING] Ignoring webhook for store %s (configured store is %s)', $data['storeId'], $configuredStoreId), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
+			PrestaShopLogger::addLog(\sprintf('[WARNING] Ignoring webhook for store %s (configured store is %s)', $data['storeId'], $configuredStoreId), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
 
 			return;
 		}
@@ -110,7 +107,7 @@ class WebhookHandler
 		// Ignore deliveries that are not for this webhook endpoint
 		$configuredWebhookId = (string) $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID);
 		if (isset($data['webhookId']) && (string) $data['webhookId'] !== $configuredWebhookId) {
-			\PrestaShopLogger::addLog(\sprintf('[WARNING] Ignoring webhook %s (configured webhook is %s)', $data['webhookId'], $configuredWebhookId), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
+			PrestaShopLogger::addLog(\sprintf('[WARNING] Ignoring webhook %s (configured webhook is %s)', $data['webhookId'], $configuredWebhookId), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
 
 			return;
 		}
@@ -162,18 +159,18 @@ class WebhookHandler
 		}
 
 		// Log other IPN's.
-		\PrestaShopLogger::addLog('[INFO] Received IPN that we did not process IPN');
-		\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+		PrestaShopLogger::addLog('[INFO] Received IPN that we did not process IPN');
+		PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
 	}
 
 	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
-	 * @throws \JsonException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
+	 * @throws JsonException
 	 */
 	private function paymentReceived(array $data): void
 	{
-		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment received for invoice %s', (string) $data['invoiceId']));
+		PrestaShopLogger::addLog(\sprintf('[INFO] Payment received for invoice %s', (string) $data['invoiceId']));
 
 		if (null === ($bitcoinPayment = $this->bitcoinPayment($data))) {
 			return;
@@ -183,13 +180,13 @@ class WebhookHandler
 	}
 
 	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
-	 * @throws \JsonException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
+	 * @throws JsonException
 	 */
 	private function paymentReceivedDelayedOrder(array $data): void
 	{
-		\PrestaShopLogger::addLog(\sprintf('[INFO] Payment received for invoice %s', (string) $data['invoiceId']));
+		PrestaShopLogger::addLog(\sprintf('[INFO] Payment received for invoice %s', (string) $data['invoiceId']));
 
 		if (null === ($bitcoinPayment = $this->bitcoinPayment($data))) {
 			return;
@@ -199,13 +196,13 @@ class WebhookHandler
 	}
 
 	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
-	 * @throws \JsonException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
+	 * @throws JsonException
 	 */
 	private function paymentSettled(array $data): void
 	{
-		\PrestaShopLogger::addLog(\sprintf('[INFO] One of the payments has settled for invoice %s', (string) $data['invoiceId']));
+		PrestaShopLogger::addLog(\sprintf('[INFO] One of the payments has settled for invoice %s', (string) $data['invoiceId']));
 
 		if (null === ($bitcoinPayment = $this->bitcoinPayment($data))) {
 			return;
@@ -219,13 +216,13 @@ class WebhookHandler
 	}
 
 	/**
-	 * @throws \JsonException
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
+	 * @throws JsonException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
 	 */
 	private function invoiceFailed(array $data): void
 	{
-		\PrestaShopLogger::addLog(\sprintf("[INFO] Invoice '%s' failed, either because it wasn't paid, it expired or it was marked as invalid", (string) $data['invoiceId']));
+		PrestaShopLogger::addLog(\sprintf("[INFO] Invoice '%s' failed, either because it wasn't paid, it expired or it was marked as invalid", (string) $data['invoiceId']));
 
 		if (null === ($bitcoinPayment = $this->bitcoinPayment($data))) {
 			return;
@@ -244,13 +241,13 @@ class WebhookHandler
 		}
 
 		// Otherwise, will need to check the order so fetch it
-		$order = new \Order($bitcoinPayment->getOrderId());
+		$order = new Order($bitcoinPayment->getOrderId());
 
 		// Check if the order has been paid, if so, add a note and abort
-		if (\Validate::isLoadedObject($orderState = $order->getCurrentOrderState()) && $orderState->paid) {
+		if (Validate::isLoadedObject($orderState = $order->getCurrentOrderState()) && $orderState->paid) {
 			// Ensure we log this IPN
-			\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-			\PrestaShopLogger::addLog(\sprintf("[WARN] Webhook ('%s') received from BTCPay Server, but the order was already marked as paid.", $data['type']), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', $order->id);
+			PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+			PrestaShopLogger::addLog(\sprintf("[WARN] Webhook ('%s') received from BTCPay Server, but the order was already marked as paid.", $data['type']), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', $order->id);
 
 			// Build a simple note and add it to the order
 			$note = \sprintf("BTCPay Server: Webhook ('%s') received, but the order was already marked as paid.", $data['type']);
@@ -265,13 +262,13 @@ class WebhookHandler
 	}
 
 	/**
-	 * @throws \JsonException
-	 * @throws \PrestaShopException
-	 * @throws \PrestaShopDatabaseException
+	 * @throws JsonException
+	 * @throws PrestaShopException
+	 * @throws PrestaShopDatabaseException
 	 */
 	private function invoiceSettled(array $data): void
 	{
-		\PrestaShopLogger::addLog(\sprintf("[INFO] Invoice '%s' has been settled and thus fully paid", (string) $data['invoiceId']));
+		PrestaShopLogger::addLog(\sprintf("[INFO] Invoice '%s' has been settled and thus fully paid", (string) $data['invoiceId']));
 
 		if (null === ($bitcoinPayment = $this->bitcoinPayment($data))) {
 			return;
@@ -295,20 +292,20 @@ class WebhookHandler
 	/**
 	 * Stored invoice row for this delivery, or null when none exists.
 	 *
-	 * @throws \JsonException
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
+	 * @throws JsonException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
 	 */
 	private function bitcoinPayment(array $data): ?BitcoinPayment
 	{
-		$invoiceId      = (string) $data['invoiceId'];
-		$bitcoinPayment = BitcoinPaymentRepository::getOneByInvoiceID($invoiceId);
+		$invoiceId = (string) $data['invoiceId'];
+		$bitcoinPayment = $this->payments->findOneByInvoiceId($invoiceId);
 		if (null !== $bitcoinPayment) {
 			return $bitcoinPayment;
 		}
 
-		\PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
-		\PrestaShopLogger::addLog(\sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
+		PrestaShopLogger::addLog(\sprintf('[INFO] Received IPN: %s', \json_encode($data, \JSON_THROW_ON_ERROR)));
+		PrestaShopLogger::addLog(\sprintf('[WARNING] Could not load order with invoice ID %s', $invoiceId), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
 
 		return null;
 	}

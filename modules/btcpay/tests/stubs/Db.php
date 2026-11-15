@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Test double for PrestaShop's Db class.
  *
@@ -36,14 +38,14 @@ class Db
 	}
 
 	/**
-	 * @throws \RuntimeException when the fake database is marked unavailable
+	 * @throws RuntimeException when the fake database is marked unavailable
 	 */
 	public function execute(string $sql): bool
 	{
 		$this->queries[] = $sql;
 
 		if ($this->unavailable) {
-			throw new \RuntimeException('database unavailable');
+			throw new RuntimeException('database unavailable');
 		}
 
 		if (\preg_match("~INSERT IGNORE INTO `\w+webhook_delivery`.*VALUES \('([^']*)'~s", $sql, $m)) {
@@ -79,7 +81,7 @@ class Db
 		$this->queries[] = $sql;
 
 		if ($this->unavailable) {
-			throw new \RuntimeException('database unavailable');
+			throw new RuntimeException('database unavailable');
 		}
 
 		return $this->executeSResult ?? [];
@@ -94,7 +96,7 @@ class Db
 		$this->inserts[] = ['table' => $table, 'data' => $data];
 
 		if ($this->unavailable) {
-			throw new \RuntimeException('database unavailable');
+			throw new RuntimeException('database unavailable');
 		}
 
 		return false === $this->insertFails;

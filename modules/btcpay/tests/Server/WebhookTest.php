@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Tests\Server;
 
 use BTCPay\Constants;
@@ -8,8 +10,10 @@ use BTCPay\Server\Webhook;
 use BTCPay\Tests\Stubs\WebhookHttpClient;
 use BTCPayServer\Exception\ConnectException;
 use BTCPayServer\Exception\RequestException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use PrestaShop\PrestaShop\Adapter\Configuration;
+use PrestaShopLogger;
 
 require_once \dirname(__DIR__) . '/stubs/WebhookHttpClient.php';
 
@@ -32,7 +36,7 @@ class WebhookTest extends TestCase
 		$this->assertSame(['GET'], \array_column($this->httpClient->requests, 'method'));
 	}
 
-	/** @dataProvider missingSecrets */
+	#[DataProvider('missingSecrets')]
 	public function testRecreatesWebhookWithoutSecret($secret): void
 	{
 		Configuration::$values[Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET] = $secret;
@@ -44,12 +48,12 @@ class WebhookTest extends TestCase
 		$this->assertReplacementSaved();
 	}
 
-	public function missingSecrets(): array
+	public static function missingSecrets(): array
 	{
 		return [[''], [null], [false]];
 	}
 
-	/** @dataProvider missingWebhookIds */
+	#[DataProvider('missingWebhookIds')]
 	public function testCreatesWebhookWithoutSavedId($id): void
 	{
 		Configuration::$values[Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID] = $id;
@@ -61,12 +65,12 @@ class WebhookTest extends TestCase
 		$this->assertSame(['POST'], \array_column($this->httpClient->requests, 'method'));
 	}
 
-	public function missingWebhookIds(): array
+	public static function missingWebhookIds(): array
 	{
 		return [[null], ['']];
 	}
 
-	/** @dataProvider webhookSecrets */
+	#[DataProvider('webhookSecrets')]
 	public function testRecreatesMissingRemoteWebhook(string $secret): void
 	{
 		Configuration::$values[Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET] = $secret;
@@ -77,12 +81,12 @@ class WebhookTest extends TestCase
 		$this->assertReplacementSaved();
 	}
 
-	public function webhookSecrets(): array
+	public static function webhookSecrets(): array
 	{
 		return [[''], ['existing-secret']];
 	}
 
-	/** @dataProvider deletionFailures */
+	#[DataProvider('deletionFailures')]
 	public function testPreservesConfigurationAndStopsWhenDeletionFails(int $status): void
 	{
 		Configuration::$values[Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET] = '';
@@ -102,7 +106,7 @@ class WebhookTest extends TestCase
 		}
 	}
 
-	public function deletionFailures(): array
+	public static function deletionFailures(): array
 	{
 		return [[403], [500], [503]];
 	}
@@ -176,7 +180,7 @@ class WebhookTest extends TestCase
 		$this->assertReplacementSaved();
 	}
 
-	/** @dataProvider invalidCreatedWebhooks */
+	#[DataProvider('invalidCreatedWebhooks')]
 	public function testDoesNotSaveInvalidReplacement(array $overrides): void
 	{
 		Configuration::$values[Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET] = '';
@@ -192,7 +196,7 @@ class WebhookTest extends TestCase
 		}
 	}
 
-	public function invalidCreatedWebhooks(): array
+	public static function invalidCreatedWebhooks(): array
 	{
 		return [[['id' => '']], [['secret' => '']], [['secret' => 'wrong-secret']]];
 	}
@@ -212,12 +216,12 @@ class WebhookTest extends TestCase
 		$this->assertSame(['GET'], \array_column($this->httpClient->requests, 'method'));
 	}
 
-	/** @dataProvider invalidCreatedWebhookSecrets */
+	#[DataProvider('invalidCreatedWebhookSecrets')]
 	public function testRollsBackCreatedWebhookWhenItDoesNotValidate(array $overrides): void
 	{
 		// A webhook that is missing remotely forces the create path without a prior delete
-		$this->httpClient->webhooks            = [];
-		$this->httpClient->createdOverrides    = $overrides;
+		$this->httpClient->webhooks = [];
+		$this->httpClient->createdOverrides = $overrides;
 		$configuration = Configuration::$values;
 
 		try {
@@ -235,10 +239,10 @@ class WebhookTest extends TestCase
 		$this->assertSame($configuration, Configuration::$values);
 	}
 
-	public function invalidCreatedWebhookSecrets(): array
+	public static function invalidCreatedWebhookSecrets(): array
 	{
 		return [
-			'empty secret'    => [['secret' => '']],
+			'empty secret' => [['secret' => '']],
 			'secret mismatch' => [['secret' => 'wrong-secret']],
 		];
 	}
@@ -246,8 +250,8 @@ class WebhookTest extends TestCase
 	public function testDoesNotAttemptRollbackForCreatedWebhookWithoutId(): void
 	{
 		// A webhook that is missing remotely forces the create path without a prior delete
-		$this->httpClient->webhooks            = [];
-		$this->httpClient->createdOverrides    = ['id' => ''];
+		$this->httpClient->webhooks = [];
+		$this->httpClient->createdOverrides = ['id' => ''];
 		$configuration = Configuration::$values;
 
 		try {
@@ -267,9 +271,9 @@ class WebhookTest extends TestCase
 	public function testKeepsCreatedWebhookAndReportsWhenRollbackFails(): void
 	{
 		// A webhook that is missing remotely forces the create path without a prior delete
-		$this->httpClient->webhooks            = [];
-		$this->httpClient->createdOverrides    = ['secret' => 'wrong-secret'];
-		$this->httpClient->deleteStatus        = 403;
+		$this->httpClient->webhooks = [];
+		$this->httpClient->createdOverrides = ['secret' => 'wrong-secret'];
+		$this->httpClient->deleteStatus = 403;
 		$configuration = Configuration::$values;
 
 		try {
@@ -282,7 +286,7 @@ class WebhookTest extends TestCase
 
 		// The rollback could not remove the webhook remotely; the log tells the merchant
 		$this->assertArrayHasKey(self::WEBHOOKS_URL . '/webhook-new', $this->httpClient->webhooks);
-		$warnings = \array_column(\PrestaShopLogger::$entries, 'message');
+		$warnings = \array_column(PrestaShopLogger::$entries, 'message');
 		$rollbackWarnings = \array_filter($warnings, static fn (string $message) => \str_contains($message, "Could not remove webhook 'webhook-new' from store 'store-a' after a failed setup"));
 		$this->assertNotEmpty($rollbackWarnings);
 
@@ -293,14 +297,14 @@ class WebhookTest extends TestCase
 	protected function setUp(): void
 	{
 		Configuration::$values = [
-			Constants::CONFIGURATION_BTCPAY_STORE_ID       => 'store-a',
-			Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID     => 'webhook-old',
+			Constants::CONFIGURATION_BTCPAY_STORE_ID => 'store-a',
+			Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID => 'webhook-old',
 			Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET => 'existing-secret',
 		];
-		\PrestaShopLogger::reset();
+		PrestaShopLogger::reset();
 		$this->httpClient = new WebhookHttpClient();
 		$this->httpClient->webhooks[self::WEBHOOKS_URL . '/webhook-old'] = ['id' => 'webhook-old'];
-		$this->webhook = new Webhook('https://btcpay.example', 'test-api-key', $this->httpClient);
+		$this->webhook = new Webhook('https://btcpay.example', 'test-api-key', $this->httpClient, new Configuration());
 	}
 
 	private function assertReplacementSaved(): void

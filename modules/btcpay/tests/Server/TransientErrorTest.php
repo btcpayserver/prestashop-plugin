@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Tests\Server;
 
 use BTCPay\Server\TransientError;
@@ -9,13 +11,15 @@ use BTCPayServer\Exception\ConnectException;
 use BTCPayServer\Exception\ForbiddenException;
 use BTCPayServer\Exception\RequestException;
 use BTCPayServer\Http\Response;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 class TransientErrorTest extends TestCase
 {
 	private const URL = 'https://btcpay.example/api/v1/test';
 
-	/** @dataProvider transientHttpStatuses */
+	#[DataProvider('transientHttpStatuses')]
 	public function testTemporaryHttpStatusesAreTransient(int $status): void
 	{
 		$exception = new RequestException('GET', self::URL, new Response($status, 'gateway error', []));
@@ -23,7 +27,7 @@ class TransientErrorTest extends TestCase
 		$this->assertTrue(TransientError::isTransient($exception));
 	}
 
-	public function transientHttpStatuses(): array
+	public static function transientHttpStatuses(): array
 	{
 		return [
 			[408], // request timeout
@@ -42,7 +46,7 @@ class TransientErrorTest extends TestCase
 		$this->assertTrue(TransientError::isTransient(new ConnectException('BTCPay Server marked unreachable, request skipped', 0)));
 	}
 
-	/** @dataProvider permanentHttpStatuses */
+	#[DataProvider('permanentHttpStatuses')]
 	public function testPermanentHttpStatusesAreNotTransient(int $status): void
 	{
 		$exception = new RequestException('GET', self::URL, new Response($status, 'error', []));
@@ -50,7 +54,7 @@ class TransientErrorTest extends TestCase
 		$this->assertFalse(TransientError::isTransient($exception));
 	}
 
-	public function permanentHttpStatuses(): array
+	public static function permanentHttpStatuses(): array
 	{
 		return [
 			[400],
@@ -64,8 +68,8 @@ class TransientErrorTest extends TestCase
 
 	public function testSpecificRequestExceptionSubclassesAreNotTransient(): void
 	{
-		$badRequest     = new BadRequestException('GET', self::URL, new Response(BadRequestException::STATUS, 'error', []));
-		$forbidden      = new ForbiddenException('GET', self::URL, new Response(ForbiddenException::STATUS, 'error', []));
+		$badRequest = new BadRequestException('GET', self::URL, new Response(BadRequestException::STATUS, 'error', []));
+		$forbidden = new ForbiddenException('GET', self::URL, new Response(ForbiddenException::STATUS, 'error', []));
 
 		$this->assertFalse(TransientError::isTransient($badRequest));
 		$this->assertFalse(TransientError::isTransient($forbidden));
@@ -74,6 +78,6 @@ class TransientErrorTest extends TestCase
 	public function testOtherExceptionsAreNotTransient(): void
 	{
 		$this->assertFalse(TransientError::isTransient(new BTCPayException('Something else went wrong', 0)));
-		$this->assertFalse(TransientError::isTransient(new \RuntimeException('Unrelated failure')));
+		$this->assertFalse(TransientError::isTransient(new RuntimeException('Unrelated failure')));
 	}
 }

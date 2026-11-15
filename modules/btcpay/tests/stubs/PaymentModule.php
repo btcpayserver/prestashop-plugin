@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Minimal stand-in for PrestaShop's PaymentModule base class, so the module
  * class can be instantiated in tests.
@@ -32,5 +34,14 @@ class PaymentModule
 	public function trans($id, array $parameters = [], $domain = null, $locale = null): string
 	{
 		return $id;
+	}
+
+	public function get(string $id): mixed
+	{
+		if (PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface::class === $id) {
+			return new PrestaShop\PrestaShop\Adapter\Configuration();
+		}
+
+		throw new RuntimeException('Unexpected service ' . $id);
 	}
 }

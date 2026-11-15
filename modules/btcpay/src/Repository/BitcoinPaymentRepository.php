@@ -1,122 +1,96 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Repository;
 
 use BTCPay\Entity\BitcoinPayment;
 use BTCPay\Invoice\CheckoutGuard;
+use Doctrine\ORM\EntityManagerInterface;
+use PrestaShopLogger;
+use RuntimeException;
+use Throwable;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-class BitcoinPaymentRepository
+final class BitcoinPaymentRepository
 {
-	/**
-	 * @throws \PrestaShopException
-	 */
-	public static function create(int $cartId, string $status, string $invoiceId): BitcoinPayment
+	public function __construct(private readonly EntityManagerInterface $entityManager)
+	{
+	}
+
+	public function create(int $cartId, string $status, string $invoiceId): BitcoinPayment
 	{
 		$bitcoinPayment = new BitcoinPayment();
 		$bitcoinPayment->setCartId($cartId);
 		$bitcoinPayment->setStatus($status);
 		$bitcoinPayment->setInvoiceId($invoiceId);
+		$this->save($bitcoinPayment);
 
-		if (false === $bitcoinPayment->save(true)) {
-			\PrestaShopLogger::addLog('[ERROR] Could not store bitcoin_payment', \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
-
-			throw new \RuntimeException('[ERROR] Could not store bitcoin_payment');
-		}
-
-		\PrestaShopLogger::addLog('[INFO] Created bitcoin_payment for invoice ' . $invoiceId, \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'BitcoinPayment', $bitcoinPayment->getId());
+		PrestaShopLogger::addLog('[INFO] Created bitcoin_payment for invoice ' . $invoiceId, PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'BitcoinPayment', $bitcoinPayment->getId());
 
 		return $bitcoinPayment;
 	}
 
-	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \JsonException
-	 */
-	public static function getOneByInvoiceID(string $invoiceId): ?BitcoinPayment
+	public function findOneByInvoiceId(string $invoiceId): ?BitcoinPayment
 	{
-		$query = new \DbQuery();
-		$query->select('bp.*')
-			->from('bitcoin_payment', 'bp')
-			->where(\sprintf("bp.invoice_id = '%s'", \pSQL($invoiceId)))
-			->limit(1);
-
-		return self::hydrateOne($query);
+		return $this->findOneBy(['invoiceId' => $invoiceId]);
 	}
 
-	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \JsonException
-	 */
-	public static function getOneByInvoiceReference(string $invoiceReference): ?BitcoinPayment
+	public function findOneByInvoiceReference(string $invoiceReference): ?BitcoinPayment
 	{
 		if (false === CheckoutGuard::isInvoiceReference($invoiceReference)) {
 			return null;
 		}
 
-		$query = new \DbQuery();
-		$query->select('bp.*')
-			->from('bitcoin_payment', 'bp')
-			->where(\sprintf("bp.invoice_reference = '%s'", \pSQL($invoiceReference)))
-			->limit(1);
-
-		return self::hydrateOne($query);
+		return $this->findOneBy(['invoiceReference' => $invoiceReference]);
 	}
 
-	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \JsonException
-	 */
-	public static function getOneByCartID(int $cartID): ?BitcoinPayment
+	public function findOneByCartId(int $cartId): ?BitcoinPayment
 	{
-		$query = new \DbQuery();
-		$query->select('bp.*')
-			->from('bitcoin_payment', 'bp')
-			->where(\sprintf('bp.cart_id = %d', $cartID))
-			->limit(1);
-
-		return self::hydrateOne($query);
+		return $this->findOneBy(['cartId' => $cartId]);
 	}
 
-	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \JsonException
-	 */
-	public static function getOneByOrderID(int $orderID): ?BitcoinPayment
+	public function findOneByOrderId(int $orderId): ?BitcoinPayment
 	{
-		$query = new \DbQuery();
-		$query->select('bp.*')
-			->from('bitcoin_payment', 'bp')
-			->where(\sprintf('bp.order_id = %d', $orderID))
-			->limit(1);
-
-		return self::hydrateOne($query);
+		return $this->findOneBy(['orderId' => $orderId]);
 	}
 
-	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \JsonException
-	 */
-	private static function hydrateOne(\DbQuery $query): ?BitcoinPayment
+	public function save(BitcoinPayment $payment): void
 	{
-		$result = \Db::getInstance()->query($query);
-		if (0 !== ($errorCode = (int) $result->errorCode())) {
-			throw new \PrestaShopDatabaseException(\json_encode($result->errorInfo(), \JSON_THROW_ON_ERROR), $errorCode);
+		try {
+			$this->entityManager->persist($payment);
+			$this->entityManager->flush();
+		} catch (Throwable $throwable) {
+			$error = \sprintf('[ERROR] Could not store bitcoin_payment: %s', $throwable->getMessage());
+			PrestaShopLogger::addLog($error, PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, $throwable->getCode(), 'BitcoinPayment', $payment->getId());
+
+			throw new RuntimeException($error, 0, $throwable);
 		}
+	}
 
-		// Don't fetchObject() into ObjectModel: PDO sets columns before the
-		// constructor, and ObjectModel then overwrites them from $loaded_classes.
-		$row = $result->fetch(\PDO::FETCH_ASSOC);
-		if (false === $row) {
-			return null;
+	public function remove(BitcoinPayment $payment): void
+	{
+		try {
+			$this->entityManager->remove($payment);
+			$this->entityManager->flush();
+		} catch (Throwable $throwable) {
+			$error = \sprintf('[ERROR] Expected to remove the order %s, but failed to do so', $payment->getOrderId());
+			PrestaShopLogger::addLog($error, PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, $throwable->getCode(), 'BitcoinPayment', $payment->getId());
+
+			throw new RuntimeException($error, 0, $throwable);
 		}
+	}
 
-		$object = new BitcoinPayment();
-		$object->hydrate($row);
+	/**
+	 * @param array<string, int|string> $criteria
+	 */
+	private function findOneBy(array $criteria): ?BitcoinPayment
+	{
+		$payment = $this->entityManager->getRepository(BitcoinPayment::class)->findOneBy($criteria);
 
-		return $object;
+		return $payment instanceof BitcoinPayment ? $payment : null;
 	}
 }

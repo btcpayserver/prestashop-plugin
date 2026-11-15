@@ -1,26 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Form;
 
 use BTCPay\Constants;
 use BTCPay\Form\Data\General;
-use PrestaShop\PrestaShop\Adapter\Configuration as PrestaShopConfiguration;
+use Exception;
+use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
 use PrestaShop\PrestaShop\Core\Form\FormDataProviderInterface;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-class GeneralFormDataProvider implements FormDataProviderInterface
+final class GeneralFormDataProvider implements FormDataProviderInterface
 {
-	/**
-	 * @var PrestaShopConfiguration
-	 */
-	private $configuration;
-
-	public function __construct()
+	public function __construct(private readonly ShopConfigurationInterface $configuration)
 	{
-		$this->configuration = new PrestaShopConfiguration();
 	}
 
 	public function getData(): General
@@ -29,7 +26,7 @@ class GeneralFormDataProvider implements FormDataProviderInterface
 	}
 
 	/**
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function setData(array $data): array
 	{

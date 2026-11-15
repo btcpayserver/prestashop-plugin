@@ -1,46 +1,48 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Server;
 
 use BTCPay\Constants;
 use BTCPay\Exception\BTCPayException;
 use BTCPayServer\Exception\RequestException;
 use BTCPayServer\Http\ClientInterface;
-use PrestaShop\PrestaShop\Adapter\Configuration;
+use Exception;
+use JsonException;
+use Link;
+use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
+use PrestaShopLogger;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-class Webhook extends \BTCPayServer\Client\Webhook
+final class Webhook extends \BTCPayServer\Client\Webhook
 {
-	/**
-	 * @var Configuration
-	 */
-	private $configuration;
+	private readonly Link $link;
 
-	/**
-	 * @var \Link
-	 */
-	private $link;
-
-	public function __construct(string $baseUrl, string $apiKey, ?ClientInterface $client = null)
-	{
+	public function __construct(
+		string $baseUrl,
+		string $apiKey,
+		?ClientInterface $client,
+		private readonly ShopConfigurationInterface $configuration,
+	) {
 		parent::__construct($baseUrl, $apiKey, $client);
 
-		$this->configuration = new Configuration();
-		$this->link = new \Link();
+		$this->link = new Link();
 	}
 
 	/**
-	 * @throws \JsonException
-	 * @throws \Exception
+	 * @throws JsonException
+	 * @throws Exception
 	 */
 	public function ensureWebhook(string $storeId): void
 	{
 		$webhookId = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID);
-		$secret    = (string) $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET);
+		$secret = (string) $this->configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET);
 
 		// A webhook without a stored secret cannot validate deliveries, so recreate it
 		if ('' === $secret && false === empty($webhookId)) {
@@ -82,16 +84,16 @@ class Webhook extends \BTCPayServer\Client\Webhook
 			if ($webhook->getSecret() !== $secret) {
 				throw new BTCPayException("Webhook secret doesn't match our secret.", Response::HTTP_INTERNAL_SERVER_ERROR);
 			}
-		} catch (\Throwable $throwable) {
+		} catch (Throwable $throwable) {
 			// Roll back the remote webhook so it does not outlive the failed configuration
 			try {
 				if (false === empty($webhookId)) {
 					$this->deleteWebhook($storeId, $webhookId);
 				}
-			} catch (\Throwable $cleanup) {
-				\PrestaShopLogger::addLog(
+			} catch (Throwable $cleanup) {
+				PrestaShopLogger::addLog(
 					\sprintf("[WARNING] Could not remove webhook '%s' from store '%s' after a failed setup: %s", $webhookId, $storeId, $cleanup->getMessage()),
-					\PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING,
+					PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING,
 					$cleanup->getCode()
 				);
 			}
@@ -119,9 +121,9 @@ class Webhook extends \BTCPayServer\Client\Webhook
 			}
 
 			return !empty($webhook->getData()) ? $webhook : null;
-		} catch (\Throwable $throwable) {
+		} catch (Throwable $throwable) {
 			$warning = \sprintf("[WARNING] expected webhook '%s' for store '%s' to exist, but it didn't. Exception received: %s", $webhookId, $storeId, $throwable->getMessage());
-			\PrestaShopLogger::addLog($warning, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $throwable->getCode());
+			PrestaShopLogger::addLog($warning, PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $throwable->getCode());
 
 			return null;
 		}
@@ -145,9 +147,9 @@ class Webhook extends \BTCPayServer\Client\Webhook
 			$this->deleteWebhook($storeId, $webhookId);
 
 			return true;
-		} catch (\Throwable $throwable) {
+		} catch (Throwable $throwable) {
 			$message = \sprintf("[WARNING] Could not remove webhook '%s' from the store '%s'. Please double check it is actually gone. Exception received: %s", $webhookId, $storeId, $throwable->getMessage());
-			\PrestaShopLogger::addLog($message, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $throwable->getCode());
+			PrestaShopLogger::addLog($message, PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $throwable->getCode());
 
 			return false;
 		}

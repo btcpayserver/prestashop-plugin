@@ -1,8 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Repository;
 
 use BTCPay\Factory\CustomerThread;
+use Order;
+use PrestaShopDatabaseException;
+use PrestaShopException;
+use Shop;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
@@ -11,10 +17,10 @@ if (!\defined('_PS_VERSION_')) {
 class CustomerThreadRepository
 {
 	/**
-	 * @throws \PrestaShopException
-	 * @throws \PrestaShopDatabaseException
+	 * @throws PrestaShopException
+	 * @throws PrestaShopDatabaseException
 	 */
-	public static function fetchOrCreate(\Shop $shop, \Order $order): \CustomerThread
+	public static function fetchOrCreate(Shop $shop, Order $order): \CustomerThread
 	{
 		// Get the customer
 		$customer = $order->getCustomer();

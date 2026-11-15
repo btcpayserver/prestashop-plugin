@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Github;
 
 use Composer\Semver\Comparator;
@@ -37,11 +39,11 @@ class Latest
 
 	public function __construct(int $id, string $name, string $tagName, string $commit, string $url)
 	{
-		$this->id      = $id;
-		$this->name    = $name;
+		$this->id = $id;
+		$this->name = $name;
 		$this->tagName = $tagName;
-		$this->commit  = $commit;
-		$this->url     = $url;
+		$this->commit = $commit;
+		$this->url = $url;
 	}
 
 	public static function create(array $data): self

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Minimal stand-in for PrestaShop's Tools class.
  */

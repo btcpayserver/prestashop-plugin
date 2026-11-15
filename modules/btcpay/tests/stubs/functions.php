@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 // phpcs:disable Squiz.Functions.GlobalFunction -- PrestaShop core globals required by the code under test
 if (!\function_exists('pSQL')) {
 	/**
 	 * Minimal stand-in for PrestaShop's pSQL(): the fake database keeps raw strings.
 	 *
 	 * @param mixed $string
-	 * @param bool  $html
+	 * @param bool $html
 	 *
 	 * @return mixed
 	 */

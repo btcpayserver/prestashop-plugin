@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Form\Data;
 
 use BTCPay\Constants;
@@ -10,27 +12,19 @@ if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-class Server
+final class Server
 {
-	/**
-	 * @Assert\Url()
-	 * @Assert\NotBlank()
-	 *
-	 * @var string|null
-	 */
-	private $host;
+	#[Assert\Url]
+	#[Assert\NotBlank]
+	private ?string $host;
 
-	/**
-	 * @Assert\Type(type="alnum")
-	 *
-	 * @var string|null
-	 */
-	private $apiKey;
+	#[Assert\Type(type: 'alnum')]
+	private ?string $apiKey;
 
 	public function __construct(string $host, ?string $apiKey = null)
 	{
-		$this->host          = $host;
-		$this->apiKey        = $apiKey;
+		$this->host = $host;
+		$this->apiKey = $apiKey;
 	}
 
 	public static function create(ShopConfigurationInterface $configuration): self
@@ -77,7 +71,7 @@ class Server
 	public function toArray(): array
 	{
 		return [
-			'host'   => $this->host,
+			'host' => $this->host,
 			'apiKey' => $this->apiKey,
 		];
 	}

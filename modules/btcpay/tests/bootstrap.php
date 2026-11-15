@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 // Minimal PrestaShop constants required by the module's source files.
-\define('_PS_VERSION_', '8.1.0');
+\define('_PS_VERSION_', '9.2.0');
 \define('_DB_PREFIX_', 'ps_');
 
 require \dirname(__DIR__) . '/vendor/autoload.php';
 
 // Test doubles for the PrestaShop globals used by the repository layer.
 require_once __DIR__ . '/stubs/Db.php';
+require_once __DIR__ . '/stubs/Connection.php';
 require_once __DIR__ . '/stubs/Cache.php';
 require_once __DIR__ . '/stubs/OrderInvoice.php';
 require_once __DIR__ . '/stubs/PrestaShopLogger.php';
-require_once __DIR__ . '/stubs/FrameworkBundleAdminController.php';
+require_once __DIR__ . '/stubs/PrestaShopAdminController.php';
 require_once __DIR__ . '/stubs/functions.php';
 require_once __DIR__ . '/stubs/ConfigurationInterface.php';
 require_once __DIR__ . '/stubs/ShopConfigurationInterface.php';

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Tests\Server;
 
 use BTCPay\Server\WebhookRequestGuard;

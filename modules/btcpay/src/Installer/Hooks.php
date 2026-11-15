@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Installer;
 
 use BTCPay;
@@ -22,16 +24,18 @@ class Hooks
 
 	public function install(): array
 	{
-		if (!$this->module->registerHook('displayAdminOrderMainBottom')
+		if (
+			!$this->module->registerHook('displayAdminOrderMainBottom')
 			|| !$this->module->registerHook('displayOrderDetail')
 			|| !$this->module->registerHook('paymentReturn')
 			|| !$this->module->registerHook('paymentOptions')
-			|| !$this->module->registerHook('actionCartSave')) {
+			|| !$this->module->registerHook('actionCartSave')
+		) {
 			return [
 				[
-					'key'        => 'Could not register hooks',
+					'key' => 'Could not register hooks',
 					'parameters' => [],
-					'domain'     => 'Admin.Modules.Notification',
+					'domain' => 'Admin.Modules.Notification',
 				],
 			];
 		}

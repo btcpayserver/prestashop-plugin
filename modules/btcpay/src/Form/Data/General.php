@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Form\Data;
 
 use BTCPay\Constants;
@@ -11,38 +13,26 @@ if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-class General
+final class General
 {
-	/**
-	 * @Assert\NotBlank()
-	 * @Assert\Choice(choices=\BTCPay\Constants::TRANSACTION_SPEEDS, message="Invalid transaction speed")
-	 *
-	 * @var string
-	 */
-	private $speed;
+	#[Assert\NotBlank]
+	#[Assert\Choice(choices: Constants::TRANSACTION_SPEEDS, message: 'Invalid transaction speed')]
+	private string $speed;
 
-	/**
-	 * @Assert\NotBlank()
-	 * @Assert\Choice(choices=\BTCPay\Constants::ORDER_MODES, message="Invalid order mode")
-	 *
-	 * @var string
-	 */
-	private $orderMode;
+	#[Assert\NotBlank]
+	#[Assert\Choice(choices: Constants::ORDER_MODES, message: 'Invalid order mode')]
+	private string $orderMode;
 
-	/**
-	 * @Assert\Choice(choices={true, false})
-	 */
-	private $protectOrders;
+	#[Assert\Choice(choices: [true, false])]
+	private bool $protectOrders;
 
-	/**
-	 * @Assert\Choice(choices={true, false})
-	 */
-	private $shareMetadata;
+	#[Assert\Choice(choices: [true, false])]
+	private bool $shareMetadata;
 
 	public function __construct(string $speed, string $orderMode, bool $protectOrders, bool $shareMetadata)
 	{
-		$this->speed         = $speed;
-		$this->orderMode     = $orderMode;
+		$this->speed = $speed;
+		$this->orderMode = $orderMode;
 		$this->protectOrders = $protectOrders;
 		$this->shareMetadata = $shareMetadata;
 	}
@@ -115,8 +105,8 @@ class General
 	public function toArray(): array
 	{
 		return [
-			'speed'         => $this->speed,
-			'orderMode'     => $this->orderMode,
+			'speed' => $this->speed,
+			'orderMode' => $this->orderMode,
 			'protectOrders' => $this->protectOrders,
 			'shareMetadata' => $this->shareMetadata,
 		];

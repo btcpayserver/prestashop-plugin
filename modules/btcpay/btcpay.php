@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use BTCPay\Constants;
 use BTCPay\Github\Versioning;
 use BTCPay\Installer\Config;
@@ -14,8 +16,9 @@ use BTCPay\Server\RateFallbackStatus;
 use BTCPay\Server\TransientError;
 use BTCPayServer\Exception\BTCPayException;
 use BTCPayServer\Exception\RequestException;
-use PrestaShop\PrestaShop\Adapter\Configuration;
 use PrestaShop\PrestaShop\Adapter\Presenter\Order\OrderPresenter;
+use PrestaShop\PrestaShop\Core\CommandBus\CommandBusInterface;
+use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
 if (!defined('_PS_VERSION_')) {
@@ -29,55 +32,43 @@ if (!file_exists(__DIR__ . '/vendor/autoload.php')) {
 require_once __DIR__ . '/vendor/autoload.php';
 
 /** @noinspection AutoloadingIssuesInspection */
-class BTCPay extends PaymentModule
+final class BTCPay extends PaymentModule
 {
-	public $tabs = [
+	public array $tabs = [
 		[
-			'name'              => 'BTCPay Server',
-			'visible'           => true,
-			'class_name'        => 'AdminConfigureBTCPay',
+			'name' => 'BTCPay Server',
+			'visible' => true,
+			'class_name' => 'AdminConfigureBTCPay',
 			'parent_class_name' => 'AdminParentPayment',
+			'route_name' => 'admin_btcpay_configure',
 		],
 	];
 
-	/**
-	 * @var bool
-	 */
-	public $is_eu_compatible = true;
+	private ShopConfigurationInterface $configuration;
 
-	/**
-	 * @var Configuration
-	 */
-	private $configuration;
-
-	/**
-	 * @var Versioning
-	 */
-	private $versioning;
+	private Versioning $versioning;
 
 	public function __construct()
 	{
-		$this->name                   = 'btcpay';
-		$this->tab                    = 'payments_gateways';
-		$this->version                = '6.4.5';
-		$this->author                 = 'BTCPay Server';
+		$this->name = 'btcpay';
+		$this->tab = 'payments_gateways';
+		$this->version = '7.0.0';
+		$this->author = 'BTCPay Server';
 		$this->ps_versions_compliancy = ['min' => Constants::MINIMUM_PS_VERSION, 'max' => _PS_VERSION_];
-		$this->controllers            = ['payment', 'validation', 'webhook'];
-		$this->is_eu_compatible       = true;
-		$this->bootstrap              = true;
-		$this->module_key             = 'aec3ab8084e8e626bdcbda75d2ab39ee';
+		$this->controllers = ['payment', 'validation', 'webhook'];
+		$this->module_key = 'aec3ab8084e8e626bdcbda75d2ab39ee';
 
-		$this->currencies      = true;
+		$this->currencies = true;
 		$this->currencies_mode = 'radio';
 
 		parent::__construct();
 
-		$this->displayName      = $this->trans('BTCPay Server', [], 'Modules.Btcpay.Admin');
-		$this->description      = $this->trans('Accept crypto payments via BTCPay Server.', [], 'Modules.Btcpay.Front');
+		$this->displayName = $this->trans('BTCPay Server', [], 'Modules.Btcpay.Admin');
+		$this->description = $this->trans('Accept crypto payments via BTCPay Server.', [], 'Modules.Btcpay.Front');
 		$this->confirmUninstall = $this->trans('Are you sure that you want to uninstall this module? Past purchases and order states will be kept, but your configuration will be removed.', [], 'Modules.Btcpay.Front');
 
-		$this->configuration = new Configuration();
-		$this->versioning    = new Versioning();
+		$this->configuration = $this->get(ShopConfigurationInterface::class);
+		$this->versioning = new Versioning();
 
 		// Process any and all alerts/warnings
 		$this->displayModuleWarnings();
@@ -92,9 +83,9 @@ class BTCPay extends PaymentModule
 		if (version_compare(\PHP_VERSION, Constants::MINIMUM_PHP_VERSION, '<')) {
 			$this->addModuleErrors([
 				[
-					'key'        => sprintf('PHP version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_PHP_VERSION, \PHP_VERSION),
+					'key' => sprintf('PHP version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_PHP_VERSION, \PHP_VERSION),
 					'parameters' => [],
-					'domain'     => 'Admin.Modules.Notification',
+					'domain' => 'Admin.Modules.Notification',
 				],
 			]);
 
@@ -104,9 +95,9 @@ class BTCPay extends PaymentModule
 		if (version_compare(_PS_VERSION_, Constants::MINIMUM_PS_VERSION, '<')) {
 			$this->addModuleErrors([
 				[
-					'key'        => sprintf('PrestaShop version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_PS_VERSION, _PS_VERSION_),
+					'key' => sprintf('PrestaShop version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_PS_VERSION, _PS_VERSION_),
 					'parameters' => [],
-					'domain'     => 'Admin.Modules.Notification',
+					'domain' => 'Admin.Modules.Notification',
 				],
 			]);
 
@@ -119,7 +110,7 @@ class BTCPay extends PaymentModule
 			return false;
 		}
 
-		if (!empty($errors = (new Config())->install())) {
+		if (!empty($errors = (new Config($this->configuration))->install())) {
 			$this->addModuleErrors($errors);
 
 			return false;
@@ -134,7 +125,7 @@ class BTCPay extends PaymentModule
 			return false;
 		}
 
-		if (!empty($errors = (new OrderStates($this->name))->install())) {
+		if (!empty($errors = (new OrderStates($this->name, $this->get(CommandBusInterface::class), $this->configuration))->install())) {
 			$this->addModuleErrors($errors);
 			$this->uninstall();
 
@@ -149,11 +140,11 @@ class BTCPay extends PaymentModule
 	 */
 	public function uninstall(): bool
 	{
-		if (!empty($errors = (new Webhook())->uninstall())) {
+		if (!empty($errors = (new Webhook($this->configuration))->uninstall())) {
 			$this->addModuleErrors($errors);
 		}
 
-		if (!empty($errors = (new Config())->uninstall())) {
+		if (!empty($errors = (new Config($this->configuration))->uninstall())) {
 			$this->addModuleErrors($errors);
 
 			return false;
@@ -167,7 +158,7 @@ class BTCPay extends PaymentModule
 	 */
 	public function reset(): bool
 	{
-		$config = new Config();
+		$config = new Config($this->configuration);
 		if (!empty($errors = $config->uninstall())) {
 			$this->addModuleErrors($errors);
 
@@ -199,7 +190,7 @@ class BTCPay extends PaymentModule
 	 * @throws PrestaShopDatabaseException
 	 * @throws JsonException
 	 */
-	public function hookDisplayAdminOrderMainBottom($params): ?string
+	public function hookDisplayAdminOrderMainBottom(array $params): ?string
 	{
 		// If the module is not active, abort
 		if (!$this->active) {
@@ -222,7 +213,7 @@ class BTCPay extends PaymentModule
 		}
 
 		// Get the order
-		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByOrderID($params['id_order']))) {
+		if (null === ($bitcoinPayment = $this->payments()->findOneByOrderId((int) $params['id_order']))) {
 			return null;
 		}
 
@@ -241,7 +232,7 @@ class BTCPay extends PaymentModule
 
 		// Prepare smarty
 		$this->context->smarty->assign([
-			'server_url'    => $serverUrl,
+			'server_url' => $serverUrl,
 			'storeCurrency' => Currency::getCurrencyInstance($cart->id_currency)->getSymbol(),
 		]);
 
@@ -261,15 +252,15 @@ class BTCPay extends PaymentModule
 
 			// Add more information to smarty
 			$this->context->smarty->assign([
-				'invoice'         => $invoice,
-				'paymentMethods'  => $paymentMethods,
+				'invoice' => $invoice,
+				'paymentMethods' => $paymentMethods,
 				'paymentReceived' => $paymentReceived,
 			]);
 
 			return $this->display(__FILE__, 'views/templates/admin/invoice_block.tpl');
 		} catch (RequestException $exception) {
 			// Log the exception
-			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay Server invoice in hookDisplayAdminOrderMainBottom: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode(), 'Order', $bitcoinPayment->getOrderId());
+			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay Server invoice in hookDisplayAdminOrderMainBottom: %s', $exception->getMessage()), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode(), 'Order', $bitcoinPayment->getOrderId());
 
 			// Show that the invoice was not found
 			return $this->display(__FILE__, 'views/templates/admin/invoice_missing_block.tpl');
@@ -322,7 +313,7 @@ class BTCPay extends PaymentModule
 		}
 
 		// Get the order
-		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByOrderID($order->id))) {
+		if (null === ($bitcoinPayment = $this->payments()->findOneByOrderId((int) $order->id))) {
 			return null;
 		}
 
@@ -337,16 +328,16 @@ class BTCPay extends PaymentModule
 		try {
 			// Prepare smarty
 			$this->context->smarty->assign([
-				'serverURL'      => $serverUrl,
-				'storeCurrency'  => Currency::getCurrencyInstance($cart->id_currency)->getSymbol(),
-				'invoice'        => $client->invoice()->getInvoice($storeID, $invoiceId),
+				'serverURL' => $serverUrl,
+				'storeCurrency' => Currency::getCurrencyInstance($cart->id_currency)->getSymbol(),
+				'invoice' => $client->invoice()->getInvoice($storeID, $invoiceId),
 				'paymentMethods' => $client->invoice()->getPaymentMethods($storeID, $invoiceId),
 			]);
 
 			return $this->display(__FILE__, 'views/templates/hooks/order_detail.tpl');
 		} catch (RequestException $exception) {
 			// Log the exception
-			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay Server invoice in hookDisplayOrderDetail: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode(), 'Order', $order->id);
+			PrestaShopLogger::addLog(\sprintf('[WARNING] Tried to load BTCPay Server invoice in hookDisplayOrderDetail: %s', $exception->getMessage()), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode(), 'Order', $order->id);
 
 			// If the invoice is gone just return null
 			return null;
@@ -358,7 +349,7 @@ class BTCPay extends PaymentModule
 	 *
 	 * @throws Exception
 	 */
-	public function hookPaymentReturn($params): ?string
+	public function hookPaymentReturn(array $params): ?string
 	{
 		// If the module is not active, abort
 		if (!$this->active) {
@@ -377,19 +368,19 @@ class BTCPay extends PaymentModule
 		}
 
 		// Get the order
-		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByOrderID($order->id))) {
+		if (null === ($bitcoinPayment = $this->payments()->findOneByOrderId((int) $order->id))) {
 			return null;
 		}
 
 		// Prepare smarty to present order details
 		$this->context->smarty->assign([
-			'presenter'      => (new OrderPresenter())->present($order),
+			'presenter' => (new OrderPresenter())->present($order),
 			'bitcoinPayment' => $bitcoinPayment,
-			'order_state'    => $order->getCurrentState(),
-			'os_waiting'     => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_WAITING),
-			'os_confirming'  => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING),
-			'os_failed'      => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_FAILED),
-			'os_paid'        => $this->configuration->getInt(Constants::CONFIGURATION_ORDER_STATE_PAID),
+			'order_state' => $order->getCurrentState(),
+			'os_waiting' => (int) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_WAITING),
+			'os_confirming' => (int) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_CONFIRMING),
+			'os_failed' => (int) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED),
+			'os_paid' => (int) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_PAID),
 		]);
 
 		return $this->display(__FILE__, 'views/templates/hooks/payment_return.tpl');
@@ -432,7 +423,7 @@ class BTCPay extends PaymentModule
 			];
 		} catch (BTCPayException $exception) {
 			// Log the exception
-			PrestaShopLogger::addLog(\sprintf('[WARNING] Could not load payments options from server: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode());
+			PrestaShopLogger::addLog(\sprintf('[WARNING] Could not load payments options from server: %s', $exception->getMessage()), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode());
 
 			return [];
 		}
@@ -468,19 +459,23 @@ class BTCPay extends PaymentModule
 		}
 
 		// Get the order
-		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByCartID($cart->id))) {
+		if (null === ($bitcoinPayment = $this->payments()->findOneByCartId((int) $cart->id))) {
 			return;
 		}
 
-		PrestaShopLogger::addLog('[INFO] Order has changed for cart. Cancelling....', \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Cart', $cart->id);
+		PrestaShopLogger::addLog('[INFO] Order has changed for cart. Cancelling....', PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Cart', $cart->id);
 
-		// Try to remove the order
-		if (false === $bitcoinPayment->delete()) {
-			$error = \sprintf('[ERROR] Expected to remove the order %s, but failed to do so', $bitcoinPayment->getOrderId());
-			PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
-
-			throw new \PrestaShopDatabaseException($error);
+		try {
+			// Try to remove the order
+			$this->payments()->remove($bitcoinPayment);
+		} catch (Throwable $throwable) {
+			throw new PrestaShopDatabaseException($throwable->getMessage(), (int) $throwable->getCode(), $throwable);
 		}
+	}
+
+	private function payments(): BitcoinPaymentRepository
+	{
+		return $this->get(BitcoinPaymentRepository::class);
 	}
 
 	private function addModuleErrors(array $errors): void
@@ -506,8 +501,10 @@ class BTCPay extends PaymentModule
 				$this->warning = $this->trans('Your BTCPay Server store has not yet been linked, payment option is unavailable.', [], 'Modules.Btcpay.Admin');
 			} elseif (!$client->serverInfo()->isFullySynced()) {
 				$this->warning = $this->trans('One (or more) coins are not yet synced, payment option will be unavailable until the sync has finished.', [], 'Modules.Btcpay.Admin');
-			} elseif (!empty($storeId = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))
-				&& RateFallbackStatus::resolve($client->storeRate(), (string) $storeId)->isMissing()) {
+			} elseif (
+				!empty($storeId = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))
+				&& RateFallbackStatus::resolve($client->storeRate(), (string) $storeId)->isMissing()
+			) {
 				$this->warning = $this->trans('Your BTCPay Server store has no fallback rate provider. If the primary rate source fails, invoices cannot be created. Configure a fallback rate in BTCPay Server.', [], 'Modules.Btcpay.Admin');
 			}
 		} catch (BTCPayException $exception) {
@@ -516,7 +513,7 @@ class BTCPay extends PaymentModule
 			if (TransientError::isTransient($exception)) {
 				PrestaShopLogger::addLog(
 					\sprintf('[WARNING] BTCPay Server is temporarily unavailable, keeping host and API key. Error: %s', $exception->getMessage()),
-					\PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING,
+					PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING,
 					$exception->getCode()
 				);
 
@@ -529,7 +526,7 @@ class BTCPay extends PaymentModule
 			// Log the exception
 			PrestaShopLogger::addLog(
 				\sprintf('[ERROR] BTCPay Server configuration is no longer valid, resetting host and API key. Error: %s', $exception->getMessage()),
-				\PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR,
+				PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR,
 				$exception->getCode()
 			);
 
@@ -542,9 +539,9 @@ class BTCPay extends PaymentModule
 
 			// Bail
 			return;
-		} catch (\Throwable $exception) {
+		} catch (Throwable $exception) {
 			// Log the exception
-			PrestaShopLogger::addLog(\sprintf('[WARNING] Could not parse server information: %s', $exception->getMessage()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode());
+			PrestaShopLogger::addLog(\sprintf('[WARNING] Could not parse server information: %s', $exception->getMessage()), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, $exception->getCode());
 
 			// Bail
 			return;

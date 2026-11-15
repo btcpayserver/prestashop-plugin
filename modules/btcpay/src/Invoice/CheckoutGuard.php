@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Invoice;
 
 if (!\defined('_PS_VERSION_')) {
@@ -60,7 +62,7 @@ class CheckoutGuard
 			return null;
 		}
 
-		$scale     = self::fractionalDigits($value) + self::fractionalDigits($rate);
+		$scale = self::fractionalDigits($value) + self::fractionalDigits($rate);
 		$converted = \bcmul($value, $rate, $scale);
 
 		return self::isPositiveAmount($converted) ? $converted : null;

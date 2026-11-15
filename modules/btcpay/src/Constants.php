@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay;
 
 use BTCPayServer\Client\InvoiceCheckoutOptions;
@@ -8,20 +10,20 @@ if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-class Constants
+final class Constants
 {
 	// Version information
 	public const MINIMUM_BTCPAY_VERSION = '1.7.0';
-	public const MINIMUM_PS_VERSION     = '8.0.0';
-	public const MINIMUM_PHP_VERSION    = '8.0.0';
+	public const MINIMUM_PS_VERSION = '9.2.0';
+	public const MINIMUM_PHP_VERSION = '8.4.0';
 
 	// Cache configuration
-	public const LASTEST_VERSION_CACHE_KEY          = 'BTCPAY_LATEST_VERSION';
-	public const LASTEST_VERSION_CACHE_EXPIRATION   = 60 * 60 * 24 * 7; // 7 days
+	public const LASTEST_VERSION_CACHE_KEY = 'BTCPAY_LATEST_VERSION';
+	public const LASTEST_VERSION_CACHE_EXPIRATION = 60 * 60 * 24 * 7; // 7 days
 	public const LASTEST_VERSION_FAILURE_EXPIRATION = 60 * 60 * 24; // 1 day
-	public const CACHE_IS_VALID                     = 'BTCPAY_IS_VALID';
-	public const CACHE_SERVER_INFO                  = 'BTCPAY_SERVER_INFO';
-	public const CACHE_UNREACHABLE                  = 'BTCPAY_UNREACHABLE';
+	public const CACHE_IS_VALID = 'BTCPAY_IS_VALID';
+	public const CACHE_SERVER_INFO = 'BTCPAY_SERVER_INFO';
+	public const CACHE_UNREACHABLE = 'BTCPAY_UNREACHABLE';
 
 	// GitHub API endpoint for releases
 	public const GITHUB_API_LATEST_ENDPOINT = 'https://api.github.com/repos/btcpayserver/prestashop-plugin/releases/latest';
@@ -40,20 +42,20 @@ class Constants
 	];
 
 	// BTCPay Server configuration
-	public const CONFIGURATION_BTCPAY_HOST           = 'BTCPAY_URL';
-	public const CONFIGURATION_BTCPAY_API_KEY        = 'BTCPAY_API_KEY';
-	public const CONFIGURATION_BTCPAY_STORE_ID       = 'BTCPAY_STORE_ID';
-	public const CONFIGURATION_BTCPAY_WEBHOOK_ID     = 'BTCPAY_WEBHOOK_ID';
+	public const CONFIGURATION_BTCPAY_HOST = 'BTCPAY_URL';
+	public const CONFIGURATION_BTCPAY_API_KEY = 'BTCPAY_API_KEY';
+	public const CONFIGURATION_BTCPAY_STORE_ID = 'BTCPAY_STORE_ID';
+	public const CONFIGURATION_BTCPAY_WEBHOOK_ID = 'BTCPAY_WEBHOOK_ID';
 	public const CONFIGURATION_BTCPAY_WEBHOOK_SECRET = 'BTCPAY_WEBHOOK_SECRET';
-	public const CONFIGURATION_BTCPAY_AUTH_CALLBACK  = 'BTCPAY_AUTH_CALLBACK';
+	public const CONFIGURATION_BTCPAY_AUTH_CALLBACK = 'BTCPAY_AUTH_CALLBACK';
 
 	// Default values
 	public const CONFIGURATION_DEFAULT_HOST = 'https://testnet.demo.btcpayserver.org';
 
 	// Network robustness: never wait more than this for BTCPay Server
 	public const HTTP_CONNECT_TIMEOUT = 3;  // seconds to open the connection
-	public const HTTP_TIMEOUT         = 10; // seconds for the whole request
-	public const HTTP_MAX_ATTEMPTS    = 2;  // only for idempotent GET requests
+	public const HTTP_TIMEOUT = 10; // seconds for the whole request
+	public const HTTP_MAX_ATTEMPTS = 2;  // only for idempotent GET requests
 
 	// After a connection failure/timeout, remote calls are paused for this many seconds
 	public const UNREACHABLE_WINDOW = 120;
@@ -62,10 +64,10 @@ class Constants
 	public const CONFIGURATION_ORDER_MODE = 'BTCPAY_ORDERMODE';
 
 	// Order states
-	public const CONFIGURATION_ORDER_STATE_WAITING    = 'BTCPAY_OS_WAITING';
+	public const CONFIGURATION_ORDER_STATE_WAITING = 'BTCPAY_OS_WAITING';
 	public const CONFIGURATION_ORDER_STATE_CONFIRMING = 'BTCPAY_OS_CONFIRMING';
-	public const CONFIGURATION_ORDER_STATE_FAILED     = 'BTCPAY_OS_FAILED';
-	public const CONFIGURATION_ORDER_STATE_PAID       = 'BTCPAY_OS_PAID';
+	public const CONFIGURATION_ORDER_STATE_FAILED = 'BTCPAY_OS_FAILED';
+	public const CONFIGURATION_ORDER_STATE_PAID = 'BTCPAY_OS_PAID';
 
 	// Do we want to protect order states from getting changed by webhook
 	public const CONFIGURATION_PROTECT_ORDERS = 'BTCPAY_PROTECT_ORDERS';
@@ -75,10 +77,10 @@ class Constants
 
 	// All possible transaction speeds as defined by BTCPay server
 	public const CONFIGURATION_SPEED_MODE = 'BTCPAY_TXSPEED';
-	public const TRANSACTION_SPEEDS       = [InvoiceCheckoutOptions::SPEED_HIGH, InvoiceCheckoutOptions::SPEED_MEDIUM, InvoiceCheckoutOptions::SPEED_LOW];
+	public const TRANSACTION_SPEEDS = [InvoiceCheckoutOptions::SPEED_HIGH, InvoiceCheckoutOptions::SPEED_MEDIUM, InvoiceCheckoutOptions::SPEED_LOW];
 
 	// All possible options for order creation (before or after payment)
-	public const ORDER_MODES       = [self::ORDER_MODE_BEFORE, self::ORDER_MODE_AFTER];
+	public const ORDER_MODES = [self::ORDER_MODE_BEFORE, self::ORDER_MODE_AFTER];
 	public const ORDER_MODE_BEFORE = 'before_payment';
-	public const ORDER_MODE_AFTER  = 'after_payment';
+	public const ORDER_MODE_AFTER = 'after_payment';
 }

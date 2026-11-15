@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Server\Data;
 
 use BTCPay\Constants;
@@ -10,29 +12,24 @@ if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-class ValidateApiKey
+final class ValidateApiKey
 {
-	/**
-	 * @Assert\NotBlank()
-	 *
-	 * @var string|null
-	 */
-	private $apiKey;
+	#[Assert\NotBlank]
+	private ?string $apiKey;
 
 	/**
-	 * @Assert\All({@Assert\NotBlank()})
-	 * @Assert\NotBlank()
-	 *
 	 * @var string[]
 	 */
-	private $permissions;
+	#[Assert\All([new Assert\NotBlank()])]
+	#[Assert\NotBlank]
+	private array $permissions;
 
 	public function __construct(ParameterBag $request)
 	{
-		$this->apiKey      = $request->get('apiKey');
-		$this->permissions = \version_compare(\_PS_VERSION_, '9.0.0', '>=')
-			? ($request->all()['permissions'] ?? [])
-			: $request->get('permissions', []);
+		$apiKey = $request->get('apiKey');
+		$this->apiKey = \is_string($apiKey) ? $apiKey : null;
+		$permissions = $request->all()['permissions'] ?? [];
+		$this->permissions = \is_array($permissions) ? $permissions : [];
 	}
 
 	public function getApiKey(): ?string
@@ -45,9 +42,7 @@ class ValidateApiKey
 		return \explode(':', $this->permissions[0])[1];
 	}
 
-	/**
-	 * @Assert\IsTrue(message="This plugin expects all passed permissions to be given. Please remove and recreate the API key")
-	 */
+	#[Assert\IsTrue(message: 'This plugin expects all passed permissions to be given. Please remove and recreate the API key')]
 	public function hasRequiredPermissions(): bool
 	{
 		$permissions = \array_reduce($this->permissions, static function (array $carry, string $permission) {
@@ -60,9 +55,7 @@ class ValidateApiKey
 		));
 	}
 
-	/**
-	 * @Assert\IsTrue(message="This plugin requires one store (and one store only) to be authorized. Please remove and recreate the API key.")
-	 */
+	#[Assert\IsTrue(message: 'This plugin requires one store (and one store only) to be authorized. Please remove and recreate the API key.')]
 	public function hasSingleStore(): bool
 	{
 		$storeId = null;

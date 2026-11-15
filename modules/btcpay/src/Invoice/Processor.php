@@ -1,64 +1,66 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Invoice;
 
+use BTCPay;
 use BTCPay\Constants;
 use BTCPay\Entity\BitcoinPayment;
 use BTCPay\Exception\OrderCreationBusyException;
 use BTCPay\Factory\CustomerMessage;
+use BTCPay\Repository\BitcoinPaymentRepository;
 use BTCPay\Repository\OrderInvoicePaymentLinker;
 use BTCPay\Repository\OrderPaymentRepository;
 use BTCPay\Server\Client;
 use BTCPayServer\Result\Invoice;
-use PrestaShop\PrestaShop\Adapter\Configuration;
+use Cart;
+use Context;
+use Currency;
+use Doctrine\DBAL\Connection;
+use JsonException;
+use Order;
+use OrderHistory;
+use OrderInvoice;
+use OrderState;
+use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
+use PrestaShopDatabaseException;
+use PrestaShopException;
+use PrestaShopLogger;
+use RuntimeException;
+use Validate;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-class Processor
+final class Processor
 {
 	private const ORDER_CREATION_LOCK_TIMEOUT_SECONDS = 10;
 
-	/**
-	 * @var \BTCPay
-	 */
-	private $module;
-
-	/**
-	 * @var \Context
-	 */
-	private $context;
-
-	/**
-	 * @var Client
-	 */
-	private $client;
-
-	/**
-	 * @var Configuration
-	 */
-	private $configuration;
-
-	public function __construct(\BTCPay $module, \Context $context, Configuration $configuration, Client $client)
-	{
-		$this->module        = $module;
-		$this->context       = $context;
-		$this->configuration = $configuration;
-		$this->client        = $client;
+	public function __construct(
+		private readonly BTCPay $module,
+		private readonly Context $context,
+		private readonly ShopConfigurationInterface $configuration,
+		private readonly Client $client,
+		private readonly BitcoinPaymentRepository $payments,
+		private readonly Connection $connection,
+		private readonly OrderPaymentRepository $orderPayments,
+		private readonly OrderInvoicePaymentLinker $invoicePayments,
+	) {
 	}
 
 	/**
-	 * @throws \JsonException
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
+	 * @throws JsonException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
 	 */
 	public function invoiceSettled(BitcoinPayment $bitcoinPayment): void
 	{
 		// Get the order
-		$order = new \Order($bitcoinPayment->getOrderId());
-		if (false === \Validate::isLoadedObject($order)) {
-			\PrestaShopLogger::addLog(\sprintf("[ERROR] Could not load order '%s' for settled invoice", $bitcoinPayment->getOrderId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
+		$order = new Order($bitcoinPayment->getOrderId());
+		if (false === Validate::isLoadedObject($order)) {
+			PrestaShopLogger::addLog(\sprintf("[ERROR] Could not load order '%s' for settled invoice", $bitcoinPayment->getOrderId()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
 
 			return;
 		}
@@ -74,7 +76,7 @@ class Processor
 
 		// Ensure the invoice is not processing
 		if ($invoice->isProcessing()) {
-			\PrestaShopLogger::addLog(\sprintf("[ERROR] Invoice '%s' should not be processing when 'InvoiceSettled' has been received", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'Order', $order->id);
+			PrestaShopLogger::addLog(\sprintf("[ERROR] Invoice '%s' should not be processing when 'InvoiceSettled' has been received", $invoice->getId()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'Order', $order->id);
 
 			return;
 		}
@@ -91,7 +93,7 @@ class Processor
 
 		// If nothing changed, return
 		if ((string) $order->current_state === $orderStatus) {
-			\PrestaShopLogger::addLog('[INFO] The state is the same as the one received', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
+			PrestaShopLogger::addLog('[INFO] The state is the same as the one received', PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
 
 			if ($this->orderStateIsPaid($orderStatus)) {
 				$this->bookAndLink($bitcoinPayment, $order);
@@ -105,16 +107,16 @@ class Processor
 	}
 
 	/**
-	 * @throws \JsonException
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
+	 * @throws JsonException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
 	 */
 	public function invoiceFailed(BitcoinPayment $bitcoinPayment): void
 	{
 		// Get the order
-		$order = new \Order($bitcoinPayment->getOrderId());
-		if (false === \Validate::isLoadedObject($order)) {
-			\PrestaShopLogger::addLog(\sprintf("[ERROR] Could not load order '%s' for failed invoice", $bitcoinPayment->getOrderId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
+		$order = new Order($bitcoinPayment->getOrderId());
+		if (false === Validate::isLoadedObject($order)) {
+			PrestaShopLogger::addLog(\sprintf("[ERROR] Could not load order '%s' for failed invoice", $bitcoinPayment->getOrderId()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
 
 			return;
 		}
@@ -140,11 +142,13 @@ class Processor
 		}
 
 		// If nothing changed, return (an order already cancelled after a failure is not touched again)
-		$failedState   = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED);
+		$failedState = (string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED);
 		$canceledState = (string) $this->configuration->get('PS_OS_CANCELED');
-		if ((string) $order->current_state === $orderStatus
-			|| ($orderStatus === $failedState && (string) $order->current_state === $canceledState)) {
-			\PrestaShopLogger::addLog('[INFO] The state is the same as the one received', \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
+		if (
+			(string) $order->current_state === $orderStatus
+			|| ($orderStatus === $failedState && (string) $order->current_state === $canceledState)
+		) {
+			PrestaShopLogger::addLog('[INFO] The state is the same as the one received', PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
 
 			return;
 		}
@@ -156,23 +160,23 @@ class Processor
 
 		// A partial payment stays failed so cancelling does not restock goods that were paid for
 		if ($orderStatus === $failedState && $invoice->isPartiallyPaid()) {
-			\PrestaShopLogger::addLog(\sprintf("[WARNING] Invoice '%s' expired after a partial payment: refund or complete the order manually", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', (int) $bitcoinPayment->getOrderId());
-			CustomerMessage::addToOrder($this->context->shop, new \Order($bitcoinPayment->getOrderId()), \sprintf("BTCPay Server: invoice '%s' expired or invalid. WARNING: the invoice was PARTIALLY PAID before expiring; the amount received must be refunded or the order completed manually.", $invoice->getId()));
+			PrestaShopLogger::addLog(\sprintf("[WARNING] Invoice '%s' expired after a partial payment: refund or complete the order manually", $invoice->getId()), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', (int) $bitcoinPayment->getOrderId());
+			CustomerMessage::addToOrder($this->context->shop, new Order($bitcoinPayment->getOrderId()), \sprintf("BTCPay Server: invoice '%s' expired or invalid. WARNING: the invoice was PARTIALLY PAID before expiring; the amount received must be refunded or the order completed manually.", $invoice->getId()));
 		} elseif ($orderStatus === $failedState && '' !== $canceledState && $canceledState !== $failedState) {
 			$this->addHistory((int) $bitcoinPayment->getOrderId(), $canceledState, true);
-			CustomerMessage::addToOrder($this->context->shop, new \Order($bitcoinPayment->getOrderId()), \sprintf("BTCPay Server: invoice '%s' expired or invalid, order cancelled and products put back in stock.", $invoice->getId()));
+			CustomerMessage::addToOrder($this->context->shop, new Order($bitcoinPayment->getOrderId()), \sprintf("BTCPay Server: invoice '%s' expired or invalid, order cancelled and products put back in stock.", $invoice->getId()));
 		}
 	}
 
 	/**
-	 * @throws \JsonException
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
+	 * @throws JsonException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
 	 */
 	public function paymentReceived(BitcoinPayment $bitcoinPayment): void
 	{
 		// Get the order
-		$order = new \Order($bitcoinPayment->getOrderId());
+		$order = new Order($bitcoinPayment->getOrderId());
 
 		// Get the store ID
 		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
@@ -185,7 +189,7 @@ class Processor
 
 		// If nothing changed, return
 		if ((string) $order->current_state === $orderStatus) {
-			\PrestaShopLogger::addLog(\sprintf("[INFO] The state is the same as the one received for invoice '%s'", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
+			PrestaShopLogger::addLog(\sprintf("[INFO] The state is the same as the one received for invoice '%s'", $invoice->getId()), PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'Order', $order->id);
 
 			return;
 		}
@@ -196,9 +200,9 @@ class Processor
 
 	/**
 	 * @throws OrderCreationBusyException
-	 * @throws \JsonException
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
+	 * @throws JsonException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
 	 */
 	public function paymentReceivedCreateAfter(BitcoinPayment $bitcoinPayment): void
 	{
@@ -217,16 +221,16 @@ class Processor
 	}
 
 	/**
-	 * @throws \JsonException
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
+	 * @throws JsonException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
 	 */
 	public function paymentSettled(BitcoinPayment $bitcoinPayment): void
 	{
 		// Get the order
-		$order = new \Order($bitcoinPayment->getOrderId());
-		if (false === \Validate::isLoadedObject($order)) {
-			\PrestaShopLogger::addLog(\sprintf("[ERROR] Could not load order '%s' for settled payment", $bitcoinPayment->getOrderId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
+		$order = new Order($bitcoinPayment->getOrderId());
+		if (false === Validate::isLoadedObject($order)) {
+			PrestaShopLogger::addLog(\sprintf("[ERROR] Could not load order '%s' for settled payment", $bitcoinPayment->getOrderId()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
 
 			return;
 		}
@@ -241,9 +245,9 @@ class Processor
 
 		// Use the order currency precision when recording the converted amount, the
 		// conversion itself derives its scale from the inputs to stay lossless
-		$currency  = \Currency::getCurrencyInstance((int) $order->id_currency);
-		$precision = \Validate::isLoadedObject($currency) ? (int) $currency->precision : 2;
-		$settled   = [];
+		$currency = Currency::getCurrencyInstance((int) $order->id_currency);
+		$precision = Validate::isLoadedObject($currency) ? (int) $currency->precision : 2;
+		$settled = [];
 
 		foreach ($paymentMethods as $paymentMethod) {
 			foreach ($paymentMethod->getPayments() as $payment) {
@@ -255,19 +259,19 @@ class Processor
 				// non-positive amounts must never reach the payment books
 				$raw = CheckoutGuard::convertAmount($payment->getValue(), $paymentMethod->getRate());
 				if (null === $raw) {
-					\PrestaShopLogger::addLog(\sprintf("[WARNING] Ignoring settled payment '%s' with invalid or non-positive amount '%s' (rate '%s')", $payment->getTransactionId(), $payment->getValue(), $paymentMethod->getRate()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', $order->id);
+					PrestaShopLogger::addLog(\sprintf("[WARNING] Ignoring settled payment '%s' with invalid or non-positive amount '%s' (rate '%s')", $payment->getTransactionId(), $payment->getValue(), $paymentMethod->getRate()), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', $order->id);
 
 					continue;
 				}
 
 				$settled[] = [
 					'transactionId' => (string) $payment->getTransactionId(),
-					'raw'           => $raw,
+					'raw' => $raw,
 				];
 			}
 		}
 
-		$booked  = OrderPaymentRepository::amountsByTransactionId($order);
+		$booked = $this->orderPayments->amountsByTransactionId($order);
 		$allRaws = [];
 		$pending = [];
 		$already = '0';
@@ -297,17 +301,17 @@ class Processor
 	}
 
 	/**
-	 * @throws \JsonException
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
+	 * @throws JsonException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
 	 */
 	private function createOrderAfterPayment(BitcoinPayment $bitcoinPayment): void
 	{
 		// Generate an order only if there is not another one with this cart
-		if (null !== ($existing = \Order::getByCartId($bitcoinPayment->getCartId()))) {
+		if (null !== ($existing = Order::getByCartId($bitcoinPayment->getCartId()))) {
 			if (false === $bitcoinPayment->hasOrder()) {
 				$bitcoinPayment->setOrderId((int) $existing->id);
-				$bitcoinPayment->update(true);
+				$this->payments->save($bitcoinPayment);
 			}
 
 			// paymentReceived books when it marks paid; only book here if already paid
@@ -330,14 +334,16 @@ class Processor
 		$invoice = $this->client->invoice()->getInvoice($storeID, $bitcoinPayment->getInvoiceId());
 
 		// Only create an order once BTCPay has actually seen a payment
-		if (false === CheckoutGuard::canCreateOrder(
-			$invoice->isPartiallyPaid(),
-			$invoice->isProcessing(),
-			$invoice->isPaidLate(),
-			$invoice->isOverpaid(),
-			$invoice->isSettled()
-		)) {
-			\PrestaShopLogger::addLog(\sprintf("[INFO] Invoice '%s' has not received a payment yet, skipping order creation", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'BitcoinPayment', $bitcoinPayment->getId());
+		if (
+			false === CheckoutGuard::canCreateOrder(
+				$invoice->isPartiallyPaid(),
+				$invoice->isProcessing(),
+				$invoice->isPaidLate(),
+				$invoice->isOverpaid(),
+				$invoice->isSettled()
+			)
+		) {
+			PrestaShopLogger::addLog(\sprintf("[INFO] Invoice '%s' has not received a payment yet, skipping order creation", $invoice->getId()), PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'BitcoinPayment', $bitcoinPayment->getId());
 
 			return;
 		}
@@ -347,16 +353,16 @@ class Processor
 		}
 
 		// Compare the BTCPay invoice, stored amount, and current cart before creating the order
-		$cart = new \Cart($bitcoinPayment->getCartId());
+		$cart = new Cart($bitcoinPayment->getCartId());
 		if (false === $this->checkoutValueHolds($bitcoinPayment, $invoice, $cart, null)) {
-			\PrestaShopLogger::addLog(\sprintf("[ERROR] Invoice '%s' amount/currency does not match the stored snapshot or current cart", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
+			PrestaShopLogger::addLog(\sprintf("[ERROR] Invoice '%s' amount/currency does not match the stored snapshot or current cart", $invoice->getId()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
 
 			return;
 		}
 
 		// Fetch the secure key, which is used to check if the order has been made from this store
 		if (null === ($invoiceData = $invoice->getData()) || !\array_key_exists('metadata', $invoiceData) || !\array_key_exists('posData', $invoiceData['metadata'])) {
-			\PrestaShopLogger::addLog('[ERROR] Secure key was not defined', \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
+			PrestaShopLogger::addLog('[ERROR] Secure key was not defined', PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 			return;
 		}
@@ -372,10 +378,10 @@ class Processor
 
 		if ($invoice->isPaidLate()) {
 			// Add a regular log
-			\PrestaShopLogger::addLog(\sprintf("[INFO] User paid after expiration for this invoice '%s'", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE);
+			PrestaShopLogger::addLog(\sprintf("[INFO] User paid after expiration for this invoice '%s'", $invoice->getId()), PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE);
 		}
 
-		\PrestaShopLogger::addLog(\sprintf("[INFO] Creating actual order for invoice '%s'", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'BitcoinPayment', $bitcoinPayment->getId());
+		PrestaShopLogger::addLog(\sprintf("[INFO] Creating actual order for invoice '%s'", $invoice->getId()), PrestaShopLogger::LOG_SEVERITY_LEVEL_INFORMATIVE, null, 'BitcoinPayment', $bitcoinPayment->getId());
 
 		$this->module->validateOrder(
 			$bitcoinPayment->getCartId(),
@@ -391,9 +397,9 @@ class Processor
 		);
 
 		// Get the new order ID
-		$order = \Order::getByCartId($bitcoinPayment->getCartId());
+		$order = Order::getByCartId($bitcoinPayment->getCartId());
 		if (null === $order || 0 === (int) $order->id) {
-			\PrestaShopLogger::addLog(\sprintf("[ERROR] Order was not created for invoice '%s'", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
+			PrestaShopLogger::addLog(\sprintf("[ERROR] Order was not created for invoice '%s'", $invoice->getId()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
 
 			return;
 		}
@@ -403,12 +409,7 @@ class Processor
 		$bitcoinPayment->setStatus($createStatus);
 
 		// Update the object
-		if (false === $bitcoinPayment->update(true)) {
-			$error = \sprintf('[ERROR] Could not update bitcoin_payment: %s', \Db::getInstance()->getMsgError());
-			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
-
-			throw new \RuntimeException($error);
-		}
+		$this->payments->save($bitcoinPayment);
 
 		if ($createStatus !== $targetStatus) {
 			$this->updateOrderStatus($bitcoinPayment, $targetStatus, $invoice);
@@ -424,40 +425,42 @@ class Processor
 	private function acquireOrderCreationLock(int $cartId): bool
 	{
 		$lockName = \sprintf('btcpay_order_cart_%d', $cartId);
-		$acquired = \Db::getInstance()->getValue(\sprintf("SELECT GET_LOCK('%s', %d)", \pSQL($lockName), self::ORDER_CREATION_LOCK_TIMEOUT_SECONDS), false);
+		$acquired = $this->connection->fetchOne('SELECT GET_LOCK(:name, :timeout)', [
+			'name' => $lockName,
+			'timeout' => self::ORDER_CREATION_LOCK_TIMEOUT_SECONDS,
+		]);
 
 		if ('1' === (string) $acquired) {
 			return true;
 		}
 
-		\PrestaShopLogger::addLog(\sprintf("[WARN] Could not acquire order creation lock for cart '%d'", $cartId), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Cart', $cartId);
+		PrestaShopLogger::addLog(\sprintf("[WARN] Could not acquire order creation lock for cart '%d'", $cartId), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Cart', $cartId);
 
 		return false;
 	}
 
 	private function releaseOrderCreationLock(int $cartId): void
 	{
-		$lockName = \sprintf('btcpay_order_cart_%d', $cartId);
-		\Db::getInstance()->getValue(\sprintf("SELECT RELEASE_LOCK('%s')", \pSQL($lockName)), false);
+		$this->connection->fetchOne('SELECT RELEASE_LOCK(:name)', ['name' => \sprintf('btcpay_order_cart_%d', $cartId)]);
 	}
 
 	/**
 	 * @return bool true when the order status was changed
 	 *
-	 * @throws \JsonException
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
+	 * @throws JsonException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
 	 */
 	private function updateOrderStatus(BitcoinPayment $bitcoinPayment, string $orderStatus, Invoice $invoice): bool
 	{
-		$order = new \Order($bitcoinPayment->getOrderId());
+		$order = new Order($bitcoinPayment->getOrderId());
 
-		$currentPaid = \Validate::isLoadedObject($currentState = $order->getCurrentOrderState()) && (bool) $currentState->paid;
-		$targetPaid  = $this->orderStateIsPaid($orderStatus);
+		$currentPaid = Validate::isLoadedObject($currentState = $order->getCurrentOrderState()) && (bool) $currentState->paid;
+		$targetPaid = $this->orderStateIsPaid($orderStatus);
 
 		// Do not downgrade orders that are already paid when protection is enabled
 		if (false === CheckoutGuard::paidTransitionAllowed($this->protectsOrders(), $currentPaid, $targetPaid)) {
-			\PrestaShopLogger::addLog(\sprintf("[WARN] Refusing to move paid order to state '%s'", $orderStatus), \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', $order->id);
+			PrestaShopLogger::addLog(\sprintf("[WARN] Refusing to move paid order to state '%s'", $orderStatus), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', $order->id);
 			CustomerMessage::addToOrder($this->context->shop, $order, \sprintf("BTCPay Server: ignored a status change to '%s' because the order is already paid.", $orderStatus));
 
 			return false;
@@ -465,7 +468,7 @@ class Processor
 
 		// Verify the invoice still matches the checkout snapshot before marking paid
 		if ($targetPaid && false === $this->checkoutValueHolds($bitcoinPayment, $invoice, null, $order)) {
-			\PrestaShopLogger::addLog(\sprintf("[ERROR] Refusing to mark order paid; invoice '%s' amount/currency does not match the checkout snapshot", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'Order', $order->id);
+			PrestaShopLogger::addLog(\sprintf("[ERROR] Refusing to mark order paid; invoice '%s' amount/currency does not match the checkout snapshot", $invoice->getId()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'Order', $order->id);
 
 			return false;
 		}
@@ -474,12 +477,7 @@ class Processor
 		$bitcoinPayment->setStatus($orderStatus);
 
 		// Update the object
-		if (false === $bitcoinPayment->update(true)) {
-			$error = \sprintf('[ERROR] Could not update bitcoin_payment: %s', \Db::getInstance()->getMsgError());
-			\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
-
-			throw new \RuntimeException($error);
-		}
+		$this->payments->save($bitcoinPayment);
 
 		if ($targetPaid) {
 			$this->bookAndLink($bitcoinPayment, $order);
@@ -495,12 +493,12 @@ class Processor
 	}
 
 	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
 	 */
 	private function addHistory(int $orderId, string $orderStatus, bool $withEmail): void
 	{
-		$orderHistory           = new \OrderHistory();
+		$orderHistory = new OrderHistory();
 		$orderHistory->id_order = $orderId;
 
 		// Third arg: reuse existing payments when moving to a paid state (PrestaShop invoice generation)
@@ -544,9 +542,9 @@ class Processor
 
 	private function orderStateIsPaid(string $orderStatus): bool
 	{
-		$state = new \OrderState((int) $orderStatus);
+		$state = new OrderState((int) $orderStatus);
 
-		return \Validate::isLoadedObject($state) && (bool) $state->paid;
+		return Validate::isLoadedObject($state) && (bool) $state->paid;
 	}
 
 	private function protectsOrders(): bool
@@ -580,14 +578,14 @@ class Processor
 	}
 
 	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
+	 * @throws PrestaShopDatabaseException
+	 * @throws PrestaShopException
 	 */
 	private function hydrateSnapshotFromInvoice(BitcoinPayment $payment, Invoice $invoice): bool
 	{
 		$amount = $this->invoiceAmount($invoice);
 		if (null === $amount) {
-			\PrestaShopLogger::addLog(\sprintf("[ERROR] Invoice '%s' is missing amount", $invoice->getId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $payment->getId());
+			PrestaShopLogger::addLog(\sprintf("[ERROR] Invoice '%s' is missing amount", $invoice->getId()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $payment->getId());
 
 			return false;
 		}
@@ -595,9 +593,10 @@ class Processor
 		// Backfill amount for rows created before amount was persisted on the ObjectModel
 		if (null === $payment->getAmount() || '' === $payment->getAmount()) {
 			$payment->setAmount($amount);
-			if (false === $payment->update(true)) {
-				$error = \sprintf('[ERROR] Could not persist checkout snapshot: %s', \Db::getInstance()->getMsgError());
-				\PrestaShopLogger::addLog($error, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $payment->getId());
+			try {
+				$this->payments->save($payment);
+			} catch (RuntimeException $exception) {
+				PrestaShopLogger::addLog(\sprintf('[ERROR] Could not persist checkout snapshot: %s', $exception->getMessage()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, $exception->getCode(), 'BitcoinPayment', $payment->getId());
 
 				return false;
 			}
@@ -606,11 +605,11 @@ class Processor
 		return true;
 	}
 
-	private function checkoutValueHolds(BitcoinPayment $payment, Invoice $invoice, ?\Cart $cart, ?\Order $order): bool
+	private function checkoutValueHolds(BitcoinPayment $payment, Invoice $invoice, ?Cart $cart, ?Order $order): bool
 	{
-		$invoiceAmount   = $this->invoiceAmount($invoice);
+		$invoiceAmount = $this->invoiceAmount($invoice);
 		$invoiceCurrency = $this->invoiceCurrency($invoice);
-		$storedAmount    = $payment->getAmount();
+		$storedAmount = $payment->getAmount();
 
 		if (null === $invoiceAmount || null === $invoiceCurrency || null === $storedAmount || '' === $storedAmount) {
 			return false;
@@ -621,16 +620,16 @@ class Processor
 		}
 
 		if (null !== $cart) {
-			$cartAmount   = (string) $cart->getOrderTotal(true);
-			$cartCurrency = \strtoupper((string) \Currency::getCurrencyInstance($cart->id_currency)->iso_code);
+			$cartAmount = (string) $cart->getOrderTotal(true);
+			$cartCurrency = \strtoupper((string) Currency::getCurrencyInstance($cart->id_currency)->iso_code);
 			if (false === CheckoutGuard::amountsMatch($storedAmount, $cartAmount) || $cartCurrency !== $invoiceCurrency) {
 				return false;
 			}
 		}
 
 		if (null !== $order) {
-			$orderAmount   = (string) $order->total_paid_tax_incl;
-			$orderCurrency = \strtoupper((string) \Currency::getCurrencyInstance($order->id_currency)->iso_code);
+			$orderAmount = (string) $order->total_paid_tax_incl;
+			$orderCurrency = \strtoupper((string) Currency::getCurrencyInstance($order->id_currency)->iso_code);
 			if (false === CheckoutGuard::amountsMatch($storedAmount, $orderAmount) || $orderCurrency !== $invoiceCurrency) {
 				return false;
 			}
@@ -639,29 +638,29 @@ class Processor
 		return true;
 	}
 
-	private function bookAndLink(BitcoinPayment $bitcoinPayment, \Order $order): void
+	private function bookAndLink(BitcoinPayment $bitcoinPayment, Order $order): void
 	{
 		$this->paymentSettled($bitcoinPayment);
 		$this->linkOrderPayments($order);
 	}
 
-	private function orderInvoice(\Order $order): ?\OrderInvoice
+	private function orderInvoice(Order $order): ?OrderInvoice
 	{
 		$invoices = $order->getInvoicesCollection()->getResults();
-		if ([] === $invoices || !$invoices[0] instanceof \OrderInvoice) {
+		if ([] === $invoices || !$invoices[0] instanceof OrderInvoice) {
 			return null;
 		}
 
 		return $invoices[0];
 	}
 
-	private function linkOrderPayments(\Order $order): void
+	private function linkOrderPayments(Order $order): void
 	{
 		$invoice = $this->orderInvoice($order);
 		if (null === $invoice) {
 			return;
 		}
 
-		OrderInvoicePaymentLinker::linkUnlinkedPayments((int) $order->id, (int) $invoice->id);
+		$this->invoicePayments->linkUnlinkedPayments((int) $order->id, (int) $invoice->id);
 	}
 }

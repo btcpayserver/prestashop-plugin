@@ -1,103 +1,95 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use OrderState;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
 /**
- * phpcs:disable Squiz.NamingConventions.ValidVariableName.MemberNotCamelCaps
+ * @ORM\Entity()
+ *
+ * @ORM\Table(name="bitcoin_payment", uniqueConstraints={@ORM\UniqueConstraint(name="invoice_id", columns={"invoice_id"})})
  */
-class BitcoinPayment extends \ObjectModel
+final class BitcoinPayment
 {
 	/**
-	 * @var int
+	 * @ORM\Id
+	 *
+	 * @ORM\Column(name="id", type="integer")
+	 *
+	 * @ORM\GeneratedValue(strategy="AUTO")
 	 */
-	public $id;
+	private ?int $id = null;
 
 	/**
-	 * @var int
+	 * @ORM\Column(name="cart_id", type="integer")
 	 */
-	public $cart_id;
+	private int $cartId = 0;
 
 	/**
-	 * @var int|null
+	 * @ORM\Column(name="order_id", type="integer", nullable=true)
 	 */
-	public $order_id;
+	private ?int $orderId = null;
 
 	/**
-	 * @var string
+	 * @ORM\Column(name="status", type="string", length=255)
 	 */
-	public $status;
+	private string $status = '';
 
 	/**
-	 * @var string|null
+	 * @ORM\Column(name="invoice_id", type="string", length=255, nullable=true)
 	 */
-	public $invoice_id;
+	private ?string $invoiceId = null;
 
 	/**
-	 * @var string|null
+	 * @ORM\Column(name="invoice_reference", type="string", length=255, nullable=true)
 	 */
-	public $invoice_reference;
+	private ?string $invoiceReference = null;
 
 	/**
-	 * @var string|null
+	 * @ORM\Column(name="amount", type="string", length=255, nullable=true)
 	 */
-	public $amount;
+	private ?string $amount = null;
 
 	/**
-	 * @var string|null
+	 * @ORM\Column(name="redirect", type="string", length=255, nullable=true)
 	 */
-	public $redirect;
-
-	public static $definition = [
-		'table'   => 'bitcoin_payment',
-		'primary' => 'id',
-		'fields'  => [
-			'cart_id'           => ['type' => self::TYPE_INT, 'required' => true, 'validate' => 'isUnsignedInt'],
-			'order_id'          => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedInt'],
-			'status'            => ['type' => self::TYPE_STRING, 'required' => true, 'validate' => 'isString'],
-			'invoice_id'        => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
-			'invoice_reference' => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
-			'amount'            => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
-			'redirect'          => ['type' => self::TYPE_STRING, 'validate' => 'isUrl'],
-		],
-	];
+	private ?string $redirect = null;
 
 	public function getId(): int
 	{
-		return $this->id;
-	}
-
-	public function setId(int $id): void
-	{
-		$this->id = $id;
+		return (int) $this->id;
 	}
 
 	public function getCartId(): int
 	{
-		return $this->cart_id;
+		return $this->cartId;
 	}
 
-	public function setCartId(int $cart_id): void
+	public function setCartId(int $cartId): void
 	{
-		$this->cart_id = $cart_id;
+		$this->cartId = $cartId;
 	}
 
 	public function getOrderId(): int
 	{
-		return $this->order_id;
+		return (int) $this->orderId;
 	}
 
-	public function setOrderId(?int $order_id): void
+	public function setOrderId(?int $orderId): void
 	{
-		$this->order_id = $order_id;
+		$this->orderId = $orderId;
 	}
 
 	public function hasOrder(): bool
 	{
-		return false === empty($this->order_id);
+		return false === empty($this->orderId);
 	}
 
 	public function getStatus(): string
@@ -110,21 +102,17 @@ class BitcoinPayment extends \ObjectModel
 		$this->status = $status;
 	}
 
-	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \PrestaShopException
-	 */
 	public function getStatusName(): string
 	{
 		$name = $this->getStatus();
 
-		if (null !== ($orderState = new \OrderState((int) $name))) {
+		if (null !== ($orderState = new OrderState((int) $name))) {
 			if (\is_string($orderState->name)) {
 				return $orderState->name;
 			}
 
 			if (\is_array($orderState->name) && !empty($orderState->name)) {
-				return \array_pop($orderState->name);
+				return (string) \array_pop($orderState->name);
 			}
 		}
 
@@ -133,22 +121,22 @@ class BitcoinPayment extends \ObjectModel
 
 	public function getInvoiceId(): ?string
 	{
-		return $this->invoice_id;
+		return $this->invoiceId;
 	}
 
-	public function setInvoiceId(?string $invoice_id): void
+	public function setInvoiceId(?string $invoiceId): void
 	{
-		$this->invoice_id = $invoice_id;
+		$this->invoiceId = $invoiceId;
 	}
 
 	public function getInvoiceReference(): ?string
 	{
-		return $this->invoice_reference;
+		return $this->invoiceReference;
 	}
 
-	public function setInvoiceReference(?string $invoice_reference): void
+	public function setInvoiceReference(?string $invoiceReference): void
 	{
-		$this->invoice_reference = $invoice_reference;
+		$this->invoiceReference = $invoiceReference;
 	}
 
 	public function getAmount(): ?string
@@ -171,17 +159,20 @@ class BitcoinPayment extends \ObjectModel
 		$this->redirect = $redirect;
 	}
 
+	/**
+	 * @return array{id: int, cart_id: int, id_order: int, status: string, invoice_id: ?string, invoice_reference: ?string, amount: ?string, redirect: ?string}
+	 */
 	public function toArray(): array
 	{
 		return [
-			'id'                => $this->getId(),
-			'cart_id'           => $this->getCartId(),
-			'id_order'          => $this->getOrderId(),
-			'status'            => $this->getStatus(),
-			'invoice_id'        => $this->getInvoiceId(),
+			'id' => $this->getId(),
+			'cart_id' => $this->getCartId(),
+			'id_order' => $this->getOrderId(),
+			'status' => $this->getStatus(),
+			'invoice_id' => $this->getInvoiceId(),
 			'invoice_reference' => $this->getInvoiceReference(),
-			'amount'            => $this->getAmount(),
-			'redirect'          => $this->getRedirect(),
+			'amount' => $this->getAmount(),
+			'redirect' => $this->getRedirect(),
 		];
 	}
 }

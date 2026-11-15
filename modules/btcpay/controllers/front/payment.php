@@ -1,50 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 use BTCPay\Constants;
 use BTCPay\Server\Factory;
-use PrestaShop\PrestaShop\Adapter\Configuration;
+use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
 
 if (!defined('_PS_VERSION_')) {
 	exit;
 }
 
-class BTCPayPaymentModuleFrontController extends ModuleFrontController
+final class BTCPayPaymentModuleFrontController extends ModuleFrontController
 {
 	/**
 	 * Enable SSL only.
-	 *
-	 * @var bool
 	 */
-	public $ssl = true;
+	public bool $ssl = true;
 
-	/**
-	 * @var BTCPay
-	 */
+	/** @var BTCPay */
 	public $module;
-
-	/**
-	 * @var Factory
-	 */
-	private $factory;
-
-	/**
-	 * @var Configuration
-	 */
-	private $configuration;
-
-	public function __construct()
-	{
-		parent::__construct();
-
-		$this->factory       = new Factory($this->module, $this->context);
-		$this->configuration = new Configuration();
-	}
 
 	public function initContent(): void
 	{
 		parent::initContent();
 
-		if (null === $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID)) {
+		$configuration = $this->module->get(ShopConfigurationInterface::class);
+		if (null === $configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID)) {
 			$this->warning[] = $this->context->getTranslator()->trans('Payment method has not yet been setup properly. Please try again or contact us.', [], 'Modules.Btcpay.Front');
 			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
 
@@ -52,7 +33,9 @@ class BTCPayPaymentModuleFrontController extends ModuleFrontController
 		}
 
 		try {
-			if (null !== ($redirect = $this->factory->createPaymentRequest($this->context->customer, $this->context->cart))) {
+			/** @var Factory $factory */
+			$factory = $this->module->get(Factory::class);
+			if (null !== ($redirect = $factory->createPaymentRequest($this->context->customer, $this->context->cart))) {
 				Tools::redirect($redirect);
 
 				return;
@@ -60,7 +43,7 @@ class BTCPayPaymentModuleFrontController extends ModuleFrontController
 
 			$this->warning[] = $this->context->getTranslator()->trans('We could not create a payment request via BTCPay Server. Please try again or contact us.', [], 'Modules.Btcpay.Front');
 			$this->redirectWithNotifications($this->context->link->getPageLink('cart', $this->ssl));
-		} catch (\Throwable $throwable) {
+		} catch (Throwable $throwable) {
 			PrestaShopLogger::addLog(\sprintf('[ERROR] An error occurred during payment creation: %s', $throwable), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, $throwable->getCode());
 
 			$this->warning[] = $this->context->getTranslator()->trans('We are having issues with our BTCPay Server backend. Please try again or contact us.', [], 'Modules.Btcpay.Front');

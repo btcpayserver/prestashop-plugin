@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Controller\Admin\Improve\Payment;
 
 use BTCPay;
@@ -16,18 +18,20 @@ use BTCPay\Server\RateFallbackStatus;
 use BTCPay\Server\TransientError;
 use BTCPayServer\Client\ApiKey;
 use BTCPayServer\Exception\RequestException;
-use Exception;
+use BTCPayServer\Http\ClientInterface;
+use Cache;
 use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
 use PrestaShop\PrestaShop\Core\Form\FormHandlerInterface;
-use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
-use PrestaShopBundle\Security\Annotation\AdminSecurity;
-use PrestaShopBundle\Security\Annotation\ModuleActivated;
+use PrestaShopBundle\Controller\Admin\PrestaShopAdminController;
+use PrestaShopBundle\Security\Attribute\AdminSecurity;
+use PrestaShopBundle\Security\Attribute\DemoRestricted;
 use PrestaShopLogger;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Throwable;
@@ -36,82 +40,49 @@ if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-/**
- * @ModuleActivated(moduleName="btcpay", redirectRoute="admin_module_manage")
- */
-class ConfigureController extends FrameworkBundleAdminController
+final class ConfigureController extends PrestaShopAdminController
 {
 	/**
-	 * @var BTCPay
+	 * @return array<string, string>
 	 */
-	private $module;
-
-	/**
-	 * @var ValidatorInterface
-	 */
-	private $validator;
-
-	/**
-	 * @var FormHandlerInterface
-	 */
-	private $serverFormHandler;
-
-	/**
-	 * @var FormHandlerInterface
-	 */
-	private $generalFormHandler;
-
-	/**
-	 * @var Versioning
-	 */
-	private $versioning;
-
-	public function __construct(BTCPay $module, ValidatorInterface $validator, FormHandlerInterface $serverFormHandler, FormHandlerInterface $generalFormHandler)
+	public static function getSubscribedServices(): array
 	{
-		// Fallback in case 8.0 is used // TODO: Remove once we make 9.0 the minimum
-		if (\version_compare(\_PS_VERSION_, '8.1.0', '<')) {
-			parent::__construct();
-		}
-
-		$this->module             = $module;
-		$this->validator          = $validator;
-		$this->serverFormHandler  = $serverFormHandler;
-		$this->generalFormHandler = $generalFormHandler;
-		$this->versioning         = new Versioning();
+		return parent::getSubscribedServices() + [
+			BTCPay::class => BTCPay::class,
+			'validator' => ValidatorInterface::class,
+			'prestashop.module.btcpay.form_handler.server' => FormHandlerInterface::class,
+			'prestashop.module.btcpay.form_handler.general' => FormHandlerInterface::class,
+			ShopConfigurationInterface::class => ShopConfigurationInterface::class,
+			Versioning::class => Versioning::class,
+			AuthorizationToken::class => AuthorizationToken::class,
+		];
 	}
 
-	/**
-	 * @AdminSecurity("is_granted('read', request.get('_legacy_controller'))", message="Access denied.")
-	 *
-	 * @throws Exception
-	 */
+	#[AdminSecurity("is_granted('read', request.get('_legacy_controller'))", message: 'Access denied.')]
+	#[DemoRestricted(redirectRoute: 'admin_module_manage')]
 	public function viewAction(Request $request): Response
 	{
 		// Build the client
-		$client = Client::createFromConfiguration($this->getConfiguration());
+		$configuration = $this->shopConfiguration();
+		$client = Client::createFromConfiguration($configuration);
 
 		// Create the authorization URL (without redirect)
-		$authorizeUrl = ApiKey::getAuthorizeUrl($this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_HOST), Constants::BTCPAY_PERMISSIONS, $this->module->name, true, true, null, $this->module->name);
+		$authorizeUrl = ApiKey::getAuthorizeUrl((string) $configuration->get(Constants::CONFIGURATION_BTCPAY_HOST), Constants::BTCPAY_PERMISSIONS, $this->module()->name, true, true, null, $this->module()->name);
 
 		// Ensure we always have a webhook
 		if (null !== $client && $client->isValid()) {
-			$client->webhook()->ensureWebhook($this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_STORE_ID));
+			$client->webhook()->ensureWebhook((string) $configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID));
 		}
 
-		return $this->getResponse($request, $this->serverFormHandler->getForm(), $this->generalFormHandler->getForm(), $authorizeUrl, $client);
+		return $this->getResponse($request, $this->serverFormHandler()->getForm(), $this->generalFormHandler()->getForm(), $authorizeUrl, $client);
 	}
 
-	/**
-	 * @AdminSecurity("is_granted('update', request.get('_legacy_controller'))", message="Access denied.")
-	 *
-	 * @return RedirectResponse|Response
-	 *
-	 * @throws Exception
-	 */
+	#[AdminSecurity("is_granted('update', request.get('_legacy_controller'))", message: 'Access denied.')]
+	#[DemoRestricted(redirectRoute: 'admin_btcpay_configure')]
 	public function editServerSettingsAction(Request $request): Response
 	{
 		// Get configuration container
-		$shopConfiguration = $this->getConfiguration();
+		$shopConfiguration = $this->shopConfiguration();
 
 		// Get current configuration, before processing everything
 		$currentConfiguration = Server::create($shopConfiguration);
@@ -119,18 +90,18 @@ class ConfigureController extends FrameworkBundleAdminController
 		// Capture the complete current configuration so a failed update can restore it
 		$snapshot = ConfigurationSnapshot::capture($shopConfiguration);
 
-		$serverForm = $this->serverFormHandler->getForm();
+		$serverForm = $this->serverFormHandler()->getForm();
 		$serverForm->handleRequest($request);
 
 		// Just show the boring configuration field on no submit/invalid form
 		if (!$serverForm->isSubmitted() || !$serverForm->isValid()) {
 			// Try and create the client
-			$client = Client::createFromConfiguration($this->getConfiguration());
+			$client = Client::createFromConfiguration($shopConfiguration);
 
 			// Create the authorization URL (without redirect)
-			$authorizeUrl = ApiKey::getAuthorizeUrl($this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_HOST), Constants::BTCPAY_PERMISSIONS, $this->module->name, true, true, null, $this->module->name);
+			$authorizeUrl = ApiKey::getAuthorizeUrl((string) $shopConfiguration->get(Constants::CONFIGURATION_BTCPAY_HOST), Constants::BTCPAY_PERMISSIONS, $this->module()->name, true, true, null, $this->module()->name);
 
-			return $this->getResponse($request, $serverForm, $this->generalFormHandler->getForm(), $authorizeUrl, $client);
+			return $this->getResponse($request, $serverForm, $this->generalFormHandler()->getForm(), $authorizeUrl, $client);
 		}
 
 		/** @var Server $submittedConfiguration */
@@ -142,8 +113,8 @@ class ConfigureController extends FrameworkBundleAdminController
 		try {
 			// If there are errors in the form, error out here. The save writes the submitted
 			// host and API key before returning errors, so restore the previous configuration.
-			if (0 !== \count($saveErrors = $this->serverFormHandler->save($submittedConfiguration->toArray()))) {
-				$this->flashErrors($saveErrors);
+			if (0 !== \count($saveErrors = $this->serverFormHandler()->save($submittedConfiguration->toArray()))) {
+				$this->flashMessages($saveErrors);
 				$snapshot->restore($shopConfiguration);
 				$this->addFlash('error', 'BTCPay Server plugin: Your previous configuration was restored.');
 
@@ -192,38 +163,33 @@ class ConfigureController extends FrameworkBundleAdminController
 		}
 	}
 
-	/**
-	 * @AdminSecurity("is_granted('update', request.get('_legacy_controller'))", message="Access denied.")
-	 *
-	 * @return RedirectResponse|Response
-	 *
-	 * @throws Exception
-	 */
+	#[AdminSecurity("is_granted('update', request.get('_legacy_controller'))", message: 'Access denied.')]
+	#[DemoRestricted(redirectRoute: 'admin_btcpay_configure')]
 	public function editGeneralSettingsAction(Request $request): Response
 	{
 		// Get current configuration, before processing everything
-		$currentConfiguration = General::create($this->getConfiguration());
+		$currentConfiguration = General::create($this->shopConfiguration());
 
-		$generalForm = $this->generalFormHandler->getForm();
+		$generalForm = $this->generalFormHandler()->getForm();
 		$generalForm->handleRequest($request);
 
 		// Just show the boring configuration field on no submit/invalid form
 		if (!$generalForm->isSubmitted() || !$generalForm->isValid()) {
 			// Try and create the client
-			$client = Client::createFromConfiguration($this->getConfiguration());
+			$client = Client::createFromConfiguration($this->shopConfiguration());
 
 			// Create the authorization URL (without redirect)
-			$authorizeUrl = ApiKey::getAuthorizeUrl($this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_HOST), Constants::BTCPAY_PERMISSIONS, $this->module->name, true, true, null, $this->module->name);
+			$authorizeUrl = ApiKey::getAuthorizeUrl((string) $this->shopConfiguration()->get(Constants::CONFIGURATION_BTCPAY_HOST), Constants::BTCPAY_PERMISSIONS, $this->module()->name, true, true, null, $this->module()->name);
 
-			return $this->getResponse($request, $this->serverFormHandler->getForm(), $generalForm, $authorizeUrl, $client);
+			return $this->getResponse($request, $this->serverFormHandler()->getForm(), $generalForm, $authorizeUrl, $client);
 		}
 
 		/** @var General $general */
 		$general = $generalForm->getData();
 
 		// If there are errors in the form, error out here
-		if (0 !== \count($saveErrors = $this->generalFormHandler->save($general->toArray()))) {
-			$this->flashErrors($saveErrors);
+		if (0 !== \count($saveErrors = $this->generalFormHandler()->save($general->toArray()))) {
+			$this->flashMessages($saveErrors);
 
 			return $this->redirectToRoute('admin_btcpay_configure');
 		}
@@ -241,35 +207,27 @@ class ConfigureController extends FrameworkBundleAdminController
 		return $this->redirectToRoute('admin_btcpay_configure');
 	}
 
-	/**
-	 * @AdminSecurity("request.get('_anonymous_controller') or is_granted('update', request.get('_legacy_controller'))", message="Access denied.")
-	 *
-	 * @return RedirectResponse|Response
-	 *
-	 * @throws Exception
-	 */
-	#[\PrestaShopBundle\Security\Attribute\AdminSecurity("request.get('_anonymous_controller') or is_granted('update', request.get('_legacy_controller'))", message: 'Access denied.')]
-	public function validateAPIKeyAction(Request $request): Response
+	#[AdminSecurity("request.get('_anonymous_controller') or is_granted('update', request.get('_legacy_controller'))", message: 'Access denied.')]
+	public function validateAPIKeyAction(Request $request, UrlGeneratorInterface $urlGenerator): Response
 	{
 		// Anonymous callbacks may only change configuration for a pending authorization.
 		$state = $request->query->all()['btcpay_state'] ?? null;
-		if (!$request->isMethod('POST') || !\is_string($state)
-			|| null === ($authorization = (new AuthorizationToken($this->getConfiguration()))->consume($state))) {
+		if (!$request->isMethod('POST') || !\is_string($state) || null === ($authorization = $this->container->get(AuthorizationToken::class)->consume($state))) {
 			return new Response('Invalid or expired BTCPay authorization callback.', Response::HTTP_FORBIDDEN);
 		}
 
 		// Do not flash here: an anonymous POST session can replace the admin cookie.
-		return $this->redirectAfterAuthorization($this->processAuthorizationCallback($request), $authorization['expires']);
+		return $this->redirectAfterAuthorization($this->processAuthorizationCallback($request), $authorization['expires'], $urlGenerator);
 	}
 
 	/**
 	 * Finish on a GET so SameSite=Lax cookies restore the original admin session.
 	 */
+	#[AdminSecurity("request.get('_anonymous_controller') or is_granted('update', request.get('_legacy_controller'))", message: 'Access denied.')]
 	public function completeAuthorizationAction(Request $request): Response
 	{
 		$state = $request->query->all()['btcpay_state'] ?? null;
-		if (!$request->isMethod('GET') || !\is_string($state)
-			|| null === ($authorization = (new AuthorizationToken($this->getConfiguration()))->consume($state, 'complete'))) {
+		if (!$request->isMethod('GET') || !\is_string($state) || null === ($authorization = $this->container->get(AuthorizationToken::class)->consume($state, 'complete'))) {
 			return new Response('Invalid or expired BTCPay authorization result.', Response::HTTP_FORBIDDEN);
 		}
 
@@ -284,28 +242,18 @@ class ConfigureController extends FrameworkBundleAdminController
 		return $response;
 	}
 
-	protected function getConfiguration(): ShopConfigurationInterface
-	{
-		// Fallback in case 8.0 is used // TODO: Remove once we make 9.0 the minimum
-		if (\version_compare(\_PS_VERSION_, '8.1.0', '<')) {
-			return $this->configuration;
-		}
-
-		return parent::getConfiguration();
-	}
-
 	/**
 	 * Creates a Greenfield client for the given host, so tests can intercept the HTTP layer.
 	 */
 	protected function createServerClient(string $host, ?string $apiKey): Client
 	{
-		return new Client($host, (string) $apiKey);
+		$httpClient = $this->container->has(ClientInterface::class) ? $this->container->get(ClientInterface::class) : null;
+
+		return new Client($host, (string) $apiKey, $httpClient instanceof ClientInterface ? $httpClient : null, $this->shopConfiguration());
 	}
 
 	/**
 	 * @return list<array{type: string, message: string}>
-	 *
-	 * @throws Exception
 	 */
 	private function processAuthorizationCallback(Request $request): array
 	{
@@ -316,21 +264,21 @@ class ConfigureController extends FrameworkBundleAdminController
 
 		// Validate incoming request and return any errors we encounter
 		$validateRequest = new ValidateApiKey($request->request);
-		if (0 !== \count($errors = $this->validator->validate($validateRequest))) {
+		if (0 !== \count($errors = $this->validator()->validate($validateRequest))) {
 			$messages = [];
 			/** @var ConstraintViolationInterface $error */
 			foreach ($errors as $error) {
-				$messages[] = ['type' => 'error', 'message' => $error->getMessage()];
+				$messages[] = ['type' => 'error', 'message' => (string) $error->getMessage()];
 			}
 
 			// Make sure to reset the API key
-			$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
+			$this->shopConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
 
 			return $messages;
 		}
 
 		// Build the client
-		$client = new Client($this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_HOST), $validateRequest->getApiKey());
+		$client = new Client((string) $this->shopConfiguration()->get(Constants::CONFIGURATION_BTCPAY_HOST), (string) $validateRequest->getApiKey(), null, $this->shopConfiguration());
 
 		// Get the store ID
 		$storeId = $validateRequest->getStoreID();
@@ -341,7 +289,7 @@ class ConfigureController extends FrameworkBundleAdminController
 				PrestaShopLogger::addLog(\sprintf('[ERROR] BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				// Make sure to reset the API key
-				$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
+				$this->shopConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
 
 				return [['type' => 'error', 'message' => \sprintf('BTCPay server version is too low. Expected %s or higher, received %s.', Constants::MINIMUM_BTCPAY_VERSION, $info->getVersion())]];
 			}
@@ -351,7 +299,7 @@ class ConfigureController extends FrameworkBundleAdminController
 				PrestaShopLogger::addLog(\sprintf("[ERROR] This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name')), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR);
 
 				// Make sure to reset the API key
-				$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
+				$this->shopConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
 
 				return [['type' => 'error', 'message' => \sprintf("This plugin expects a payment method to have been setup for store '%s'.", $client->store()->getStore($storeId)->offsetGet('name'))]];
 			}
@@ -365,8 +313,8 @@ class ConfigureController extends FrameworkBundleAdminController
 		}
 
 		// Store the API key and store ID we received
-		$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, $validateRequest->getApiKey());
-		$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_STORE_ID, $storeId);
+		$this->shopConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, $validateRequest->getApiKey());
+		$this->shopConfiguration()->set(Constants::CONFIGURATION_BTCPAY_STORE_ID, $storeId);
 
 		return [['type' => 'success', 'message' => 'BTCPay Server plugin: Your store and server have been linked!']];
 	}
@@ -374,39 +322,33 @@ class ConfigureController extends FrameworkBundleAdminController
 	/**
 	 * @param list<array{type: string, message: string}> $messages
 	 */
-	private function redirectAfterAuthorization(array $messages, int $expires): RedirectResponse
+	private function redirectAfterAuthorization(array $messages, int $expires, UrlGeneratorInterface $urlGenerator): RedirectResponse
 	{
-		$state = (new AuthorizationToken($this->getConfiguration()))->complete($messages, $expires);
+		$state = $this->container->get(AuthorizationToken::class)->complete($messages, $expires);
 
 		// Raw generator: older PrestaShop versions start a session when building tokenized admin URLs.
-		$response = $this->redirect(
-			$this->get('router')->getGenerator()->generate('admin_btcpay_authorization_complete', ['btcpay_state' => $state]),
-			Response::HTTP_SEE_OTHER
-		);
+		$response = $this->redirect($urlGenerator->generate('admin_btcpay_authorization_complete', ['btcpay_state' => $state]), Response::HTTP_SEE_OTHER);
 		$response->headers->set('Cache-Control', 'no-store');
 		$response->headers->set('Referrer-Policy', 'no-referrer');
 
 		return $response;
 	}
 
-	/**
-	 * @throws Exception
-	 */
 	private function processApiKey(Server $configuration, ConfigurationSnapshot $snapshot): RedirectResponse
 	{
 		// Get configuration container
-		$shopConfiguration = $this->getConfiguration();
+		$shopConfiguration = $this->shopConfiguration();
 
 		// Build the client
-		$client = $this->createServerClient($configuration->getHost(), $configuration->getApiKey());
+		$client = $this->createServerClient((string) $configuration->getHost(), $configuration->getApiKey());
 
 		try {
 			// Validate created API key and return any errors we encounter
 			$validateKey = new ValidateApiKey(new ParameterBag($client->apiKey()->getCurrent()->getData()));
-			if (0 !== \count($errors = $this->validator->validate($validateKey))) {
+			if (0 !== \count($errors = $this->validator()->validate($validateKey))) {
 				/** @var ConstraintViolationInterface $error */
 				foreach ($errors as $error) {
-					$this->addFlash('error', $error->getMessage());
+					$this->addFlash('error', (string) $error->getMessage());
 				}
 
 				// Restore the previous configuration, the update failed
@@ -479,44 +421,38 @@ class ConfigureController extends FrameworkBundleAdminController
 		return $this->redirectToRoute('admin_btcpay_configure');
 	}
 
-	/**
-	 * @throws Exception
-	 */
 	private function processRedirect(Server $configuration, ConfigurationSnapshot $snapshot): RedirectResponse
 	{
 		// Get the store name and build the redirect URL
-		$storeName   = $this->getContext()->shop->name;
-		$state       = (new AuthorizationToken($this->getConfiguration()))->issue();
-		$adminLink   = $this->getAdminLink('btcpay', ['route' => 'admin_btcpay_validate', 'btcpay_state' => $state], true);
-		$redirectUrl = \version_compare(\_PS_VERSION_, '9.0.0', '>=')
-			? $adminLink
-			: \Tools::getShopDomainSsl(true) . $adminLink;
+		$storeName = $this->getShopContext()->getName();
+		$state = $this->container->get(AuthorizationToken::class)->issue();
+		$redirectUrl = $this->generateUrl('admin_btcpay_validate', ['btcpay_state' => $state], UrlGeneratorInterface::ABSOLUTE_URL);
 
 		// Create the authorization URL (with redirect)
-		$authorizeUrl = ApiKey::getAuthorizeUrl($configuration->getHost(), Constants::BTCPAY_PERMISSIONS, $storeName, true, true, $redirectUrl, $storeName);
+		$authorizeUrl = ApiKey::getAuthorizeUrl((string) $configuration->getHost(), Constants::BTCPAY_PERMISSIONS, $storeName, true, true, $redirectUrl, $storeName);
 
 		// If there is no API key, redirect no matter what
-		if (empty($apiKey = $this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_API_KEY))) {
+		if (empty($apiKey = $this->shopConfiguration()->get(Constants::CONFIGURATION_BTCPAY_API_KEY))) {
 			return $this->redirect($authorizeUrl);
 		}
 
 		// If we have an apiKey, check if it's valid by fetching the storeId
 		try {
-			$client = $this->createServerClient($configuration->getHost(), $apiKey);
+			$client = $this->createServerClient((string) $configuration->getHost(), \is_string($apiKey) ? $apiKey : null);
 
 			// If we don't have a store ID, abort right away
-			if (null === ($storeID = $this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))) {
+			if (null === ($storeID = $this->shopConfiguration()->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))) {
 				return $this->redirect($authorizeUrl);
 			}
 
 			// Ensure we have a webhook
-			$client->webhook()->ensureWebhook($storeID);
+			$client->webhook()->ensureWebhook((string) $storeID);
 		} catch (Throwable $throwable) {
 			// A temporary failure (connectivity, gateway errors such as 502/503/504, rate limiting)
 			// is no evidence the stored details are wrong: restore the complete previous
 			// configuration instead of leaving the new host paired with the previous credentials.
 			if (TransientError::isTransient($throwable)) {
-				$snapshot->restore($this->getConfiguration());
+				$snapshot->restore($this->shopConfiguration());
 
 				$this->addFlash('error', \sprintf('BTCPay Server plugin: BTCPay Server is temporarily unavailable (%s). Your previous configuration was restored, please try again.', $throwable->getMessage()));
 				PrestaShopLogger::addLog(\sprintf('[WARNING] Temporary failure while checking the webhook, previous configuration restored: %s', $throwable->getMessage()), PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING);
@@ -526,10 +462,10 @@ class ConfigureController extends FrameworkBundleAdminController
 
 			// The stored API key does not work for this host, so reset the linked details and send
 			// the merchant through authorization for the submitted host.
-			$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
-			$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_STORE_ID, null);
-			$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID, null);
-			$this->getConfiguration()->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET, null);
+			$this->shopConfiguration()->set(Constants::CONFIGURATION_BTCPAY_API_KEY, null);
+			$this->shopConfiguration()->set(Constants::CONFIGURATION_BTCPAY_STORE_ID, null);
+			$this->shopConfiguration()->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID, null);
+			$this->shopConfiguration()->set(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET, null);
 
 			// Redirect away to get proper details
 			return $this->redirect($authorizeUrl);
@@ -551,7 +487,7 @@ class ConfigureController extends FrameworkBundleAdminController
 	 */
 	private function removePreviousWebhook(ConfigurationSnapshot $snapshot): void
 	{
-		$previousStoreId   = $snapshot->getStoreId();
+		$previousStoreId = $snapshot->getStoreId();
 		$previousWebhookId = $snapshot->getWebhookId();
 
 		if (empty($previousStoreId) || empty($previousWebhookId)) {
@@ -559,7 +495,7 @@ class ConfigureController extends FrameworkBundleAdminController
 		}
 
 		// The new configuration still uses the previous webhook, so it must stay
-		if ($previousWebhookId === $this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID)) {
+		if ($previousWebhookId === $this->shopConfiguration()->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID)) {
 			return;
 		}
 
@@ -581,62 +517,75 @@ class ConfigureController extends FrameworkBundleAdminController
 		}
 	}
 
+	/**
+	 * @param array<int, string|array{key: string, parameters: array<string, mixed>, domain: string}> $errors
+	 */
+	private function flashMessages(array $errors): void
+	{
+		foreach ($errors as $error) {
+			$message = \is_array($error) ? $this->trans($error['key'], $error['parameters'], $error['domain']) : $error;
+			$this->addFlash('error', $message);
+		}
+	}
+
 	private function getResponse(Request $request, FormInterface $serverForm, FormInterface $generalForm, string $authorizeUrl, ?Client $client): Response
 	{
-		$storeId            = $this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
-		$webhookId          = $this->getConfiguration()->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID);
+		$configuration = $this->shopConfiguration();
+		$storeId = $configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
+		$webhookId = $configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID);
 		$rateFallbackStatus = null;
-		$storeInfo          = null;
-		$serverInfo         = null;
-		$webhook            = null;
-		$paymentMethods     = [];
+		$storeInfo = null;
+		$serverInfo = null;
+		$webhook = null;
+		$paymentMethods = [];
 
 		if (null !== $client && $client->isValid() && !empty($storeId)) {
 			try {
-				$storeIdStr         = (string) $storeId;
-				$storeInfo          = $client->store()->getStore($storeIdStr);
-				$serverInfo         = $client->server()->getInfo();
-				$webhook            = $client->webhook()->getCurrent($storeIdStr, !empty($webhookId) ? (string) $webhookId : null);
+				$storeIdStr = (string) $storeId;
+				$storeInfo = $client->store()->getStore($storeIdStr);
+				$serverInfo = $client->server()->getInfo();
+				$webhook = $client->webhook()->getCurrent($storeIdStr, !empty($webhookId) ? (string) $webhookId : null);
 				$rateFallbackStatus = RateFallbackStatus::resolve($client->storeRate(), $storeIdStr);
-				$paymentMethods     = $this->formatPaymentMethods($client->payment()->getPaymentMethods($storeIdStr));
+				$paymentMethods = $this->formatPaymentMethods($client->payment()->getPaymentMethods($storeIdStr));
 			} catch (Throwable $throwable) {
 				PrestaShopLogger::addLog(\sprintf('[ERROR] Could not load BTCPay store/server details for configure page: %s', $throwable->getMessage()), PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, $throwable->getCode());
-				$storeInfo  = null;
+				$storeInfo = null;
 				$serverInfo = null;
-				$webhook    = null;
+				$webhook = null;
 			}
 		}
 
 		// latest() may warm the GitHub cache; read statuses after client work so the page shows the current state
-		$latestVersion = $this->versioning->latest();
+		$versioning = $this->versioning();
+		$latestVersion = $versioning->latest();
 
 		return $this->render('@Modules/btcpay/views/templates/admin/configure.html.twig', [
-			'server_form'        => $serverForm->createView(),
-			'general_form'       => $generalForm->createView(),
-			'help_link'          => $this->generateSidebarLink($request->attributes->get('_legacy_controller')),
-			'storeId'            => $storeId,
-			'webhookId'          => $webhookId,
-			'latestVersion'      => $latestVersion,
-			'moduleVersion'      => $this->module->version,
-			'authorizeUrl'       => $authorizeUrl,
-			'client'             => $client,
-			'storeInfo'          => $storeInfo,
-			'serverInfo'         => $serverInfo,
-			'webhook'            => $webhook,
-			'paymentMethods'     => $paymentMethods,
+			'server_form' => $serverForm->createView(),
+			'general_form' => $generalForm->createView(),
+			'help_link' => $this->generateSidebarLink((string) $request->attributes->get('_legacy_controller')),
+			'storeId' => $storeId,
+			'webhookId' => $webhookId,
+			'latestVersion' => $latestVersion,
+			'moduleVersion' => $this->module()->version,
+			'authorizeUrl' => $authorizeUrl,
+			'client' => $client,
+			'storeInfo' => $storeInfo,
+			'serverInfo' => $serverInfo,
+			'webhook' => $webhook,
+			'paymentMethods' => $paymentMethods,
 			'rateFallbackStatus' => $rateFallbackStatus,
-			'cacheStatuses'      => [
+			'cacheStatuses' => [
 				'unreachable' => CurlAdapter::unreachableStatus(),
-				'github'      => $this->versioning->cacheStatus(),
-				'isValid'     => [
-					'stored' => \Cache::isStored(Constants::CACHE_IS_VALID),
-					'value'  => \Cache::isStored(Constants::CACHE_IS_VALID) ? (bool) \Cache::retrieve(Constants::CACHE_IS_VALID) : null,
+				'github' => $versioning->cacheStatus(),
+				'isValid' => [
+					'stored' => Cache::isStored(Constants::CACHE_IS_VALID),
+					'value' => Cache::isStored(Constants::CACHE_IS_VALID) ? (bool) Cache::retrieve(Constants::CACHE_IS_VALID) : null,
 				],
-				'serverInfo'  => [
-					'stored' => \Cache::isStored(Constants::CACHE_SERVER_INFO),
+				'serverInfo' => [
+					'stored' => Cache::isStored(Constants::CACHE_SERVER_INFO),
 				],
 			],
-			'enableSidebar'      => true,
+			'enableSidebar' => true,
 		]);
 	}
 
@@ -650,8 +599,8 @@ class ConfigureController extends FrameworkBundleAdminController
 		$formatted = [];
 
 		foreach ($methods as $paymentMethod) {
-			$data       = \is_object($paymentMethod) && \method_exists($paymentMethod, 'getData') ? $paymentMethod->getData() : (array) $paymentMethod;
-			$methodId   = (string) ($data['paymentMethod'] ?? $data['paymentMethodId'] ?? '');
+			$data = \is_object($paymentMethod) && \method_exists($paymentMethod, 'getData') ? $paymentMethod->getData() : (array) $paymentMethod;
+			$methodId = (string) ($data['paymentMethod'] ?? $data['paymentMethodId'] ?? '');
 			$cryptoCode = (string) ($data['cryptoCode'] ?? '');
 
 			if (false !== \stripos($methodId, 'LNURL')) {
@@ -664,10 +613,40 @@ class ConfigureController extends FrameworkBundleAdminController
 
 			$formatted[] = [
 				'cryptoCode' => $cryptoCode,
-				'type'       => $type,
+				'type' => $type,
 			];
 		}
 
 		return $formatted;
+	}
+
+	private function module(): BTCPay
+	{
+		return $this->container->get(BTCPay::class);
+	}
+
+	private function shopConfiguration(): ShopConfigurationInterface
+	{
+		return $this->container->get(ShopConfigurationInterface::class);
+	}
+
+	private function serverFormHandler(): FormHandlerInterface
+	{
+		return $this->container->get('prestashop.module.btcpay.form_handler.server');
+	}
+
+	private function generalFormHandler(): FormHandlerInterface
+	{
+		return $this->container->get('prestashop.module.btcpay.form_handler.general');
+	}
+
+	private function validator(): ValidatorInterface
+	{
+		return $this->container->get('validator');
+	}
+
+	private function versioning(): Versioning
+	{
+		return $this->container->get(Versioning::class);
 	}
 }

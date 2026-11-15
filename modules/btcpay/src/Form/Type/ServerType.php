@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Form\Type;
 
 use BTCPay\Form\Data\Server;
-use PrestaShop\PrestaShop\Adapter\Configuration;
+use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
 use PrestaShopBundle\Form\Admin\Type\TranslatorAwareType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
@@ -15,11 +17,18 @@ if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-class ServerType extends TranslatorAwareType
+final class ServerType extends TranslatorAwareType
 {
+	private ShopConfigurationInterface $configuration;
+
 	public function __construct(TranslatorInterface $translator, array $locales)
 	{
 		parent::__construct($translator, $locales);
+	}
+
+	public function setShopConfiguration(ShopConfigurationInterface $configuration): void
+	{
+		$this->configuration = $configuration;
 	}
 
 	/**
@@ -28,23 +37,23 @@ class ServerType extends TranslatorAwareType
 	public function buildForm(FormBuilderInterface $builder, array $options): void
 	{
 		/** @var Server $data */
-		$data = $builder->getData() ?? Server::create(new Configuration());
+		$data = $builder->getData() ?? Server::create($this->configuration);
 
 		$builder
 			->add('host', UrlType::class, [
-				'label'    => $this->trans('BTCPay Server URL', 'Modules.Btcpay.Admin'),
-				'help'     => $this->trans('The URL/host to your BTCPay Server instance. Make sure your node is reachable from the internet.', 'Modules.Btcpay.Admin'),
+				'label' => $this->trans('BTCPay Server URL', 'Modules.Btcpay.Admin'),
+				'help' => $this->trans('The URL/host to your BTCPay Server instance. Make sure your node is reachable from the internet.', 'Modules.Btcpay.Admin'),
 				'required' => true,
 			])
 			->add('apiKey', TextType::class, [
-				'label'      => $this->trans('BTCPay Server API key', 'Modules.Btcpay.Admin'),
-				'attr'       => [
-					'pattern'     => '[a-zA-Z0-9]+',
+				'label' => $this->trans('BTCPay Server API key', 'Modules.Btcpay.Admin'),
+				'attr' => [
+					'pattern' => '[a-zA-Z0-9]+',
 					'placeholder' => empty($data->getApiKey())
 						? $this->trans('Keep blank to be redirected for authentication', 'Modules.Btcpay.Admin')
 						: $this->trans('Removing the API key will disconnect your store', 'Modules.Btcpay.Admin'),
 				],
-				'required'   => false,
+				'required' => false,
 				'empty_data' => null,
 			]);
 	}

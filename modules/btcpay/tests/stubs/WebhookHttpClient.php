@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Tests\Stubs;
 
 use BTCPayServer\Http\ClientInterface;
 use BTCPayServer\Http\Response;
 use BTCPayServer\Http\ResponseInterface;
+use LogicException;
+use Throwable;
 
 /**
  * Models remote webhook state while exercising the real Greenfield client.
@@ -15,7 +19,7 @@ class WebhookHttpClient implements ClientInterface
 	public array $requests = [];
 	public int $deleteStatus = 200;
 	public int $createStatus = 200;
-	public ?\Throwable $deleteException = null;
+	public ?Throwable $deleteException = null;
 	public array $createdOverrides = [];
 
 	public function request(string $method, string $url, array $headers = [], string $body = ''): ResponseInterface
@@ -48,6 +52,6 @@ class WebhookHttpClient implements ClientInterface
 			return new Response($this->createStatus, \json_encode($data), []);
 		}
 
-		throw new \LogicException('Unexpected HTTP method: ' . $method);
+		throw new LogicException('Unexpected HTTP method: ' . $method);
 	}
 }

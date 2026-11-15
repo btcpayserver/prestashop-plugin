@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Tests\Invoice;
 
 use BTCPay\Invoice\CheckoutGuard;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class CheckoutGuardTest extends TestCase
@@ -63,19 +66,19 @@ class CheckoutGuardTest extends TestCase
 		$this->assertNull(CheckoutGuard::convertAmount('1', "2\n"), 'A trailing newline in the rate must be rejected before BCMath sees it');
 	}
 
-	/** @dataProvider highPrecisionInputs */
+	#[DataProvider('highPrecisionInputs')]
 	public function testConvertAmountPreservesHighPrecisionInputs(string $value, string $rate, string $expected): void
 	{
 		$this->assertSame($expected, CheckoutGuard::convertAmount($value, $rate));
 	}
 
-	public function highPrecisionInputs(): array
+	public static function highPrecisionInputs(): array
 	{
 		return [
-			'8 decimals'                  => ['0.00000001', '1', '0.00000001'],
-			'16 decimals'                 => ['0.0000000000000001', '1', '0.0000000000000001'],
-			'18 decimals'                 => ['0.000000000000000123', '1', '0.000000000000000123'],
-			'tiny positive with rate'     => ['0.000000005', '1', '0.000000005'],
+			'8 decimals' => ['0.00000001', '1', '0.00000001'],
+			'16 decimals' => ['0.0000000000000001', '1', '0.0000000000000001'],
+			'18 decimals' => ['0.000000000000000123', '1', '0.000000000000000123'],
+			'tiny positive with rate' => ['0.000000005', '1', '0.000000005'],
 			'rate adds fractional digits' => ['4.9999999999999999', '0.001', '0.0049999999999999999'],
 		];
 	}

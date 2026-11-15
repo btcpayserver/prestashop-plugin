@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Server;
 
 use BTCPayServer\Exception\ConnectException;
 use BTCPayServer\Exception\RequestException;
+use Throwable;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
@@ -25,11 +28,11 @@ class TransientError
 	private const TRANSIENT_HTTP_STATUSES = [408, 429];
 
 	/**
-	 * @param \Throwable $exception the exception thrown while talking to BTCPay Server
+	 * @param Throwable $exception the exception thrown while talking to BTCPay Server
 	 *
 	 * @return bool true if the failure is temporary and the configuration should be kept
 	 */
-	public static function isTransient(\Throwable $exception): bool
+	public static function isTransient(Throwable $exception): bool
 	{
 		// Connection-level failures (curl errors, timeouts, unreachable pause) are always temporary
 		if ($exception instanceof ConnectException) {

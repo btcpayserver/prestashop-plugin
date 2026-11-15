@@ -1,6 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Server;
+
+use JsonException;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
@@ -37,7 +41,7 @@ class WebhookRequestGuard
 	{
 		try {
 			return \is_array(\json_decode($body, true, 512, \JSON_THROW_ON_ERROR));
-		} catch (\JsonException) {
+		} catch (JsonException) {
 			return false;
 		}
 	}

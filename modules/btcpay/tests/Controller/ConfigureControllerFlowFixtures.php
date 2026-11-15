@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Tests\Controller;
 
 use BTCPay\Form\Data\Server;
@@ -7,6 +9,7 @@ use BTCPay\Form\ServerFormDataProvider;
 use BTCPayServer\Http\ClientInterface;
 use BTCPayServer\Http\Response as HttpResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Throwable;
 
 // phpcs:disable PSR1.Classes.ClassDeclaration.MultipleClasses, Generic.Files.OneClassPerFile.MultipleFound -- test fixtures for the controller flow tests
 
@@ -50,7 +53,7 @@ class FlowFormHandler implements \PrestaShop\PrestaShop\Core\Form\FormHandlerInt
 	 */
 	public array $saveErrors = [];
 
-	public ?\Throwable $saveException = null;
+	public ?Throwable $saveException = null;
 
 	public function __construct(private FlowForm $form)
 	{
@@ -63,7 +66,7 @@ class FlowFormHandler implements \PrestaShop\PrestaShop\Core\Form\FormHandlerInt
 
 	public function save(array $data): array
 	{
-		(new ServerFormDataProvider())->setData($data);
+		(new ServerFormDataProvider(new \PrestaShop\PrestaShop\Adapter\Configuration()))->setData($data);
 
 		if (null !== $this->saveException) {
 			throw $this->saveException;
@@ -121,7 +124,7 @@ class FlowGreenfieldHttp implements ClientInterface
 		foreach ($this->routes as $route) {
 			if ($route['method'] === $method && \str_contains($url, $route['contains'])) {
 				$payload = $route['body'];
-				$content  = \is_callable($payload) ? $payload($body) : $payload;
+				$content = \is_callable($payload) ? $payload($body) : $payload;
 
 				return new HttpResponse($route['status'], $content, []);
 			}

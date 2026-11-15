@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Server;
 
 use BTCPay\Constants;
@@ -43,11 +45,11 @@ class ConfigurationSnapshot
 
 	public static function capture(ShopConfigurationInterface $configuration): self
 	{
-		$snapshot              = new self();
-		$snapshot->host        = $configuration->get(Constants::CONFIGURATION_BTCPAY_HOST);
-		$snapshot->apiKey      = $configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY);
-		$snapshot->storeId     = $configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
-		$snapshot->webhookId   = $configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID);
+		$snapshot = new self();
+		$snapshot->host = $configuration->get(Constants::CONFIGURATION_BTCPAY_HOST);
+		$snapshot->apiKey = $configuration->get(Constants::CONFIGURATION_BTCPAY_API_KEY);
+		$snapshot->storeId = $configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
+		$snapshot->webhookId = $configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID);
 		$snapshot->webhookSecret = $configuration->get(Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET);
 
 		return $snapshot;

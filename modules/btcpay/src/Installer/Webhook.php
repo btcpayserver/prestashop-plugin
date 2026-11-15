@@ -1,28 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Installer;
 
 use BTCPay\Server\Client;
-use PrestaShop\PrestaShop\Adapter\Configuration;
+use Exception;
+use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-class Webhook
+final class Webhook
 {
-	/**
-	 * @var Configuration
-	 */
-	private $configuration;
-
-	public function __construct()
+	public function __construct(private readonly ShopConfigurationInterface $configuration)
 	{
-		$this->configuration = new Configuration();
 	}
 
 	/**
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function uninstall(): array
 	{
@@ -35,12 +32,12 @@ class Webhook
 		}
 
 		// Remove the current webhook to prevent issues in the future.
-		if (false === ($client->webhook()->removeCurrent())) {
+		if (false === $client->webhook()->removeCurrent()) {
 			return [
 				[
-					'key'        => 'Could not remove webhook from the server. Please double check it is actually gone.',
+					'key' => 'Could not remove webhook from the server. Please double check it is actually gone.',
 					'parameters' => [],
-					'domain'     => 'Admin.Modules.Notification',
+					'domain' => 'Admin.Modules.Notification',
 				],
 			];
 		}

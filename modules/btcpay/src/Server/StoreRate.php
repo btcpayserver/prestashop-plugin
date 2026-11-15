@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Server;
 
 use BTCPayServer\Http\ClientInterface;
 use BTCPayServer\Result\StoreRateSettings;
+use JsonException;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
@@ -11,7 +14,7 @@ if (!\defined('_PS_VERSION_')) {
 
 class StoreRate extends \BTCPayServer\Client\StoreRate
 {
-	public const SOURCE_PRIMARY  = 'primary';
+	public const SOURCE_PRIMARY = 'primary';
 	public const SOURCE_FALLBACK = 'fallback';
 
 	public function __construct(string $baseUrl, string $apiKey, ?ClientInterface $client = null)
@@ -20,13 +23,13 @@ class StoreRate extends \BTCPayServer\Client\StoreRate
 	}
 
 	/**
-	 * @throws \JsonException
+	 * @throws JsonException
 	 */
 	public function getSettingsBySource(string $storeId, string $rateSource): StoreRateSettings
 	{
-		$url      = $this->getApiUrl() . 'stores/' . \urlencode($storeId) . '/rates/configuration/' . \urlencode($rateSource);
-		$headers  = $this->getRequestHeaders();
-		$method   = 'GET';
+		$url = $this->getApiUrl() . 'stores/' . \urlencode($storeId) . '/rates/configuration/' . \urlencode($rateSource);
+		$headers = $this->getRequestHeaders();
+		$method = 'GET';
 		$response = $this->getHttpClient()->request($method, $url, $headers);
 
 		if (200 === $response->getStatus()) {

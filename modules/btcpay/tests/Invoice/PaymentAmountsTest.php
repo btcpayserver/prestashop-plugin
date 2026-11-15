@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Tests\Invoice;
 
 use BTCPay\Invoice\CheckoutGuard;
@@ -72,7 +74,7 @@ class PaymentAmountsTest extends TestCase
 		// Regression (full processor pipeline): a 16-decimal payment value times a
 		// rate that adds fractional digits. A fixed conversion scale truncated the
 		// first product to 0.004999999999999999 and dropped the second as zero.
-		$first  = CheckoutGuard::convertAmount('4.9999999999999999', '0.001');
+		$first = CheckoutGuard::convertAmount('4.9999999999999999', '0.001');
 		$second = CheckoutGuard::convertAmount('0.0000000000000001', '0.001');
 
 		$this->assertSame('0.0049999999999999999', $first);

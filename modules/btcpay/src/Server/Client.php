@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Server;
 
 use BTCPay\Constants;
@@ -12,70 +14,54 @@ use BTCPayServer\Client\Server as ServerClient;
 use BTCPayServer\Client\Store as StoreClient;
 use BTCPayServer\Client\StorePaymentMethod;
 use BTCPayServer\Http\ClientInterface;
-use PrestaShop\PrestaShop\Adapter\Configuration;
+use Cache;
+use Cart;
+use Currency;
+use InvalidArgumentException;
 use PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface;
+use Throwable;
 
 if (!\defined('_PS_VERSION_')) {
 	exit;
 }
 
-class Client extends AbstractClient
+final class Client extends AbstractClient
 {
-	/**
-	 * @var InvoiceClient
-	 */
-	private $invoice;
+	private InvoiceClient $invoice;
 
-	/**
-	 * @var ApiKeyClient
-	 */
-	private $apiKey;
+	private ApiKeyClient $apiKey;
 
-	/**
-	 * @var ServerClient
-	 */
-	private $server;
+	private ServerClient $server;
 
-	/**
-	 * @var StoreClient
-	 */
-	private $store;
+	private StoreClient $store;
 
-	/**
-	 * @var StorePaymentMethod
-	 */
-	private $payment;
+	private StorePaymentMethod $payment;
 
-	/**
-	 * @var Webhook
-	 */
-	private $webhook;
+	private Webhook $webhook;
 
-	/**
-	 * @var StoreRate
-	 */
-	private $storeRate;
+	private StoreRate $storeRate;
 
-	/**
-	 * @var Configuration
-	 */
-	private $configuration;
+	private readonly ShopConfigurationInterface $configuration;
 
-	public function __construct(string $baseUrl, string $apiKey, ?ClientInterface $httpClient = null)
+	public function __construct(string $baseUrl, string $apiKey, ?ClientInterface $httpClient = null, ?ShopConfigurationInterface $configuration = null)
 	{
+		if (!$configuration instanceof ShopConfigurationInterface) {
+			throw new InvalidArgumentException('Shop configuration is required.');
+		}
+
 		$httpClient ??= new CurlAdapter();
 
 		parent::__construct($baseUrl, $apiKey, $httpClient);
 
-		$this->apiKey    = new ApiKeyClient($baseUrl, $apiKey, $httpClient);
-		$this->invoice   = new InvoiceClient($baseUrl, $apiKey, $httpClient);
-		$this->server    = new ServerClient($baseUrl, $apiKey, $httpClient);
-		$this->store     = new StoreClient($baseUrl, $apiKey, $httpClient);
-		$this->payment   = new StorePaymentMethod($baseUrl, $apiKey, $httpClient);
-		$this->webhook   = new Webhook($baseUrl, $apiKey, $httpClient);
+		$this->apiKey = new ApiKeyClient($baseUrl, $apiKey, $httpClient);
+		$this->invoice = new InvoiceClient($baseUrl, $apiKey, $httpClient);
+		$this->server = new ServerClient($baseUrl, $apiKey, $httpClient);
+		$this->store = new StoreClient($baseUrl, $apiKey, $httpClient);
+		$this->payment = new StorePaymentMethod($baseUrl, $apiKey, $httpClient);
+		$this->webhook = new Webhook($baseUrl, $apiKey, $httpClient, $configuration);
 		$this->storeRate = new StoreRate($baseUrl, $apiKey, $httpClient);
 
-		$this->configuration = new Configuration();
+		$this->configuration = $configuration;
 	}
 
 	public static function createFromConfiguration(ShopConfigurationInterface $configuration): ?self
@@ -88,7 +74,7 @@ class Client extends AbstractClient
 			return null;
 		}
 
-		return new self($host, $apiKey);
+		return new self((string) $host, (string) $apiKey, null, $configuration);
 	}
 
 	public function getBaseUrl(): string
@@ -133,19 +119,19 @@ class Client extends AbstractClient
 
 	public function isValid(): bool
 	{
-		if (\Cache::isStored(Constants::CACHE_IS_VALID)) {
-			return (bool) \Cache::retrieve(Constants::CACHE_IS_VALID);
+		if (Cache::isStored(Constants::CACHE_IS_VALID)) {
+			return (bool) Cache::retrieve(Constants::CACHE_IS_VALID);
 		}
 
 		try {
 			$this->serverInfo();
 			$this->store()->getStore($this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID))->getName();
 			$valid = true;
-		} catch (\Throwable) {
+		} catch (Throwable) {
 			$valid = false;
 		}
 
-		\Cache::store(Constants::CACHE_IS_VALID, $valid);
+		Cache::store(Constants::CACHE_IS_VALID, $valid);
 
 		return $valid;
 	}
@@ -155,25 +141,21 @@ class Client extends AbstractClient
 	 */
 	public function serverInfo(): \BTCPayServer\Result\ServerInfo
 	{
-		if (!\Cache::isStored(Constants::CACHE_SERVER_INFO)) {
-			\Cache::store(Constants::CACHE_SERVER_INFO, $this->server()->getInfo());
+		if (!Cache::isStored(Constants::CACHE_SERVER_INFO)) {
+			Cache::store(Constants::CACHE_SERVER_INFO, $this->server()->getInfo());
 		}
 
-		return \Cache::retrieve(Constants::CACHE_SERVER_INFO);
+		return Cache::retrieve(Constants::CACHE_SERVER_INFO);
 	}
 
-	/**
-	 * @throws \PrestaShopDatabaseException
-	 * @throws \JsonException
-	 */
-	public function getBTCPayRedirect(\Cart $cart): ?string
+	public function getBTCPayRedirect(Cart $cart, BitcoinPaymentRepository $payments): ?string
 	{
 		// Check if we have a cart ID we can use
 		if (empty($cart->id)) {
 			return null;
 		}
 
-		if (null === ($bitcoinPayment = BitcoinPaymentRepository::getOneByCartID($cart->id))) {
+		if (null === ($bitcoinPayment = $payments->findOneByCartId((int) $cart->id))) {
 			return null;
 		}
 
@@ -185,14 +167,14 @@ class Client extends AbstractClient
 		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
 
 		// Check the invoice status
-		$invoice = $this->invoice->getInvoice($storeID, $bitcoinPayment->getInvoiceId());
+		$invoice = $this->invoice->getInvoice((string) $storeID, (string) $bitcoinPayment->getInvoiceId());
 		if ($invoice->isInvalid() || $invoice->isExpired()) {
 			return null;
 		}
 
 		// Recreate the invoice when the cart total no longer matches the snapshot
-		$orderTotal   = (string) $cart->getOrderTotal(true);
-		$currency     = \Currency::getCurrencyInstance($cart->id_currency);
+		$orderTotal = (string) $cart->getOrderTotal(true);
+		$currency = Currency::getCurrencyInstance($cart->id_currency);
 		$storedAmount = $bitcoinPayment->getAmount();
 		if (null !== $storedAmount && '' !== $storedAmount && false === CheckoutGuard::amountsMatch($storedAmount, $orderTotal)) {
 			return null;

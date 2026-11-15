@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PrestaShop\PrestaShop\Core;
 
 /**
@@ -10,7 +12,7 @@ interface ConfigurationInterface
 {
 	/**
 	 * @param string $key
-	 * @param mixed  $default
+	 * @param mixed $default
 	 *
 	 * @return mixed
 	 */
@@ -18,7 +20,7 @@ interface ConfigurationInterface
 
 	/**
 	 * @param string $key
-	 * @param mixed  $value
+	 * @param mixed $value
 	 */
 	public function set($key, $value);
 }

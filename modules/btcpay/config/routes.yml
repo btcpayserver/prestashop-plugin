@@ -4,7 +4,6 @@ admin_btcpay_configure:
   defaults:
     _controller: 'BTCPay\Controller\Admin\Improve\Payment\ConfigureController::viewAction'
     _legacy_controller: AdminConfigureBTCPay
-    _legacy_link: AdminConfigureBTCPay
     _disable_module_prefix: true
 
 admin_btcpay_configure_server_process:

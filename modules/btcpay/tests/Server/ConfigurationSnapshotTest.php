@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Tests\Server;
 
 use BTCPay\Constants;
@@ -12,15 +14,15 @@ class ConfigurationSnapshotTest extends TestCase
 	public function testRestoresCompletePreviousConfigurationAfterFailedUpdate(): void
 	{
 		Configuration::$values = [
-			Constants::CONFIGURATION_BTCPAY_HOST           => 'https://old.example.com',
-			Constants::CONFIGURATION_BTCPAY_API_KEY        => 'old-api-key',
-			Constants::CONFIGURATION_BTCPAY_STORE_ID       => 'old-store-id',
-			Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID     => 'old-webhook-id',
+			Constants::CONFIGURATION_BTCPAY_HOST => 'https://old.example.com',
+			Constants::CONFIGURATION_BTCPAY_API_KEY => 'old-api-key',
+			Constants::CONFIGURATION_BTCPAY_STORE_ID => 'old-store-id',
+			Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID => 'old-webhook-id',
 			Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET => 'old-webhook-secret',
 		];
 
 		$configuration = new Configuration();
-		$snapshot      = ConfigurationSnapshot::capture($configuration);
+		$snapshot = ConfigurationSnapshot::capture($configuration);
 
 		// Simulate a failed settings update that applied every submitted value before failing
 		$configuration->set(Constants::CONFIGURATION_BTCPAY_HOST, 'https://new.example.com');
@@ -62,7 +64,7 @@ class ConfigurationSnapshotTest extends TestCase
 	public function testCaptureDoesNotModifyTheConfiguration(): void
 	{
 		Configuration::$values = [
-			Constants::CONFIGURATION_BTCPAY_HOST    => 'https://old.example.com',
+			Constants::CONFIGURATION_BTCPAY_HOST => 'https://old.example.com',
 			Constants::CONFIGURATION_BTCPAY_API_KEY => 'old-api-key',
 		];
 
@@ -71,7 +73,7 @@ class ConfigurationSnapshotTest extends TestCase
 		ConfigurationSnapshot::capture($configuration);
 
 		$this->assertSame([
-			Constants::CONFIGURATION_BTCPAY_HOST    => 'https://old.example.com',
+			Constants::CONFIGURATION_BTCPAY_HOST => 'https://old.example.com',
 			Constants::CONFIGURATION_BTCPAY_API_KEY => 'old-api-key',
 		], Configuration::$values);
 	}
@@ -79,12 +81,12 @@ class ConfigurationSnapshotTest extends TestCase
 	public function testRestoreCanBeAppliedRepeatedlyAndIsIdempotent(): void
 	{
 		Configuration::$values = [
-			Constants::CONFIGURATION_BTCPAY_HOST    => 'https://old.example.com',
+			Constants::CONFIGURATION_BTCPAY_HOST => 'https://old.example.com',
 			Constants::CONFIGURATION_BTCPAY_API_KEY => 'old-api-key',
 		];
 
 		$configuration = new Configuration();
-		$snapshot      = ConfigurationSnapshot::capture($configuration);
+		$snapshot = ConfigurationSnapshot::capture($configuration);
 
 		$configuration->set(Constants::CONFIGURATION_BTCPAY_HOST, 'https://new.example.com');
 

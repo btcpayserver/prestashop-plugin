@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Invoice;
 
 if (!\defined('_PS_VERSION_')) {
@@ -23,7 +25,7 @@ class PaymentAmounts
 		array $newRawAmounts,
 		int $precision,
 		array $allRawAmounts,
-		string $alreadyBooked
+		string $alreadyBooked,
 	): array {
 		if ([] === $newRawAmounts) {
 			return [];
@@ -35,15 +37,15 @@ class PaymentAmounts
 		foreach ($allRawAmounts as $raw) {
 			$workScale = \max($workScale, CheckoutGuard::fractionalDigits((string) $raw));
 		}
-		$sum       = '0';
+		$sum = '0';
 		foreach ($allRawAmounts as $raw) {
 			$sum = \bcadd($sum, (string) $raw, $workScale);
 		}
 
 		$target = \bcsub(self::roundDecimal($sum, $precision), $alreadyBooked, $precision);
-		$last   = \array_key_last($newRawAmounts);
+		$last = \array_key_last($newRawAmounts);
 		$result = [];
-		$used   = '0';
+		$used = '0';
 
 		foreach ($newRawAmounts as $index => $raw) {
 			if ($index === $last) {
@@ -52,9 +54,9 @@ class PaymentAmounts
 				break;
 			}
 
-			$part     = self::roundDecimal((string) $raw, $precision);
+			$part = self::roundDecimal((string) $raw, $precision);
 			$result[] = $part;
-			$used     = \bcadd($used, $part, $precision);
+			$used = \bcadd($used, $part, $precision);
 		}
 
 		return $result;
@@ -65,7 +67,7 @@ class PaymentAmounts
 		// Multiply exactly (no truncation), then apply the half-up correction before
 		// the final truncate
 		$mulScale = \max(CheckoutGuard::fractionalDigits($amount), $precision);
-		$factor   = \bcpow('10', (string) $precision, 0);
+		$factor = \bcpow('10', (string) $precision, 0);
 
 		return \bcdiv(\bcadd(\bcmul($amount, $factor, $mulScale), '0.5', 0), $factor, $precision);
 	}

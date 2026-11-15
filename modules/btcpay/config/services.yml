@@ -5,34 +5,90 @@ services:
   # Module
   prestashop.module.btcpay:
     class: BTCPay
+    public: true
+
+  BTCPay:
+    alias: prestashop.module.btcpay
+    public: true
 
   # Repositories
-  prestashop.module.btcpay.repository.install:
-    class: BTCPay\Repository\TableRepository
+  BTCPay\Repository\TableRepository:
     arguments:
       - '@doctrine.dbal.default_connection'
-      - '%database_prefix%'
+
+  BTCPay\Repository\BitcoinPaymentRepository:
+    arguments:
+      - '@doctrine.orm.entity_manager'
+
+  BTCPay\Repository\WebhookDeliveryRepository:
+    arguments:
+      - '@doctrine.dbal.default_connection'
+
+  BTCPay\Repository\OrderPaymentRepository:
+    arguments:
+      - '@doctrine.dbal.default_connection'
+
+  BTCPay\Repository\OrderInvoicePaymentLinker:
+    arguments:
+      - '@doctrine.dbal.default_connection'
+
+  BTCPay\Server\AuthorizationToken:
+    arguments:
+      - '@PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface'
+      - '@doctrine.dbal.default_connection'
+
+  BTCPay\Github\Versioning:
+    arguments: []
+
+  BTCPay\Server\Factory:
+    arguments:
+      - '@prestashop.module.btcpay'
+      - '@PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface'
+      - '@BTCPay\Repository\BitcoinPaymentRepository'
+
+  BTCPay\Invoice\PaymentReturn:
+    arguments:
+      - '@prestashop.module.btcpay'
+      - '@PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface'
+      - '@BTCPay\Repository\BitcoinPaymentRepository'
+      - '@doctrine.dbal.default_connection'
+      - '@BTCPay\Repository\OrderPaymentRepository'
+      - '@BTCPay\Repository\OrderInvoicePaymentLinker'
+
+  BTCPay\Server\WebhookReceiver:
+    arguments:
+      - '@prestashop.module.btcpay'
+      - '@PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface'
+      - '@BTCPay\Repository\BitcoinPaymentRepository'
+      - '@BTCPay\Repository\WebhookDeliveryRepository'
+      - '@doctrine.dbal.default_connection'
+      - '@BTCPay\Repository\OrderPaymentRepository'
+      - '@BTCPay\Repository\OrderInvoicePaymentLinker'
 
   # Controllers
   BTCPay\Controller\Admin\Improve\Payment\ConfigureController:
-    class: BTCPay\Controller\Admin\Improve\Payment\ConfigureController
-    arguments:
-      - '@prestashop.module.btcpay'
-      - '@validator'
-      - '@prestashop.module.btcpay.form_handler.server'
-      - '@prestashop.module.btcpay.form_handler.general'
+    autowire: true
+    autoconfigure: true
+    public: true
+    tags: ['controller.service_arguments']
 
   # Form data provider
   prestashop.module.btcpay.form.server.provider:
     class: BTCPay\Form\ServerFormDataProvider
+    arguments:
+      - '@PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface'
   prestashop.module.btcpay.form.general.provider:
     class: BTCPay\Form\GeneralFormDataProvider
+    arguments:
+      - '@PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface'
 
   # Form type
   prestashop.module.btcpay.form.type.server:
     class: BTCPay\Form\Type\ServerType
     parent: 'form.type.translatable.aware'
     public: true
+    calls:
+      - [setShopConfiguration, ['@PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface']]
     tags: [{ name: form.type }]
 
   prestashop.module.btcpay.form.type.general:
@@ -52,7 +108,6 @@ services:
       $hookName: 'ServerType'
       $formName: 'server-form'
 
-  # Form handler
   prestashop.module.btcpay.form_handler.general:
     class: PrestaShop\PrestaShop\Core\Form\Handler
     arguments:

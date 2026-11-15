@@ -1,14 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BTCPay\Tests\Controller;
 
+use BTCPay;
 use BTCPay\Constants;
 use BTCPay\Controller\Admin\Improve\Payment\ConfigureController;
 use BTCPay\Form\Data\Server;
-use BTCPay\Server\Client;
 use BTCPayServer\Http\ClientInterface;
 use PHPUnit\Framework\TestCase;
 use PrestaShop\PrestaShop\Adapter\Configuration;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -20,18 +23,18 @@ require_once __DIR__ . '/ConfigureControllerFlowFixtures.php';
  */
 class ConfigureControllerFlowTest extends TestCase
 {
-	private const OLD_HOST    = 'https://old-btcpay.example';
-	private const NEW_HOST    = 'https://new-btcpay.example';
-	private const OLD_STORE   = 'store-old';
-	private const NEW_STORE   = 'store-new';
+	private const OLD_HOST = 'https://old-btcpay.example';
+	private const NEW_HOST = 'https://new-btcpay.example';
+	private const OLD_STORE = 'store-old';
+	private const NEW_STORE = 'store-new';
 	private const OLD_WEBHOOK = 'webhook-old';
 	private const NEW_WEBHOOK = 'webhook-new';
 
 	private const OLD_CONFIGURATION = [
-		Constants::CONFIGURATION_BTCPAY_HOST           => self::OLD_HOST,
-		Constants::CONFIGURATION_BTCPAY_API_KEY        => 'old-key',
-		Constants::CONFIGURATION_BTCPAY_STORE_ID       => self::OLD_STORE,
-		Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID     => self::OLD_WEBHOOK,
+		Constants::CONFIGURATION_BTCPAY_HOST => self::OLD_HOST,
+		Constants::CONFIGURATION_BTCPAY_API_KEY => 'old-key',
+		Constants::CONFIGURATION_BTCPAY_STORE_ID => self::OLD_STORE,
+		Constants::CONFIGURATION_BTCPAY_WEBHOOK_ID => self::OLD_WEBHOOK,
 		Constants::CONFIGURATION_BTCPAY_WEBHOOK_SECRET => 'old-secret',
 	];
 
@@ -80,7 +83,7 @@ class ConfigureControllerFlowTest extends TestCase
 		$this->assertContains('DELETE', $methods, 'The previous webhook must have been removed');
 
 		// The previous webhook is only removed after the replacement was created
-		$postIndex  = (int) \array_search('POST', $methods, true);
+		$postIndex = (int) \array_search('POST', $methods, true);
 		$deleteIndex = (int) \array_search('DELETE', $methods, true);
 		$this->assertGreaterThan($postIndex, $deleteIndex);
 
@@ -135,7 +138,7 @@ class ConfigureControllerFlowTest extends TestCase
 	public function testFormSaveExceptionRestoresPreviousConfiguration(): void
 	{
 		$handler = $this->createHandler(new Server(self::NEW_HOST, 'new-key'));
-		$handler->saveException = new \RuntimeException('Storage backend failed');
+		$handler->saveException = new RuntimeException('Storage backend failed');
 
 		$this->runSettingsUpdate(null, $handler);
 
@@ -150,26 +153,45 @@ class ConfigureControllerFlowTest extends TestCase
 	protected function setUp(): void
 	{
 		Configuration::$values = self::OLD_CONFIGURATION;
-		$this->http            = new FlowGreenfieldHttp();
+		$this->http = new FlowGreenfieldHttp();
 	}
 
 	private function runSettingsUpdate(?Server $serverData, ?FlowFormHandler $serverHandler = null): RedirectResponse
 	{
 		$serverHandler ??= $this->createHandler($serverData ?? new Server(self::NEW_HOST, 'new-key'));
-
-		$module       = new \BTCPay();
-		$controller = new class($module, new FlowValidator(), $serverHandler, new FlowFormHandler(new FlowForm(new Server(self::NEW_HOST, null)))) extends ConfigureController {
-			public ?ClientInterface $httpClient = null;
-
-			protected function createServerClient(string $host, ?string $apiKey): Client
+		$configuration = new Configuration();
+		$module = new BTCPay();
+		$connection = $this->createStub(\Doctrine\DBAL\Connection::class);
+		$tokens = new BTCPay\Server\AuthorizationToken($configuration, $connection);
+		$services = [
+			BTCPay::class => $module,
+			'validator' => new FlowValidator(),
+			'prestashop.module.btcpay.form_handler.server' => $serverHandler,
+			'prestashop.module.btcpay.form_handler.general' => new FlowFormHandler(new FlowForm(new Server(self::NEW_HOST, null))),
+			\PrestaShop\PrestaShop\Core\Domain\Configuration\ShopConfigurationInterface::class => $configuration,
+			BTCPay\Github\Versioning::class => new BTCPay\Github\Versioning(),
+			BTCPay\Server\AuthorizationToken::class => $tokens,
+			ClientInterface::class => $this->http,
+		];
+		$container = new class($services) {
+			/** @param array<string, mixed> $services */
+			public function __construct(private array $services)
 			{
-				return new Client($host, (string) $apiKey, $this->httpClient);
+			}
+
+			public function has(string $id): bool
+			{
+				return \array_key_exists($id, $this->services);
+			}
+
+			public function get(string $id): mixed
+			{
+				return $this->services[$id];
 			}
 		};
 
-		$controller->testConfiguration = new Configuration();
-		$controller->httpClient        = $this->http;
-
+		$controller = new ConfigureController();
+		$controller->setContainer($container);
 		$this->controller = $controller;
 
 		/** @var RedirectResponse $response */
