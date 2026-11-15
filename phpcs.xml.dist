@@ -9,7 +9,9 @@
   <!-- Ignore warnings, show progress of the run and show sniff names -->
   <arg value="nps"/>
 
-  <description>The coding standard for the PrestaShop BTCPay Server module</description>
+  <description>The coding standard for the PrestaShop BTCPay Server module. PSR-12 and PHP 8.4, matching PrestaShop 9.2's Symfony PHP CS Fixer rules, except indentation is tabs.</description>
+
+  <config name="php_version" value="80400"/>
 
   <!-- Check the following folders -->
   <file>modules/btcpay/</file>
@@ -17,12 +19,13 @@
   <!-- Ignore the vendor folder -->
   <exclude-pattern>*/vendor/*</exclude-pattern>
 
-  <!-- Import PSR-2 coding standard (base) -->
-  <rule ref="PSR2">
+  <rule ref="PSR12">
     <!-- We currently don't enforce line length limits -->
     <exclude name="Generic.Files.LineLength"/>
-    <!-- Disable no tabs allowed -->
+    <!-- Tabs are the one difference from PrestaShop's space indent -->
     <exclude name="Generic.WhiteSpace.DisallowTabIndent"/>
+    <!-- Symfony CS Fixer writes "new class(...)", not "new class (...)" -->
+    <exclude name="PSR12.Classes.AnonClassDeclaration.SpaceAfterKeyword"/>
     <!-- Namespaces can be missing, because this is Prestashop -->
     <exclude name="PSR1.Classes.ClassDeclaration.MissingNamespace"/>
   </rule>
@@ -54,9 +57,8 @@
   <rule ref="Generic.Files.OneClassPerFile"/>
   <rule ref="Generic.Files.OneInterfacePerFile"/>
 
-  <!-- Force whitespace after a type cast -->
+  <!-- Force whitespace after a type cast: (int) $value -->
   <rule ref="Generic.Formatting.SpaceAfterCast"/>
-  <rule ref="Generic.Functions.CallTimePassByReference"/>
   <rule ref="Generic.Metrics.NestingLevel"/>
 
   <!-- Forbid PHP 4 constructors -->
@@ -83,7 +85,7 @@
     </properties>
   </rule>
 
-  <!-- Force tabs to be used -->
+  <!-- Tabs are the one difference from PrestaShop's 4-space indent -->
   <rule ref="Generic.WhiteSpace.DisallowSpaceIndent"/>
   <rule ref="Generic.WhiteSpace.ScopeIndent">
     <properties>
@@ -107,10 +109,32 @@
 
   <!-- Require comma after last element in multi-line array -->
   <rule ref="SlevomatCodingStandard.Arrays.TrailingArrayComma"/>
-  <rule ref="SlevomatCodingStandard.Arrays.TrailingArrayComma"/>
   <rule ref="SlevomatCodingStandard.Classes.ClassConstantVisibility"/>
   <rule ref="SlevomatCodingStandard.Classes.ClassMemberSpacing"/>
-  <rule ref="SlevomatCodingStandard.Classes.ClassStructure"/>
+  <!-- Visibility groups stay ordered. Static and instance methods may mix, matching PrestaShop's PHP CS Fixer. -->
+  <rule ref="SlevomatCodingStandard.Classes.ClassStructure">
+    <properties>
+      <property name="groups" type="array">
+        <element value="uses"/>
+        <element value="enum cases"/>
+        <element value="public constants"/>
+        <element value="protected constants"/>
+        <element value="private constants"/>
+        <element value="public properties"/>
+        <element value="public static properties"/>
+        <element value="protected properties"/>
+        <element value="protected static properties"/>
+        <element value="private properties"/>
+        <element value="private static properties"/>
+        <element value="constructor"/>
+        <element value="static constructors"/>
+        <element value="destructor"/>
+        <element value="magic methods"/>
+        <!-- PrestaShop's fixer does not sort methods, so visibility groups may mix -->
+        <element value="all public methods, all protected methods, all private methods"/>
+      </property>
+    </properties>
+  </rule>
   <rule ref="SlevomatCodingStandard.Classes.ConstantSpacing"/>
   <rule ref="SlevomatCodingStandard.Classes.DisallowLateStaticBindingForConstants"/>
   <rule ref="SlevomatCodingStandard.Classes.DisallowMultiConstantDefinition"/>
@@ -149,14 +173,28 @@
   <!-- Forbid useless annotations - Git and LICENCE file provide more accurate information -->
   <rule ref="SlevomatCodingStandard.Commenting.ForbiddenAnnotations">
     <properties>
-      <property name="forbiddenAnnotations" type="array" value="@api,@author,@category,@created,@license,@package,@since,@subpackage,@version"/>
+      <property name="forbiddenAnnotations" type="array">
+        <element value="@api"/>
+        <element value="@author"/>
+        <element value="@category"/>
+        <element value="@created"/>
+        <element value="@license"/>
+        <element value="@package"/>
+        <element value="@since"/>
+        <element value="@subpackage"/>
+        <element value="@version"/>
+      </property>
     </properties>
   </rule>
 
   <!-- Forbid useless comments -->
   <rule ref="SlevomatCodingStandard.Commenting.ForbiddenComments">
     <properties>
-      <property name="forbiddenCommentPatterns" type="array" value="~^Created by \S+\.\z~i,~^\S+ [gs]etter\.\z~i,~(\S+\s+)?constructor\.~"/>
+      <property name="forbiddenCommentPatterns" type="array">
+        <element value="~^Created by \S+\.\z~i"/>
+        <element value="~^\S+ [gs]etter\.\z~i"/>
+        <element value="~(\S+\s+)?constructor\.~"/>
+      </property>
     </properties>
   </rule>
 
@@ -227,8 +265,25 @@
   <rule ref="SlevomatCodingStandard.PHP.UselessSemicolon"/>
 
   <!-- Require use of short versions of scalar types (i.e. int instead of integer) -->
+  <rule ref="SlevomatCodingStandard.TypeHints.DeclareStrictTypes">
+    <properties>
+      <property name="spacesCountAroundEqualsSign" value="0"/>
+    </properties>
+  </rule>
   <rule ref="SlevomatCodingStandard.TypeHints.LongTypeHints"/>
+  <rule ref="SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue"/>
   <rule ref="SlevomatCodingStandard.TypeHints.NullTypeHintOnLastPosition"/>
+  <rule ref="SlevomatCodingStandard.TypeHints.UnionTypeHintFormat">
+    <properties>
+      <property name="withSpaces" value="no"/>
+      <property name="shortNullable" value="yes"/>
+      <property name="nullPosition" value="last"/>
+    </properties>
+  </rule>
+
+  <rule ref="SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing"/>
+  <rule ref="SlevomatCodingStandard.Attributes.DisallowAttributesJoining"/>
+  <rule ref="SlevomatCodingStandard.Attributes.DisallowMultipleAttributesPerLine"/>
 
   <!-- Require space around colon in return types -->
   <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHintSpacing"/>
@@ -244,6 +299,9 @@
 
   <!-- Force array declaration structure -->
   <rule ref="Squiz.Arrays.ArrayDeclaration">
+    <!-- PrestaShop does not align => and allows the first key on the opening line -->
+    <exclude name="Squiz.Arrays.ArrayDeclaration.DoubleArrowNotAligned"/>
+    <exclude name="Squiz.Arrays.ArrayDeclaration.IndexNoNewline"/>
     <!-- Allow the final ] to be on the same line in a multi-line array -->
     <exclude name="Squiz.Arrays.ArrayDeclaration.CloseBraceNewLine"/>
     <!-- Disable alignment of braces -->
@@ -265,9 +323,6 @@
     <!-- Disable alignment of values with opening brace -->
     <exclude name="Squiz.Arrays.ArrayDeclaration.ValueNotAligned"/>
   </rule>
-
-  <!-- Forbid duplicate properties -->
-  <rule ref="Squiz.Classes.DuplicateProperty"/>
 
   <!-- Force `self::` for self-reference, force lower-case self, forbid spaces around `::` -->
   <rule ref="Squiz.Classes.SelfMemberReference"/>
@@ -319,14 +374,14 @@
   <!-- Forbid braces around string in `echo` -->
   <rule ref="Squiz.Strings.EchoedStrings"/>
 
-  <!-- Forbid spaces in type casts -->
+  <!-- No space inside (int); a space after the cast is required above -->
   <rule ref="Squiz.WhiteSpace.CastSpacing"/>
 
   <!-- Forbid blank line after function opening brace -->
   <rule ref="Squiz.WhiteSpace.FunctionOpeningBraceSpace"/>
 
   <!-- Require space after language constructs -->
-  <rule ref="Squiz.WhiteSpace.LanguageConstructSpacing"/>
+  <rule ref="Generic.WhiteSpace.LanguageConstructSpacing"/>
 
   <!-- Require space around logical operators -->
   <rule ref="Squiz.WhiteSpace.LogicalOperatorSpacing"/>
@@ -348,7 +403,7 @@
   <!-- Forbid superfluous whitespaces -->
   <rule ref="Squiz.WhiteSpace.SuperfluousWhitespace">
     <properties>
-      <!-- turned on by PSR2 -> turning back off -->
+      <!-- turned on by PSR12 -> turning back off -->
       <property name="ignoreBlankLines" value="false"/>
     </properties>
   </rule>

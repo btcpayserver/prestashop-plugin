@@ -132,7 +132,7 @@ clean: ## Remove previous builds
 	@ls -d $(MODULE_FOLDER)/* | grep -v $(MODULE) | xargs rm -rf
 
 lint: ## Lints the module
-	# Run PHP CS Fixer
+	# PrestaShop 9.2 PHP CS Fixer (same rules as .php-cs-fixer.dist.php)
 	@./vendor/bin/php-cs-fixer fix --diff --dry-run -v
 
 	# Run PHPCS
@@ -142,7 +142,7 @@ lint: ## Lints the module
 	@./vendor/bin/parallel-lint --exclude ./modules/btcpay/vendor ./modules/btcpay
 
 lint-fix: ## Resolves linter issues
-	# Run PHP CS Fixer
+	# PrestaShop 9.2 PHP CS Fixer
 	@./vendor/bin/php-cs-fixer fix -v
 
 	# Run PHPCBF
