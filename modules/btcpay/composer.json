@@ -17,35 +17,30 @@
     "source": "https://github.com/btcpayserver/prestashop-plugin"
   },
   "require": {
-    "php": ">=8.0",
-    "ext-PDO": "*",
+    "php": ">=8.4",
     "ext-bcmath": "*",
+    "ext-ctype": "*",
     "ext-curl": "*",
-    "ext-gd": "*",
-    "ext-intl": "*",
+    "ext-fileinfo": "*",
+    "ext-hash": "*",
     "ext-json": "*",
-    "ext-mbstring": "*",
     "btcpayserver/btcpayserver-greenfield-php": "^2.8.1",
     "composer/semver": "^3.4.2",
     "stechstudio/backoff": "^1.4"
   },
   "require-dev": {
     "ergebnis/composer-normalize": "^2.43",
-    "phpunit/phpunit": "^9.6",
+    "ext-dom": "*",
+    "ext-filter": "*",
+    "ext-libxml": "*",
+    "ext-mbstring": "*",
+    "ext-simplexml": "*",
+    "ext-tokenizer": "*",
+    "ext-xmlwriter": "*",
+    "phpunit/phpunit": "^12",
     "roave/security-advisories": "dev-latest",
-    "symfony/debug-bundle": "~5.4.40",
-    "symfony/var-dumper": "~5.4.43"
-  },
-  "replace": {
-    "symfony/polyfill-mbstring": "*",
-    "symfony/polyfill-php54": "*",
-    "symfony/polyfill-php55": "^1.10",
-    "symfony/polyfill-php56": "*",
-    "symfony/polyfill-php70": "*",
-    "symfony/polyfill-php71": "*",
-    "symfony/polyfill-php72": "*",
-    "symfony/polyfill-php73": "*",
-    "symfony/polyfill-php74": "*"
+    "symfony/debug-bundle": "^8.0",
+    "symfony/var-dumper": "^8.0"
   },
   "minimum-stability": "stable",
   "autoload": {
@@ -71,7 +66,7 @@
       "php-http/discovery": true
     },
     "platform": {
-      "php": "8.0"
+      "php": "8.4"
     },
     "preferred-install": "dist",
     "prepend-autoloader": false,

@@ -10,7 +10,7 @@
   <p>
     <a href="https://github.com/btcpayserver/prestashop-plugin/pulse"><img src="https://img.shields.io/maintenance/yes/2026?style=flat-square" alt="Maintained"/></a>
     <a href="https://github.com/btcpayserver/prestashop-plugin/actions"><img src="https://img.shields.io/github/actions/workflow/status/btcpayserver/prestashop-plugin/validate.yml?style=flat-square" alt="GitHub Workflow Status"/></a>
-    <a href="https://github.com/btcpayserver/prestashop-plugin/blob/6.x/LICENSE"><img src="https://img.shields.io/github/license/btcpayserver/prestashop-plugin?color=brightgreen&amp;style=flat-square" alt="GitHub License"/></a>
+    <a href="https://github.com/btcpayserver/prestashop-plugin/blob/7.x/LICENSE"><img src="https://img.shields.io/github/license/btcpayserver/prestashop-plugin?color=brightgreen&amp;style=flat-square" alt="GitHub License"/></a>
     <a href="https://github.com/btcpayserver/prestashop-plugin#contributing"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square" alt="PRs are welcome"/></a>
     <a href="https://github.com/btcpayserver/prestashop-plugin/graphs/contributors"><img src="https://img.shields.io/github/contributors-anon/btcpayserver/prestashop-plugin?style=flat-square" alt="GitHub contributors"/></a>
   </p>
@@ -40,8 +40,8 @@
 
 Please ensure that you meet the following requirements before installing this plugin.
 
-- You are using PHP 8.0 or higher
-- Your PrestaShop is version 8.0/9.0 or higher.
+- You are using PHP 8.4 or higher
+- Your PrestaShop is version 9.2 or higher.
 - Your BTCPay Server is version 1.7.0 or higher
 - The PDO, curl, gd, intl, json, and mbstring PHP extensions are available
 - You have a BTCPay Server, either [self-hosted](https://docs.btcpayserver.org/Deployment/) or [hosted by a third party](https://docs.btcpayserver.org/Deployment/ThirdPartyHosting/)
@@ -50,7 +50,7 @@ Please ensure that you meet the following requirements before installing this pl
 - [You've a wallet connected to your store](https://docs.btcpayserver.org/WalletSetup)
 
 ### Tested successfully
-- Prestashop v8.0, v8.0.1, v8.0.4, v8.1.0, v8.1.3, v8.1.4, v8.2.1, v9.0.0
+- Prestashop v9.2.0, v9.2.1
 - BTCPay server v1.7.0, v1.7.3.0, v1.12.5, v1.13.0, v1.13.5, v2.1.5, v2.2.1 
   - BTCPay server v2 is supported as of module version v6.3.0.
 
@@ -116,7 +116,7 @@ For webhook testing, follow the ngrok tunnel steps in the development guide. Alt
 
 PrestaShop support can be found through its official channels.
 
-* [Documentation](https://docs.prestashop-project.org/v.8-documentation) - contains answers to commonly asked questions and provides instructions for almost everything. Including setup, management, etc.
+* [Documentation](https://devdocs.prestashop-project.org/9/) - contains answers to commonly asked questions and provides instructions for almost everything. Including setup, management, etc.
 * [Support Forums](https://www.prestashop.com/forums) - the official Prestashop forum is a good place to find further answers and ask Prestashop related questions.
 
 ## 📝 License

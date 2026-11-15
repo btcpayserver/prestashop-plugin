@@ -94,11 +94,11 @@ SMTP is pointed at Mailpit on start (`init-scripts/001-mailpit-smtp.sh`). UI: [h
 
 ## Linting
 
-CI uses PHP 8.0/8.1. Prefer running via Docker if your host PHP is newer:
+CI uses PHP 8.4 and 8.5. Prefer running via Docker if your host PHP is older:
 
 ```sh
-docker run --rm -v "$PWD:/app" -w /app php:8.1-cli bash -c 'make lint-fix'
-docker run --rm -v "$PWD:/app" -w /app php:8.1-cli bash -c 'make lint'
+docker run --rm -v "$PWD:/app" -w /app php:8.4-cli bash -c 'make lint-fix'
+docker run --rm -v "$PWD:/app" -w /app php:8.4-cli bash -c 'make lint'
 ```
 
 ## Autocomplete

@@ -3,7 +3,7 @@ name: "Validate"
 on:
   push:
     paths: [ 'modules/**' ]
-    branches: [ '6.x' ]
+    branches: [ '7.x' ]
     tags: [ 'v*' ]
   pull_request:
     paths: [ 'modules/**' ]
@@ -16,7 +16,7 @@ jobs:
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        php-versions: [ '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
+        php-versions: [ '8.4', '8.5' ]
     steps:
       - name: "Checkout"
         uses: "actions/checkout@c2d88d3ecc89a9ef08eebf45d9637801dcee7eb5" # v6.0.1
@@ -44,19 +44,15 @@ jobs:
         run: "composer install --prefer-dist --no-progress --no-suggest --optimize-autoloader"
 
       # Ensure our code looks proper
-      # PHP_CS_FIXER_IGNORE_ENV is required because the pinned PHP-CS-Fixer
-      # only declares support up to PHP 8.1 but works fine on newer versions.
       - name: "Lint the code"
         run: "make lint"
-        env:
-          PHP_CS_FIXER_IGNORE_ENV: 1
 
   tests:
     name: "Tests (PHP ${{ matrix.php-versions }})"
     runs-on: "ubuntu-latest"
     strategy:
       matrix:
-        php-versions: [ '8.0', '8.1', '8.2', '8.3', '8.4', '8.5' ]
+        php-versions: [ '8.4', '8.5' ]
     defaults:
       run:
         working-directory: "modules/btcpay"
