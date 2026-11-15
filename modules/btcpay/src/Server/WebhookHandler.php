@@ -279,6 +279,13 @@ class WebhookHandler
 
 		// If there is no order, don't bother updating it
 		if (false === $bitcoinPayment->hasOrder()) {
+			// Delayed creation: a settled invoice still needs an order
+			if (Constants::ORDER_MODE_AFTER === $this->configuration->get(Constants::CONFIGURATION_ORDER_MODE)) {
+				$this->processor->paymentReceivedCreateAfter($bitcoinPayment);
+
+				return;
+			}
+
 			return;
 		}
 
