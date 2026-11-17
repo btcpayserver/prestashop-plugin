@@ -127,6 +127,10 @@ class Processor
 	{
 		// Get the order
 		$order = new \Order($bitcoinPayment->getOrderId());
+		if (\Validate::isLoadedObject($order) && $this->preserveClosedOrder($bitcoinPayment, $order)) {
+			return;
+		}
+
 		if (false === \Validate::isLoadedObject($order)) {
 			\PrestaShopLogger::addLog(\sprintf("[ERROR] Could not load order '%s' for settled invoice", $bitcoinPayment->getOrderId()), \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'BitcoinPayment', $bitcoinPayment->getId());
 
@@ -243,6 +247,9 @@ class Processor
 	{
 		// Get the order
 		$order = new \Order($bitcoinPayment->getOrderId());
+		if (\Validate::isLoadedObject($order) && $this->preserveClosedOrder($bitcoinPayment, $order)) {
+			return;
+		}
 
 		// Get the store ID
 		$storeID = $this->configuration->get(Constants::CONFIGURATION_BTCPAY_STORE_ID);
@@ -599,6 +606,21 @@ class Processor
 		}
 
 		return $orderStatus;
+	}
+
+	private function preserveClosedOrder(BitcoinPayment $payment, \Order $order): bool
+	{
+		$closed = [
+			(string) $this->configuration->get('PS_OS_CANCELED'),
+			(string) $this->configuration->get(Constants::CONFIGURATION_ORDER_STATE_FAILED),
+		];
+		if (!\in_array((string) $order->current_state, $closed, true)) {
+			return false;
+		}
+		// Account for confirmed funds without reopening, stock movement or paid email.
+		$this->bookAndLink($payment, $order);
+
+		return true;
 	}
 
 	private function orderStateIsPaid(string $orderStatus): bool
