@@ -48,12 +48,82 @@ class Processor
 		$this->client        = $client;
 	}
 
+	public function invoiceSettled(BitcoinPayment $bitcoinPayment): void
+	{
+		// Serialize the complete read/modify/write sequence, not just order creation.
+		$cartId = $bitcoinPayment->getCartId();
+		if (false === $this->acquireOrderCreationLock($cartId)) {
+			throw new OrderCreationBusyException('Invoice processing is busy; retry delivery.');
+		}
+		try {
+			$this->invoiceSettledUnlocked($bitcoinPayment);
+		} finally {
+			$this->releaseOrderCreationLock($cartId);
+		}
+	}
+
+	public function invoiceFailed(BitcoinPayment $bitcoinPayment): void
+	{
+		// Serialize the complete read/modify/write sequence, not just order creation.
+		$cartId = $bitcoinPayment->getCartId();
+		if (false === $this->acquireOrderCreationLock($cartId)) {
+			throw new OrderCreationBusyException('Invoice processing is busy; retry delivery.');
+		}
+		try {
+			$this->invoiceFailedUnlocked($bitcoinPayment);
+		} finally {
+			$this->releaseOrderCreationLock($cartId);
+		}
+	}
+
+	public function paymentReceived(BitcoinPayment $bitcoinPayment): void
+	{
+		// Serialize the complete read/modify/write sequence, not just order creation.
+		$cartId = $bitcoinPayment->getCartId();
+		if (false === $this->acquireOrderCreationLock($cartId)) {
+			throw new OrderCreationBusyException('Invoice processing is busy; retry delivery.');
+		}
+		try {
+			$this->paymentReceivedUnlocked($bitcoinPayment);
+		} finally {
+			$this->releaseOrderCreationLock($cartId);
+		}
+	}
+
+	public function paymentReceivedCreateAfter(BitcoinPayment $bitcoinPayment): void
+	{
+		// Serialize the complete read/modify/write sequence, not just order creation.
+		$cartId = $bitcoinPayment->getCartId();
+		if (false === $this->acquireOrderCreationLock($cartId)) {
+			throw new OrderCreationBusyException('Invoice processing is busy; retry delivery.');
+		}
+		try {
+			$this->paymentReceivedCreateAfterUnlocked($bitcoinPayment);
+		} finally {
+			$this->releaseOrderCreationLock($cartId);
+		}
+	}
+
+	public function paymentSettled(BitcoinPayment $bitcoinPayment): void
+	{
+		// Serialize the complete read/modify/write sequence, not just order creation.
+		$cartId = $bitcoinPayment->getCartId();
+		if (false === $this->acquireOrderCreationLock($cartId)) {
+			throw new OrderCreationBusyException('Invoice processing is busy; retry delivery.');
+		}
+		try {
+			$this->paymentSettledUnlocked($bitcoinPayment);
+		} finally {
+			$this->releaseOrderCreationLock($cartId);
+		}
+	}
+
 	/**
 	 * @throws \JsonException
 	 * @throws \PrestaShopDatabaseException
 	 * @throws \PrestaShopException
 	 */
-	public function invoiceSettled(BitcoinPayment $bitcoinPayment): void
+	private function invoiceSettledUnlocked(BitcoinPayment $bitcoinPayment): void
 	{
 		// Get the order
 		$order = new \Order($bitcoinPayment->getOrderId());
@@ -109,7 +179,7 @@ class Processor
 	 * @throws \PrestaShopDatabaseException
 	 * @throws \PrestaShopException
 	 */
-	public function invoiceFailed(BitcoinPayment $bitcoinPayment): void
+	private function invoiceFailedUnlocked(BitcoinPayment $bitcoinPayment): void
 	{
 		// Get the order
 		$order = new \Order($bitcoinPayment->getOrderId());
@@ -169,7 +239,7 @@ class Processor
 	 * @throws \PrestaShopDatabaseException
 	 * @throws \PrestaShopException
 	 */
-	public function paymentReceived(BitcoinPayment $bitcoinPayment): void
+	private function paymentReceivedUnlocked(BitcoinPayment $bitcoinPayment): void
 	{
 		// Get the order
 		$order = new \Order($bitcoinPayment->getOrderId());
@@ -200,20 +270,9 @@ class Processor
 	 * @throws \PrestaShopDatabaseException
 	 * @throws \PrestaShopException
 	 */
-	public function paymentReceivedCreateAfter(BitcoinPayment $bitcoinPayment): void
+	private function paymentReceivedCreateAfterUnlocked(BitcoinPayment $bitcoinPayment): void
 	{
-		$cartId = $bitcoinPayment->getCartId();
-
-		// Serialize creation so the webhook and customer return cannot both create an order
-		if (false === $this->acquireOrderCreationLock($cartId)) {
-			throw new OrderCreationBusyException(\sprintf("Could not acquire order creation lock for cart '%d'", $cartId));
-		}
-
-		try {
-			$this->createOrderAfterPayment($bitcoinPayment);
-		} finally {
-			$this->releaseOrderCreationLock($cartId);
-		}
+		$this->createOrderAfterPayment($bitcoinPayment);
 	}
 
 	/**
@@ -221,7 +280,7 @@ class Processor
 	 * @throws \PrestaShopDatabaseException
 	 * @throws \PrestaShopException
 	 */
-	public function paymentSettled(BitcoinPayment $bitcoinPayment): void
+	private function paymentSettledUnlocked(BitcoinPayment $bitcoinPayment): void
 	{
 		// Get the order
 		$order = new \Order($bitcoinPayment->getOrderId());
@@ -314,7 +373,7 @@ class Processor
 			$wasAlreadyPaid = $this->orderStateIsPaid((string) $existing->current_state);
 
 			// We already have an order, so process as normal
-			$this->paymentReceived($bitcoinPayment);
+			$this->paymentReceivedUnlocked($bitcoinPayment);
 
 			if ($wasAlreadyPaid) {
 				$this->bookAndLink($bitcoinPayment, $existing);
@@ -641,7 +700,7 @@ class Processor
 
 	private function bookAndLink(BitcoinPayment $bitcoinPayment, \Order $order): void
 	{
-		$this->paymentSettled($bitcoinPayment);
+		$this->paymentSettledUnlocked($bitcoinPayment);
 		$this->linkOrderPayments($order);
 	}
 
