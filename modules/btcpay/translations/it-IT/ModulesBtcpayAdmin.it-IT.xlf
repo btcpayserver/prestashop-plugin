@@ -402,6 +402,14 @@
         <source>Cached</source>
         <target state="final">In cache</target>
       </trans-unit>
+      <trans-unit id="late-payment-note" resname="Payment arrived after cancellation: complete or refund the order manually.">
+        <source>Payment arrived after cancellation: complete or refund the order manually.</source>
+        <target state="final">Pagamento arrivato dopo l'annullamento: completa o rimborsa a mano.</target>
+      </trans-unit>
+      <trans-unit id="late-payment-subject" resname="BTCPay Server: payment received for a closed order">
+        <source>BTCPay Server: payment received for a closed order</source>
+        <target state="final">BTCPay Server: pagamento ricevuto per un ordine chiuso</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>
