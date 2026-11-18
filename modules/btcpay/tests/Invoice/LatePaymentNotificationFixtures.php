@@ -40,7 +40,11 @@ class LatePaymentConfiguration
 			throw new \RuntimeException('Shop scope missing');
 		}
 
-		return 'PS_LANG_DEFAULT' === $key ? 2 : 'owner@example.test';
+		if ('PS_LANG_DEFAULT' !== $key) {
+			throw new \RuntimeException('Unexpected configuration lookup');
+		}
+
+		return 2;
 	}
 }
 
@@ -57,13 +61,12 @@ class LatePaymentCurrency
 class LatePaymentMail
 {
 	public static array $calls = [];
-	public static bool $success = true;
 
 	public static function send(...$arguments): bool
 	{
 		self::$calls[] = $arguments;
 
-		return self::$success;
+		return true;
 	}
 }
 

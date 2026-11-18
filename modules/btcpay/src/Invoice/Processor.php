@@ -627,29 +627,9 @@ class Processor
 		$message  = $this->context->getTranslator()->trans('Payment arrived after cancellation: complete or refund the order manually.', [], 'Modules.Btcpay.Admin', $language->locale);
 		$details  = \sprintf('BTCPay Server: order #%d, invoice %s, payment %s, amount %s %s. %s', $order->id, $payment->getInvoiceId(), $transactionId, $amount, \Currency::getCurrencyInstance((int) $order->id_currency)->iso_code, $message);
 
-		\PrestaShopLogger::addLog($details, \PrestaShopLogger::LOG_SEVERITY_LEVEL_WARNING, null, 'Order', (int) $order->id);
+		// Use PrestaShop's merchant log emails, as for other processing errors.
+		\PrestaShopLogger::addLog($details, \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'Order', (int) $order->id);
 		CustomerMessage::addToOrder($this->context->shop, $order, $details);
-
-		if (false === \Mail::Send(
-			(int) $language->id,
-			'late_payment',
-			$this->context->getTranslator()->trans('BTCPay Server: payment received for a closed order', [], 'Modules.Btcpay.Admin', $language->locale),
-			[
-				'{late_payment_details}'      => $details,
-				'{late_payment_details_html}' => \htmlspecialchars($details, \ENT_QUOTES, 'UTF-8'),
-			],
-			(string) \Configuration::get('PS_SHOP_EMAIL', null, null, (int) $order->id_shop),
-			null,
-			null,
-			null,
-			null,
-			null,
-			\dirname(__DIR__, 2) . '/mails/',
-			false,
-			(int) $order->id_shop
-		)) {
-			\PrestaShopLogger::addLog('BTCPay Server: could not send the late payment email; see the private order note.', \PrestaShopLogger::LOG_SEVERITY_LEVEL_ERROR, null, 'Order', (int) $order->id);
-		}
 	}
 
 	private function preserveClosedOrder(BitcoinPayment $payment, \Order $order): bool
